@@ -2,9 +2,14 @@
   "name": "lunte",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./src/index.js",
+  "bin": {
+    "lunte": "./bin/lunte"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "check": "node scripts/check-syntax.js",
+    "vendor:acorn": "node scripts/vendor-acorn.js"
   },
   "keywords": [],
   "author": "Mikkel Malmberg <mikkel@brnbw.com>",
