@@ -7,12 +7,15 @@
     "lunte": "./bin/lunte"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "brittle \"test/**/*.test.js\"",
     "check": "node scripts/check-syntax.js",
     "vendor:acorn": "node scripts/vendor-acorn.js"
   },
   "keywords": [],
   "author": "Mikkel Malmberg <mikkel@brnbw.com>",
   "license": "Apache-2.0",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "brittle": "^3.19.0"
+  }
 }

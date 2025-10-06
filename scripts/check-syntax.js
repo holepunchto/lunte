@@ -7,6 +7,7 @@ import { execFile } from 'node:child_process';
 
 const execFileAsync = promisify(execFile);
 const roots = ['bin', 'src', 'scripts', 'test'];
+const ignorePatterns = [/test\/fixtures\/invalid\.js$/];
 
 async function gatherFiles(dir) {
   let entries;
@@ -25,7 +26,9 @@ async function gatherFiles(dir) {
     if (entry.isDirectory()) {
       result.push(...await gatherFiles(fullPath));
     } else if (entry.isFile() && extname(entry.name) === '.js') {
-      result.push(fullPath);
+      if (!ignorePatterns.some((pattern) => pattern.test(fullPath))) {
+        result.push(fullPath);
+      }
     }
   }
   return result;

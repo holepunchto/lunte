@@ -1,9 +1,8 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import test from 'brittle';
 
 import { run } from '../src/cli.js';
 
-test('shows help when requested', async () => {
+test('shows help when requested', async (t) => {
   const exitCode = await run(['--help']);
-  assert.equal(exitCode, 0);
+  t.is(exitCode, 0, 'expected exit code 0 when showing help');
 });

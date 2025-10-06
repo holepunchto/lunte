@@ -1,4 +1,5 @@
 import { analyze } from './core/analyzer.js';
+import { formatConsoleReport } from './core/reporter.js';
 
 export async function run(argv = []) {
   const options = parseArguments(argv);
@@ -14,8 +15,12 @@ export async function run(argv = []) {
     return 1;
   }
 
-  await analyze({ files: options.files });
-  return 0;
+  const result = await analyze({ files: options.files });
+  const output = formatConsoleReport(result);
+  console.log(output);
+
+  const hasErrors = result.diagnostics.some((d) => d.severity === 'error');
+  return hasErrors ? 1 : 0;
 }
 
 function parseArguments(argv) {
