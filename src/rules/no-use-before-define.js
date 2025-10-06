@@ -1,3 +1,16 @@
+const allowedGlobals = new Set([
+  'console',
+  'process',
+  'global',
+  'globalThis',
+  'window',
+  'module',
+  'exports',
+  'require',
+  '__dirname',
+  '__filename',
+]);
+
 export const noUseBeforeDefine = {
   meta: {
     name: 'no-use-before-define',
@@ -6,11 +19,84 @@ export const noUseBeforeDefine = {
   },
   create(context) {
     return {
-      // Visitor placeholders; implementation arrives once scope tracking exists.
       Identifier(node) {
-        void node;
-        void context;
+        const parent = context.getParent();
+
+        if (!isReferenceIdentifier(node, parent)) {
+          return;
+        }
+
+        if (allowedGlobals.has(node.name)) {
+          return;
+        }
+
+        const definition = context.resolve(node.name, node.start);
+
+        if (definition) {
+          return;
+        }
+
+        const futureDefinition = context.resolve(node.name, Number.POSITIVE_INFINITY);
+
+        if (futureDefinition) {
+          if (!futureDefinition.hoisted) {
+            context.report({
+              node,
+              message: `'${node.name}' was used before it was defined.`,
+            });
+          }
+          return;
+        }
+
+        context.report({
+          node,
+          message: `'${node.name}' is not defined.`,
+        });
       },
     };
   },
 };
+
+function isReferenceIdentifier(node, parent) {
+  if (!parent) return true;
+
+  switch (parent.type) {
+    case 'VariableDeclarator':
+      return parent.id !== node;
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+      return parent.id !== node;
+    case 'ClassDeclaration':
+    case 'ClassExpression':
+      return parent.id !== node;
+    case 'ImportSpecifier':
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+      return false;
+    case 'LabeledStatement':
+      return false;
+    case 'BreakStatement':
+    case 'ContinueStatement':
+      return false;
+    case 'CatchClause':
+      return parent.param !== node;
+    case 'MemberExpression':
+      return parent.object === node || parent.computed;
+    case 'Property':
+      if (parent.shorthand && parent.value === node) {
+        return true;
+      }
+      return parent.key !== node;
+    case 'PropertyDefinition':
+      return parent.key !== node;
+    case 'MethodDefinition':
+      return parent.key !== node;
+    case 'ArrayPattern':
+    case 'ObjectPattern':
+      return false;
+    case 'AssignmentPattern':
+      return parent.left !== node;
+    default:
+      return true;
+  }
+}

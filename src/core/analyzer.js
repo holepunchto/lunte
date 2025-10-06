@@ -1,4 +1,5 @@
 import { parse } from './parser.js';
+import { runRules } from './rule-runner.js';
 
 export async function analyze({ files }) {
   const diagnostics = [];
@@ -27,7 +28,9 @@ async function analyzeFile(filePath) {
   }
 
   try {
-    parse(source, { sourceFile: filePath });
+    const ast = parse(source, { sourceFile: filePath });
+    const ruleDiagnostics = runRules({ ast, filePath, source });
+    diagnostics.push(...ruleDiagnostics);
   } catch (error) {
     diagnostics.push(
       buildParseErrorDiagnostic({ error, filePath, source }),

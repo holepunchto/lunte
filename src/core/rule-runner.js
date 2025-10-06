@@ -1,0 +1,289 @@
+import { ScopeManager } from './scope-manager.js';
+import { RuleContext } from './rule-context.js';
+import { builtInRules } from '../rules/index.js';
+
+export function runRules({ ast, filePath, source }) {
+  const scopeManager = new ScopeManager();
+  const diagnostics = [];
+
+  const ruleEntries = Array.from(builtInRules.values()).map((rule) => {
+    const context = new RuleContext({
+      filePath,
+      source,
+      diagnostics,
+      scopeManager,
+    });
+    const listeners = normalizeListeners(rule.create(context) ?? {});
+    return { context, listeners };
+  });
+
+  const state = {
+    scopeManager,
+    ruleEntries,
+  };
+
+  traverse(ast, state, []);
+
+  return diagnostics;
+}
+
+function traverse(node, state, ancestors) {
+  if (!node || typeof node.type !== 'string') {
+    return;
+  }
+
+  const parent = ancestors[ancestors.length - 1] ?? null;
+
+  const scopeType = getScopeType(node, parent);
+  if (scopeType) {
+    state.scopeManager.enterScope(scopeType, node);
+    hoistFunctionDeclarations(node, state.scopeManager);
+    handleScopeIntroductions(node, state.scopeManager);
+  }
+
+  handleInScopeDeclarations(node, state.scopeManager);
+
+  const nextAncestors = ancestors.concat(node);
+  notifyListeners('enter', node, nextAncestors, state);
+
+  for (const child of iterateChildren(node)) {
+    traverse(child, state, nextAncestors);
+  }
+
+  notifyListeners('exit', node, nextAncestors, state);
+
+  if (scopeType) {
+    state.scopeManager.exitScope();
+  }
+}
+
+function notifyListeners(phase, node, ancestors, state) {
+  for (const entry of state.ruleEntries) {
+    const handlers = entry.listeners[phase].get(node.type);
+    if (!handlers) continue;
+    entry.context.setTraversalState({ node, ancestors: ancestors.slice(0, -1) });
+    for (const handler of handlers) {
+      handler(node);
+    }
+  }
+}
+
+function normalizeListeners(listenerMap) {
+  const enter = new Map();
+  const exit = new Map();
+
+  for (const [selector, handler] of Object.entries(listenerMap)) {
+    if (typeof handler !== 'function') continue;
+    if (selector.endsWith(':exit')) {
+      const type = selector.slice(0, -5);
+      pushHandler(exit, type, handler);
+    } else {
+      pushHandler(enter, selector, handler);
+    }
+  }
+
+  return { enter, exit };
+}
+
+function pushHandler(store, type, handler) {
+  if (!store.has(type)) {
+    store.set(type, []);
+  }
+  store.get(type).push(handler);
+}
+
+function getScopeType(node, parent) {
+  switch (node.type) {
+    case 'Program':
+      return 'program';
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      return 'function';
+    case 'BlockStatement':
+      return 'block';
+    case 'CatchClause':
+      return 'block';
+    default:
+      if (node.type === 'ForStatement' || node.type === 'ForInStatement' || node.type === 'ForOfStatement') {
+        return null;
+      }
+      return null;
+  }
+}
+
+function handleScopeIntroductions(node, scopeManager) {
+  if (node.type === 'Program') {
+    return;
+  }
+
+  if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
+    for (const param of node.params ?? []) {
+      for (const { name, node: id } of extractPatternIdentifiers(param)) {
+        scopeManager.declare(name, createDeclarationInfo(id, {
+          kind: 'param',
+          hoisted: true,
+        }));
+      }
+    }
+
+    if ((node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') && node.id) {
+      scopeManager.declare(node.id.name, createDeclarationInfo(node.id, {
+        kind: 'function',
+        hoisted: true,
+      }));
+    }
+  }
+
+  if (node.type === 'CatchClause' && node.param) {
+    for (const { name, node: id } of extractPatternIdentifiers(node.param)) {
+      scopeManager.declare(name, createDeclarationInfo(id, {
+        kind: 'catch',
+        hoisted: true,
+      }));
+    }
+  }
+}
+
+function handleInScopeDeclarations(node, scopeManager) {
+  if (node.type === 'VariableDeclaration') {
+    for (const declarator of node.declarations) {
+      for (const { name, node: id } of extractPatternIdentifiers(declarator.id)) {
+        const hoisted = node.kind === 'var';
+        const info = createDeclarationInfo(id, {
+          kind: node.kind,
+          hoisted,
+          index: hoisted ? undefined : inferTemporalDeadZoneIndex(declarator),
+        });
+        scopeManager.declare(name, info, { hoistTo: hoisted ? 'function' : undefined });
+      }
+    }
+  }
+
+  if (node.type === 'ImportDeclaration') {
+    for (const specifier of node.specifiers) {
+      const local = specifier.local;
+      scopeManager.declare(local.name, createDeclarationInfo(local, {
+        kind: 'import',
+        hoisted: true,
+      }));
+    }
+  }
+
+  if (node.type === 'ClassDeclaration' && node.id) {
+    scopeManager.declare(node.id.name, createDeclarationInfo(node.id, {
+      kind: 'class',
+      hoisted: false,
+    }));
+  }
+}
+
+function hoistFunctionDeclarations(node, scopeManager) {
+  const body = getBodyStatements(node);
+  if (!body) return;
+
+  for (const statement of body) {
+    if (statement && statement.type === 'FunctionDeclaration' && statement.id) {
+      scopeManager.declare(statement.id.name, createDeclarationInfo(statement.id, {
+        kind: 'function',
+        hoisted: true,
+      }), { hoistTo: 'function' });
+    }
+  }
+}
+
+function getBodyStatements(node) {
+  switch (node.type) {
+    case 'Program':
+      return node.body;
+    case 'BlockStatement':
+      return node.body;
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      if (node.body && node.body.type === 'BlockStatement') {
+        return node.body.body;
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+function createDeclarationInfo(node, { kind, hoisted, index }) {
+  return {
+    kind,
+    hoisted,
+    node,
+    index: resolveIndex(node, index),
+  };
+}
+
+function resolveIndex(node, providedIndex) {
+  if (typeof providedIndex === 'number') {
+    return providedIndex;
+  }
+  return typeof node.start === 'number' ? node.start : Number.NEGATIVE_INFINITY;
+}
+
+function inferTemporalDeadZoneIndex(declarator) {
+  if (declarator?.init && typeof declarator.init.end === 'number') {
+    return declarator.init.end;
+  }
+  if (declarator && typeof declarator.end === 'number') {
+    return declarator.end;
+  }
+  return undefined;
+}
+
+function extractPatternIdentifiers(pattern) {
+  const results = [];
+  if (!pattern) return results;
+
+  switch (pattern.type) {
+    case 'Identifier':
+      results.push({ name: pattern.name, node: pattern });
+      break;
+    case 'RestElement':
+      results.push(...extractPatternIdentifiers(pattern.argument));
+      break;
+    case 'AssignmentPattern':
+      results.push(...extractPatternIdentifiers(pattern.left));
+      break;
+    case 'ArrayPattern':
+      for (const element of pattern.elements) {
+        results.push(...extractPatternIdentifiers(element));
+      }
+      break;
+    case 'ObjectPattern':
+      for (const prop of pattern.properties) {
+        if (prop.type === 'RestElement') {
+          results.push(...extractPatternIdentifiers(prop.argument));
+        } else {
+          results.push(...extractPatternIdentifiers(prop.value));
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+  return results;
+}
+
+function* iterateChildren(node) {
+  for (const key of Object.keys(node)) {
+    if (key === 'loc' || key === 'range' || key === 'start' || key === 'end') continue;
+    const value = node[key];
+    if (!value) continue;
+    if (Array.isArray(value)) {
+      for (const element of value) {
+        if (element && typeof element.type === 'string') {
+          yield element;
+        }
+      }
+    } else if (value && typeof value.type === 'string') {
+      yield value;
+    }
+  }
+}
