@@ -32,7 +32,8 @@ function formatDiagnosticLine(diag) {
   const location = diag.line != null ? `${diag.line}:${diag.column ?? 1}` : '?:?'
   const color = diag.severity === Severity.error ? COLORS.red : COLORS.yellow
   const label = diag.severity.toUpperCase()
-  return `${diag.filePath}:${location}  ${color}${label}${COLORS.reset}  ${diag.message}`
+  const ruleSuffix = diag.ruleId ? ` (${diag.ruleId})` : ''
+  return `${diag.filePath}:${location}  ${color}${label}${ruleSuffix}${COLORS.reset}  ${diag.message}`
 }
 
 function buildSummary(diagnostics) {

@@ -1,42 +1,39 @@
 # Lunte Linter Development Plan
 
-## Stage 0 – Project Scaffold
+## Stage 0 – Project Scaffold ✅ (complete)
 
-- Initialize CLI entry (`bin/lunte`) wired via `package.json`.
-- Vendor Acorn parser source under `vendor/acorn`, add build script to refresh vendor copy.
-- Configure plain JavaScript project structure with strict lint/test scripts using `node:test`.
-- Establish repo conventions: lint rule layout (`src/rules`), shared utilities (`src/core`), and configuration format docs.
+- CLI entry wired via `package.json`, Acorn vendored under `vendor/acorn`, and the repository structured as a plain JavaScript project with `node:test`.
+- Shared layout for core utilities (`src/core`), rules (`src/rules`), and docs is in place.
 
-## Stage 1 – Minimal Analyzer
+## Stage 1 – Minimal Analyzer ✅ (complete)
 
-- Implement file loader, CLI arg parsing, and glob expansion without extra dependencies.
-- Build parsing wrapper around Acorn that outputs ESTree nodes plus location metadata helpers.
-- Implement scope tracker and symbol table utilities to support `no-use-before-define` rule.
-- Create rule engine interface (`RuleContext`, visitor callbacks) and register the first rule.
-- Add console formatter that prints file:line:column, severity, and message counts.
+- File resolution, CLI argument parsing (including glob support), AST parsing, scope tracking, and the base reporter are shipped.
+- Initial rule engine and the first rules (`no-use-before-define`, `no-undef`, `no-unused-vars`) are active.
 
-## Stage 2 – Configuration & Reporting
+## Stage 2 – Configuration & Reporting ⚙️ (in progress)
 
-- Design layered config resolution (project root `.lunterc.json`, overrides, inline ignores).
-- Add severity levels, rule options, and ability to disable per file or block via comments.
-- Extend reporters: stylish default, JSON for tooling integration, quiet mode.
-- Document configuration schema and reporter usage in `docs/`.
+- DONE: `.lunterc` / `.lunterc.json` loading with CLI merge, gitignore-style `.lunteignore`, default env/globals, and improved console formatting.
+- TODO: per-rule options surfaced via config, additional reporters (stylish/JSON/SARIF), quiet mode, and documentation of config keys.
 
-## Stage 3 – Rule Suite Expansion
+## Stage 3 – Rule Suite Expansion ⚙️ (in progress)
 
-- Add core symbol/data-flow helpers for unused vars, undefined vars, shadowing, and simple constant folding.
-- Implement autofix primitives and update formatter to show fix hints.
-- Provide snapshot-style tests for each rule and regression fixtures for tricky patterns.
+- DONE: Core helpers now recognise exports, module-level hoisting, DOM globals, and destructuring.
+- TODO: add more semantic rules (shadowing, unused params, constant folding), begin autofix infrastructure, expand fixture coverage.
 
-## Stage 4 – Incremental & Integration Prep
+## Stage 4 – Incremental & Integration Prep 🛣️ (not started)
 
-- Introduce file cache to reuse AST/scope info between runs and enable `--watch` mode.
-- Publish public API for programmatic runs (ESM/CJS) with JSDoc annotations for editor tooling.
-- Outline LSP server surface (diagnostics, code actions) built on the shared analyzer services.
-- Create contributor guide describing how to add new rules and vendor updates to Acorn.
+- Introduce an analysis cache / `--watch` mode.
+- Publish a small programmatic API with typings/JSDoc and author contributor docs.
+- Design LSP-ready service interfaces (diagnostics, code actions).
 
-## Stage 5 – LSP Prototype
+## Stage 5 – LSP Prototype 🧭 (not started)
 
-- Implement thin LSP server wrapping the analyzer; support incremental document updates.
-- Map diagnostics to LSP protocol, including related information and quick fixes.
-- Integrate with editor samples (VS Code, Neovim) and document setup in `docs/integration.md`.
+- Build the lightweight LSP server on top of the shared analyzer.
+- Emit proper LSP diagnostics and quick-fix actions; test with VS Code / Neovim adapters.
+- Document editor integration in `docs/integration.md`.
+
+## Near-Term Next Steps
+
+- Finish Stage 2 deliverables (reporters + config docs).
+- Add rule options/overrides documentation and expose severity toggles via config.
+- Plan incremental analysis work (API sketch + cache semantics).
