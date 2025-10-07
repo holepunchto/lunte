@@ -17,7 +17,7 @@
 
 ## Stage 2 – Configuration & Reporting
 
-- Design layered config resolution (project root `.luntrc.json`, overrides, inline ignores).
+- Design layered config resolution (project root `.lunterc.json`, overrides, inline ignores).
 - Add severity levels, rule options, and ability to disable per file or block via comments.
 - Extend reporters: stylish default, JSON for tooling integration, quiet mode.
 - Document configuration schema and reporter usage in `docs/`.

@@ -3,6 +3,7 @@ import { formatConsoleReport } from './core/reporter.js'
 import { Severity } from './core/constants.js'
 import { resolveFileTargets } from './core/file-resolver.js'
 import { loadIgnore } from './core/ignore.js'
+import { loadConfig } from './config/loader.js'
 
 export async function run(argv = []) {
   const options = parseArguments(argv)
@@ -18,18 +19,24 @@ export async function run(argv = []) {
     return 1
   }
 
-  const ignoreMatcher = await loadIgnore({ cwd: process.cwd() })
+  const cwd = process.cwd()
+  const { config } = await loadConfig({ cwd })
+  const ignoreMatcher = await loadIgnore({ cwd })
   const files = await resolveFileTargets(options.files, { ignore: ignoreMatcher })
   if (files.length === 0) {
     console.error('No JavaScript files found.')
     return 1
   }
 
+  const mergedEnv = mergeEnv(config.env, options.envs)
+  const mergedGlobals = mergeGlobals(config.globals, options.globals)
+  const mergedRuleOverrides = mergeRuleOverrides(config.rules, options.ruleOverrides)
+
   const result = await analyze({
     files,
-    ruleOverrides: options.ruleOverrides,
-    envOverrides: options.envs,
-    globalOverrides: options.globals
+    ruleOverrides: mergedRuleOverrides,
+    envOverrides: mergedEnv,
+    globalOverrides: mergedGlobals
   })
   const output = formatConsoleReport(result)
   console.log(output)
@@ -135,4 +142,20 @@ function parseListArgument(arg, nextValue, flagName) {
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean)
+}
+
+function mergeEnv(configEnv = [], cliEnv = []) {
+  return [...configEnv, ...cliEnv]
+}
+
+function mergeGlobals(configGlobals = [], cliGlobals = []) {
+  return [...configGlobals, ...cliGlobals]
+}
+
+function mergeRuleOverrides(configRules = {}, cliOverrides = []) {
+  const merged = []
+  for (const [name, severity] of Object.entries(configRules ?? {})) {
+    merged.push({ name, severity })
+  }
+  return [...merged, ...cliOverrides]
 }

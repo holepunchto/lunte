@@ -11,11 +11,18 @@ export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() }
 
   for (const input of inputs) {
     const normalized = toPosix(input)
+    const absolutePattern = isAbsolute(input)
     if (hasMagic(normalized)) {
       const base = getGlobBase(normalized)
       const baseDir = resolvePath(cwd, base || '.')
       const regex = globToRegExp(normalized)
-      await collectGlob({ baseDir, matcher: regex, files, ignore: ignoreMatcher, cwd })
+      await collectGlob({
+        baseDir,
+        matcher: { regex, absolute: absolutePattern },
+        files,
+        ignore: ignoreMatcher,
+        cwd
+      })
     } else {
       await collectPath(resolvePath(cwd, input), { files, ignore: ignoreMatcher, cwd })
     }
@@ -91,10 +98,10 @@ async function collectGlob({ baseDir, matcher, files, ignore, cwd }) {
   }
 
   if (!info.isDirectory()) {
-    if (
-      !ignore.ignores?.(baseDir, { isDir: false }) &&
-      matcher.test(toPosix(relative(cwd, baseDir)))
-    ) {
+    const candidate = matcher.absolute
+      ? toPosix(baseDir)
+      : toPosix(relative(cwd, baseDir))
+    if (!ignore.ignores?.(baseDir, { isDir: false }) && matcher.regex.test(candidate)) {
       files.add(baseDir)
     }
     return
@@ -132,8 +139,10 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
       continue
     }
 
-    const rel = toPosix(relative(cwd, fullPath))
-    if (!matcher.test(rel)) {
+    const candidate = matcher.absolute
+      ? toPosix(fullPath)
+      : toPosix(relative(cwd, fullPath))
+    if (!matcher.regex.test(candidate)) {
       continue
     }
 

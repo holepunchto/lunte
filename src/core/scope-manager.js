@@ -61,6 +61,9 @@ export class ScopeManager {
     while (scope) {
       const declarations = scope.getDeclarations(name)
       const match = declarations.find((decl) => {
+        if (scope.type === 'program') {
+          return true
+        }
         if (decl.hoisted) return true
         if (typeof beforeIndex !== 'number') return true
         return decl.index <= beforeIndex

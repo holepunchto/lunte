@@ -23,27 +23,23 @@ export const noUseBeforeDefine = {
           return
         }
 
-        const definition = context.resolve(node.name, node.start)
+        const resolved = context.resolve(node.name, Number.POSITIVE_INFINITY)
 
-        if (definition) {
+        if (!resolved) {
           return
         }
 
-        const futureDefinition = context.resolve(node.name, Number.POSITIVE_INFINITY)
+        if (resolved.hoisted) {
+          return
+        }
 
-        if (futureDefinition) {
-          if (!futureDefinition.hoisted) {
-            context.report({
-              node,
-              message: `'${node.name}' was used before it was defined.`
-            })
-          }
+        if (resolved.index <= node.start) {
           return
         }
 
         context.report({
           node,
-          message: `'${node.name}' is not defined.`
+          message: `'${node.name}' was used before it was defined.`
         })
       }
     }

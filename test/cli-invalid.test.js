@@ -2,9 +2,15 @@ import test from 'brittle'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { mkdtemp, writeFile, mkdir } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)
+
+async function createTempDir(prefix) {
+  return mkdtemp(join(tmpdir(), `lunte-cli-${prefix}-`))
+}
 
 function runCli(args) {
   return new Promise((resolve, reject) => {
@@ -30,7 +36,9 @@ function runCli(args) {
 }
 
 test('CLI reports parse errors', async (t) => {
-  const file = join('test/fixtures/invalid.js')
+  const dir = await createTempDir('parse')
+  const file = join(dir, 'invalid.js')
+  await writeFile(file, 'const answer =;\n')
   const result = await runCli([file])
 
   t.is(result.code, 1)
@@ -39,7 +47,9 @@ test('CLI reports parse errors', async (t) => {
 })
 
 test('CLI exits 0 for valid input', async (t) => {
-  const file = join('test/fixtures/valid.js')
+  const dir = await createTempDir('valid')
+  const file = join(dir, 'valid.js')
+  await writeFile(file, 'const answer = 42\nconsole.log(answer)\n')
   const result = await runCli([file])
 
   t.is(result.code, 0)
@@ -48,7 +58,9 @@ test('CLI exits 0 for valid input', async (t) => {
 })
 
 test('CLI respects rule overrides', async (t) => {
-  const file = join('test/fixtures/no-unused-vars-invalid.js')
+  const dir = await createTempDir('unused')
+  const file = join(dir, 'unused.js')
+  await writeFile(file, 'const unused = 1\n')
   const result = await runCli(['--rule', 'no-unused-vars=off', file])
 
   t.is(result.code, 0)
@@ -57,7 +69,9 @@ test('CLI respects rule overrides', async (t) => {
 })
 
 test('CLI env flag enables browser globals', async (t) => {
-  const file = join('test/fixtures/env-browser.js')
+  const dir = await createTempDir('env')
+  const file = join(dir, 'browser.js')
+  await writeFile(file, 'document.body; window.alert;\n')
   const result = await runCli(['--env', 'browser', file])
 
   t.is(result.code, 0)
@@ -66,7 +80,10 @@ test('CLI env flag enables browser globals', async (t) => {
 })
 
 test('CLI expands directory inputs', async (t) => {
-  const dir = join('test/fixtures/sample-project')
+  const dir = await createTempDir('dir')
+  await writeFile(join(dir, 'a.js'), 'console.log(1)\n')
+  await mkdir(join(dir, 'sub'))
+  await writeFile(join(dir, 'sub', 'b.js'), 'console.log(2)\n')
   const result = await runCli([dir])
 
   t.is(result.code, 0)
@@ -75,7 +92,11 @@ test('CLI expands directory inputs', async (t) => {
 })
 
 test('CLI expands glob patterns', async (t) => {
-  const pattern = 'test/fixtures/sample-project/**/*.js'
+  const dir = await createTempDir('glob')
+  await writeFile(join(dir, 'a.js'), 'console.log(1)\n')
+  await mkdir(join(dir, 'nested'))
+  await writeFile(join(dir, 'nested', 'b.js'), 'console.log(2)\n')
+  const pattern = join(dir, '**/*.js')
   const result = await runCli([pattern])
 
   t.is(result.code, 0)

@@ -43,14 +43,19 @@ export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
       }
 
       const rel = toPosixPath(relative(cwd, targetPath))
-      if (rel.startsWith('..')) {
-        return false
-      }
+      const abs = toPosixPath(targetPath)
+      const relValue = rel === '' ? '.' : rel
 
-      const value = rel === '' ? '.' : rel
-      const candidates = [value]
+      const candidates = []
+      if (!rel.startsWith('..')) {
+        candidates.push(relValue)
+      }
+      candidates.push(abs)
       if (isDir) {
-        candidates.push(`${value}/`)
+        if (!rel.startsWith('..')) {
+          candidates.push(`${relValue}/`)
+        }
+        candidates.push(`${abs.replace(/\/+$/, '')}/`)
       }
 
       let ignored = false

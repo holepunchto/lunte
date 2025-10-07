@@ -51,3 +51,11 @@ test('respects global directive', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('allows exported class before usage', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('export-class.js')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0)
+})

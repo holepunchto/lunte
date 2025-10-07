@@ -55,6 +55,9 @@ function traverse(node, state, ancestors) {
   const scopeType = getScopeType(node, parent)
   if (scopeType) {
     state.scopeManager.enterScope(scopeType, node)
+    if (scopeType === 'program') {
+      hoistProgramDeclarations(node, state.scopeManager)
+    }
     hoistFunctionDeclarations(node, state.scopeManager)
     handleScopeIntroductions(node, state.scopeManager)
   }
@@ -267,6 +270,81 @@ function hoistFunctionDeclarations(node, scopeManager) {
           }),
           { hoistTo: 'function' }
         )
+      } else if (decl.type === 'ClassDeclaration' && decl.id) {
+        scopeManager.declare(
+          decl.id.name,
+          createDeclarationInfo(decl.id, {
+            kind: 'class',
+            hoisted: true
+          }),
+          { hoistTo: 'function' }
+        )
+      }
+    }
+  }
+}
+
+function hoistProgramDeclarations(programNode, scopeManager) {
+  if (!programNode || programNode.type !== 'Program') return
+
+  for (const statement of programNode.body ?? []) {
+    if (!statement) continue
+
+    if (statement.type === 'VariableDeclaration') {
+      for (const declarator of statement.declarations) {
+        for (const { name, node: id } of extractPatternIdentifiers(declarator.id)) {
+          scopeManager.declare(
+            name,
+            createDeclarationInfo(id, {
+              kind: statement.kind,
+              hoisted: true,
+            }),
+            { hoistTo: 'function' }
+          )
+        }
+      }
+      continue
+    }
+
+    if (statement.type === 'FunctionDeclaration' && statement.id) {
+      scopeManager.declare(
+        statement.id.name,
+        createDeclarationInfo(statement.id, {
+          kind: 'function',
+          hoisted: true,
+        }),
+        { hoistTo: 'function' }
+      )
+      continue
+    }
+
+    if (statement.type === 'ClassDeclaration' && statement.id) {
+      scopeManager.declare(
+        statement.id.name,
+        createDeclarationInfo(statement.id, {
+          kind: 'class',
+          hoisted: true,
+        }),
+        { hoistTo: 'function' }
+      )
+      continue
+    }
+
+    if (
+      (statement.type === 'ExportNamedDeclaration' ||
+        statement.type === 'ExportDefaultDeclaration') &&
+      statement.declaration
+    ) {
+      const decl = statement.declaration
+      if (decl.type === 'ClassDeclaration' && decl.id) {
+        scopeManager.declare(
+          decl.id.name,
+          createDeclarationInfo(decl.id, {
+            kind: 'class',
+            hoisted: true,
+          }),
+          { hoistTo: 'function' }
+        )
       }
     }
   }
@@ -307,10 +385,18 @@ function resolveIndex(node, providedIndex) {
 }
 
 function inferTemporalDeadZoneIndex(declarator) {
-  if (declarator?.init && typeof declarator.init.end === 'number') {
-    return declarator.init.end
+  if (!declarator) return undefined
+  const init = declarator.init
+  if (!init) return undefined
+
+  if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
+    return typeof init.start === 'number' ? init.start : declarator.start
   }
-  if (declarator && typeof declarator.end === 'number') {
+
+  if (typeof init.end === 'number') {
+    return init.end
+  }
+  if (typeof declarator.end === 'number') {
     return declarator.end
   }
   return undefined
