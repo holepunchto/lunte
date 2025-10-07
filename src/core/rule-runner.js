@@ -1,17 +1,33 @@
 import { ScopeManager } from './scope-manager.js';
 import { RuleContext } from './rule-context.js';
 import { builtInRules } from '../rules/index.js';
+import { Severity } from './constants.js';
+import { getDefaultRuleConfig } from '../config/defaults.js';
 
-export function runRules({ ast, filePath, source }) {
+export function runRules({ ast, filePath, source, ruleConfig, globals }) {
+  const effectiveConfig = ruleConfig ?? getDefaultRuleConfig();
+  const activeRules = [];
+
+  for (const [name, rule] of builtInRules.entries()) {
+    const config = effectiveConfig.get(name) ?? { severity: rule.meta?.defaultSeverity ?? Severity.error };
+    if (!config || config.severity === Severity.off) {
+      continue;
+    }
+    activeRules.push({ name, rule, config });
+  }
+
   const scopeManager = new ScopeManager();
   const diagnostics = [];
 
-  const ruleEntries = Array.from(builtInRules.values()).map((rule) => {
+  const ruleEntries = activeRules.map(({ rule, name, config }) => {
     const context = new RuleContext({
       filePath,
       source,
       diagnostics,
       scopeManager,
+      ruleId: name,
+      ruleSeverity: config.severity,
+      globals,
     });
     const listeners = normalizeListeners(rule.create(context) ?? {});
     return { context, listeners };
@@ -74,12 +90,23 @@ function normalizeListeners(listenerMap) {
   const exit = new Map();
 
   for (const [selector, handler] of Object.entries(listenerMap)) {
-    if (typeof handler !== 'function') continue;
-    if (selector.endsWith(':exit')) {
-      const type = selector.slice(0, -5);
-      pushHandler(exit, type, handler);
-    } else {
-      pushHandler(enter, selector, handler);
+    if (typeof handler === 'function') {
+      if (selector.endsWith(':exit')) {
+        const type = selector.slice(0, -5);
+        pushHandler(exit, type, handler);
+      } else {
+        pushHandler(enter, selector, handler);
+      }
+      continue;
+    }
+
+    if (handler && typeof handler === 'object') {
+      if (typeof handler.enter === 'function') {
+        pushHandler(enter, selector, handler.enter);
+      }
+      if (typeof handler.exit === 'function') {
+        pushHandler(exit, selector, handler.exit);
+      }
     }
   }
 

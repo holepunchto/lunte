@@ -2,10 +2,10 @@ import { Severity } from '../core/constants.js';
 
 const ALWAYS_ALLOWED = new Set(['undefined', 'NaN', 'Infinity', 'arguments']);
 
-export const noUseBeforeDefine = {
+export const noUndef = {
   meta: {
-    name: 'no-use-before-define',
-    description: 'Disallow using variables before they are defined.',
+    name: 'no-undef',
+    description: 'Disallow use of undeclared variables.',
     recommended: true,
     defaultSeverity: Severity.error,
   },
@@ -23,27 +23,15 @@ export const noUseBeforeDefine = {
         }
 
         const definition = context.resolve(node.name, node.start);
-
-        if (definition) {
-          return;
-        }
-
-        const futureDefinition = context.resolve(node.name, Number.POSITIVE_INFINITY);
-
-        if (futureDefinition) {
-          if (!futureDefinition.hoisted) {
+        if (!definition) {
+          const futureDefinition = context.resolve(node.name, Number.POSITIVE_INFINITY);
+          if (!futureDefinition) {
             context.report({
               node,
-              message: `'${node.name}' was used before it was defined.`,
+              message: `'${node.name}' is not defined.`,
             });
           }
-          return;
         }
-
-        context.report({
-          node,
-          message: `'${node.name}' is not defined.`,
-        });
       },
     };
   },

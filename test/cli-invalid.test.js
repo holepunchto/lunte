@@ -46,3 +46,39 @@ test('CLI exits 0 for valid input', async (t) => {
   t.ok(/No issues/.test(result.stdout), 'stdout should report no issues');
   t.is(result.stderr, '');
 });
+
+test('CLI respects rule overrides', async (t) => {
+  const file = join('test/fixtures/no-unused-vars-invalid.js');
+  const result = await runCli(['--rule', 'no-unused-vars=off', file]);
+
+  t.is(result.code, 0);
+  t.ok(/No issues/.test(result.stdout), 'warnings should be suppressed when rule disabled');
+  t.is(result.stderr, '');
+});
+
+test('CLI env flag enables browser globals', async (t) => {
+  const file = join('test/fixtures/env-browser.js');
+  const result = await runCli(['--env', 'browser', file]);
+
+  t.is(result.code, 0);
+  t.ok(/No issues/.test(result.stdout));
+  t.is(result.stderr, '');
+});
+
+test('CLI expands directory inputs', async (t) => {
+  const dir = join('test/fixtures/sample-project');
+  const result = await runCli([dir]);
+
+  t.is(result.code, 0);
+  t.ok(/No issues/.test(result.stdout));
+  t.is(result.stderr, '');
+});
+
+test('CLI expands glob patterns', async (t) => {
+  const pattern = 'test/fixtures/sample-project/**/*.js';
+  const result = await runCli([pattern]);
+
+  t.is(result.code, 0);
+  t.ok(/No issues/.test(result.stdout));
+  t.is(result.stderr, '');
+});

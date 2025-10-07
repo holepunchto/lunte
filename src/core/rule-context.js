@@ -1,11 +1,24 @@
+import { Severity } from './constants.js';
+
 export class RuleContext {
-  constructor({ filePath, source, diagnostics, scopeManager }) {
+  constructor({
+    filePath,
+    source,
+    diagnostics,
+    scopeManager,
+    ruleId,
+    ruleSeverity = Severity.error,
+    globals,
+  }) {
     this.filePath = filePath;
     this.source = source;
     this.diagnostics = diagnostics;
     this.scopeManager = scopeManager;
     this._ancestors = [];
     this._currentNode = null;
+    this.ruleId = ruleId;
+    this.ruleSeverity = ruleSeverity;
+    this.globals = globals ?? new Set();
   }
 
   setTraversalState({ node, ancestors }) {
@@ -13,13 +26,14 @@ export class RuleContext {
     this._ancestors = ancestors;
   }
 
-  report({ node, message, severity = 'error' }) {
+  report({ node, message, severity }) {
     const target = node ?? this._currentNode;
     const loc = target?.loc?.start ?? {};
     this.diagnostics.push({
       filePath: this.filePath,
       message,
-      severity,
+      severity: severity ?? this.ruleSeverity ?? Severity.error,
+      ruleId: this.ruleId,
       line: loc.line,
       column: loc.column != null ? loc.column + 1 : undefined,
     });
@@ -51,6 +65,14 @@ export class RuleContext {
 
   getReferences(scope) {
     return this.scopeManager.getReferences(scope);
+  }
+
+  isGlobal(name) {
+    return this.globals.has(name);
+  }
+
+  getGlobals() {
+    return this.globals;
   }
 
   getSource(node = this._currentNode) {

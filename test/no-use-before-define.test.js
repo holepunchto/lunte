@@ -11,7 +11,12 @@ function fixturePath(name) {
 }
 
 test('flags identifier used before definition', async (t) => {
-  const result = await analyze({ files: [fixturePath('use-before-define-invalid.js')] });
+  const result = await analyze({
+    files: [fixturePath('use-before-define-invalid.js')],
+    ruleOverrides: [
+      { name: 'no-undef', severity: 'off' },
+    ],
+  });
   t.is(result.diagnostics.length, 1);
   const [diagnostic] = result.diagnostics;
   t.ok(
@@ -21,11 +26,21 @@ test('flags identifier used before definition', async (t) => {
 });
 
 test('allows identifier defined before use', async (t) => {
-  const result = await analyze({ files: [fixturePath('use-before-define-valid.js')] });
+  const result = await analyze({
+    files: [fixturePath('use-before-define-valid.js')],
+    ruleOverrides: [
+      { name: 'no-undef', severity: 'off' },
+    ],
+  });
   t.is(result.diagnostics.length, 0);
 });
 
 test('allows hoisted function declarations', async (t) => {
-  const result = await analyze({ files: [fixturePath('function-hoist.js')] });
+  const result = await analyze({
+    files: [fixturePath('function-hoist.js')],
+    ruleOverrides: [
+      { name: 'no-undef', severity: 'off' },
+    ],
+  });
   t.is(result.diagnostics.length, 0);
 });

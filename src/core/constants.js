@@ -1,4 +1,5 @@
 export const Severity = Object.freeze({
-  error: 'error',
+  off: 'off',
   warning: 'warning',
+  error: 'error',
 });
