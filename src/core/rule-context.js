@@ -8,7 +8,8 @@ export class RuleContext {
     scopeManager,
     ruleId,
     ruleSeverity = Severity.error,
-    globals
+    globals,
+    ignoreMatcher
   }) {
     this.filePath = filePath
     this.source = source
@@ -19,6 +20,12 @@ export class RuleContext {
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
     this.globals = globals ?? new Set()
+    this.ignoreMatcher =
+      ignoreMatcher ?? {
+        shouldIgnore() {
+          return false
+        }
+      }
   }
 
   setTraversalState({ node, ancestors }) {
@@ -29,12 +36,23 @@ export class RuleContext {
   report({ node, message, severity }) {
     const target = node ?? this._currentNode
     const loc = target?.loc?.start ?? {}
+    const line = loc.line
+
+    if (
+      this.ignoreMatcher?.shouldIgnore({
+        line,
+        ruleId: this.ruleId
+      })
+    ) {
+      return
+    }
+
     this.diagnostics.push({
       filePath: this.filePath,
       message,
       severity: severity ?? this.ruleSeverity ?? Severity.error,
       ruleId: this.ruleId,
-      line: loc.line,
+      line,
       column: loc.column != null ? loc.column + 1 : undefined
     })
   }

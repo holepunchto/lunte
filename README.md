@@ -49,6 +49,20 @@ Command-line overrides are available for ad-hoc runs:
 npx lunte --env browser --global MY_GLOBAL --rule no-unused-vars=off src/
 ```
 
+### Inline Ignores
+
+Silence specific findings inline without touching configuration:
+
+```js
+const cached = maybeUndefined() // lunte-disable-line no-undef
+
+// lunte-disable-next-line
+useGlobalResource()
+```
+
+- `lunte-disable-line` suppresses the listed rules (or all rules when none are listed) on the same source line.
+- `lunte-disable-next-line` applies to the following line with the same rule targeting behaviour.
+
 ## Status
 
 The project is under active development. Expect rule APIs, configuration formats, and CLI options to evolve.

@@ -4,9 +4,22 @@ import { builtInRules } from '../rules/index.js'
 import { Severity } from './constants.js'
 import { getDefaultRuleConfig } from '../config/defaults.js'
 
-export function runRules({ ast, filePath, source, ruleConfig, globals }) {
+export function runRules({
+  ast,
+  filePath,
+  source,
+  ruleConfig,
+  globals,
+  inlineIgnores
+}) {
   const effectiveConfig = ruleConfig ?? getDefaultRuleConfig()
   const activeRules = []
+
+  const ignoreMatcher = inlineIgnores ?? {
+    shouldIgnore() {
+      return false
+    }
+  }
 
   for (const [name, rule] of builtInRules.entries()) {
     const config = effectiveConfig.get(name) ?? {
@@ -29,7 +42,8 @@ export function runRules({ ast, filePath, source, ruleConfig, globals }) {
       scopeManager,
       ruleId: name,
       ruleSeverity: config.severity,
-      globals
+      globals,
+      ignoreMatcher
     })
     const listeners = normalizeListeners(rule.create(context) ?? {})
     return { context, listeners }

@@ -12,7 +12,7 @@
 
 ## Stage 2 – Configuration & Reporting ⚙️ (in progress)
 
-- DONE: `.lunterc` / `.lunterc.json` loading with CLI merge, gitignore-style `.lunteignore`, default env/globals, and improved console formatting.
+- DONE: `.lunterc` / `.lunterc.json` loading with CLI merge, gitignore-style `.lunteignore`, default env/globals, improved console formatting, and inline disable directives (`lunte-disable-line`, `lunte-disable-next-line`).
 - TODO: per-rule options surfaced via config, additional reporters (stylish/JSON/SARIF), quiet mode, and documentation of config keys.
 
 ## Stage 3 – Rule Suite Expansion ⚙️ (in progress)

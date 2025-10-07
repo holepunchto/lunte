@@ -1,8 +1,9 @@
 import { parse } from './parser.js'
-import { runRules } from './rule-runner.js'
 import { resolveConfig } from '../config/resolve.js'
 import { ENV_GLOBALS } from '../config/envs.js'
 import { extractFileDirectives } from './file-directives.js'
+import { runRules } from './rule-runner.js'
+import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 
 export async function analyze({ files, ruleOverrides, envOverrides, globalOverrides }) {
   const diagnostics = []
@@ -38,8 +39,17 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals }) {
   try {
     const directives = extractFileDirectives(source)
     const globals = mergeGlobals(baseGlobals, directives)
-    const ast = parse(source, { sourceFile: filePath })
-    const ruleDiagnostics = runRules({ ast, filePath, source, ruleConfig, globals })
+    const comments = []
+    const ast = parse(source, { sourceFile: filePath, onComment: comments })
+    const inlineIgnores = buildInlineIgnoreMatcher(comments)
+    const ruleDiagnostics = runRules({
+      ast,
+      filePath,
+      source,
+      ruleConfig,
+      globals,
+      inlineIgnores
+    })
     diagnostics.push(...ruleDiagnostics)
   } catch (error) {
     diagnostics.push(buildParseErrorDiagnostic({ error, filePath, source }))
