@@ -59,20 +59,11 @@ export const BASE_GLOBALS = [
   'setImmediate',
   'clearImmediate',
   'console',
-  'globalThis',
-];
+  'globalThis'
+]
 
 export const ENV_GLOBALS = {
-  node: [
-    'Buffer',
-    'process',
-    '__dirname',
-    '__filename',
-    'exports',
-    'module',
-    'require',
-    'global',
-  ],
+  node: ['Buffer', 'process', '__dirname', '__filename', 'exports', 'module', 'require', 'global'],
   browser: [
     'window',
     'document',
@@ -89,10 +80,7 @@ export const ENV_GLOBALS = {
     'Request',
     'Response',
     'URL',
-    'URLSearchParams',
+    'URLSearchParams'
   ],
-  es2021: [
-    'WeakRef',
-    'FinalizationRegistry',
-  ],
-};
+  es2021: ['WeakRef', 'FinalizationRegistry']
+}

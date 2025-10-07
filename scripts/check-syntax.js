@@ -1,48 +1,48 @@
 #!/usr/bin/env node
 
-import { readdir, stat } from 'node:fs/promises';
-import { join, extname } from 'node:path';
-import { promisify } from 'node:util';
-import { execFile } from 'node:child_process';
+import { readdir, stat } from 'node:fs/promises'
+import { join, extname } from 'node:path'
+import { promisify } from 'node:util'
+import { execFile } from 'node:child_process'
 
-const execFileAsync = promisify(execFile);
-const roots = ['bin', 'src', 'scripts', 'test'];
-const ignorePatterns = [/test\/fixtures\/invalid\.js$/];
+const execFileAsync = promisify(execFile)
+const roots = ['bin', 'src', 'scripts', 'test']
+const ignorePatterns = [/test\/fixtures\/invalid\.js$/]
 
 async function gatherFiles(dir) {
-  let entries;
+  let entries
   try {
-    entries = await readdir(dir, { withFileTypes: true });
+    entries = await readdir(dir, { withFileTypes: true })
   } catch (error) {
     if (error.code === 'ENOENT') {
-      return [];
+      return []
     }
-    throw error;
+    throw error
   }
 
-  const result = [];
+  const result = []
   for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
+    const fullPath = join(dir, entry.name)
     if (entry.isDirectory()) {
-      result.push(...await gatherFiles(fullPath));
+      result.push(...(await gatherFiles(fullPath)))
     } else if (entry.isFile() && extname(entry.name) === '.js') {
       if (!ignorePatterns.some((pattern) => pattern.test(fullPath))) {
-        result.push(fullPath);
+        result.push(fullPath)
       }
     }
   }
-  return result;
+  return result
 }
 
 async function main() {
-  const files = (await Promise.all(roots.map(gatherFiles))).flat();
+  const files = (await Promise.all(roots.map(gatherFiles))).flat()
 
   for (const file of files) {
-    await execFileAsync(process.execPath, ['--check', file]);
+    await execFileAsync(process.execPath, ['--check', file])
   }
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  console.error(error)
+  process.exitCode = 1
+})

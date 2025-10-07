@@ -1,110 +1,115 @@
-import { readFile } from 'node:fs/promises';
-import { isAbsolute, join, relative, sep } from 'node:path';
+import { readFile } from 'node:fs/promises'
+import { isAbsolute, join, relative, sep } from 'node:path'
 
-import { globToRegExp, toPosix } from './glob.js';
+import { globToRegExp, toPosix } from './glob.js'
 
-const DEFAULT_IGNORE_FILE = '.lunteignore';
-
-const DEFAULT_PATTERNS = ['node_modules/'];
+const DEFAULT_IGNORE_FILE = '.lunteignore'
+const DEFAULT_PATTERNS = ['node_modules/']
 
 export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
-  const patterns = [];
-  const files = [];
+  const patterns = []
+  const files = []
 
   if (ignorePath) {
-    files.push(isAbsolute(ignorePath) ? ignorePath : join(cwd, ignorePath));
+    files.push(isAbsolute(ignorePath) ? ignorePath : join(cwd, ignorePath))
   } else {
-    files.push(join(cwd, DEFAULT_IGNORE_FILE));
+    files.push(join(cwd, DEFAULT_IGNORE_FILE))
   }
 
   for (const pattern of DEFAULT_PATTERNS) {
-    addPatternFromLine(pattern, patterns);
+    addPatternFromLine(pattern, patterns)
   }
 
   for (const filePath of files) {
-    let content;
+    let content
     try {
-      content = await readFile(filePath, 'utf8');
+      content = await readFile(filePath, 'utf8')
     } catch (error) {
       if (error.code === 'ENOENT') {
-        continue;
+        continue
       }
-      throw error;
+      throw error
     }
 
     for (const rawLine of content.split(/\r?\n/)) {
-      const line = rawLine.trim();
-      if (!line || line.startsWith('#')) {
-        continue;
-      }
-
-      addPatternFromLine(line, patterns);
+      addPatternFromLine(rawLine, patterns)
     }
   }
 
   return {
     ignores(targetPath, { isDir = false } = {}) {
       if (patterns.length === 0) {
-        return false;
+        return false
       }
 
-      const rel = toPosixPath(relative(cwd, targetPath));
+      const rel = toPosixPath(relative(cwd, targetPath))
       if (rel.startsWith('..')) {
-        return false;
+        return false
       }
 
-      const value = rel === '' ? '.' : rel;
-      let ignored = false;
-      for (const pattern of patterns) {
-        const match = pattern.regex.test(value) || (isDir && pattern.regex.test(`${value}/`));
-        if (!match) continue;
-        if (pattern.directoryOnly && !isDir) continue;
-        ignored = !pattern.negated;
+      const value = rel === '' ? '.' : rel
+      const candidates = [value]
+      if (isDir) {
+        candidates.push(`${value}/`)
       }
-      return ignored;
-    },
-  };
+
+      let ignored = false
+      for (const pattern of patterns) {
+        const matched = candidates.some((candidate) => pattern.regex.test(candidate))
+        if (!matched) continue
+        ignored = !pattern.negated
+      }
+      return ignored
+    }
+  }
 }
 
 function ensureLeadingDoubleStar(pattern) {
   if (pattern.startsWith('**/')) {
-    return pattern;
+    return pattern
   }
-  return `**/${pattern}`;
+  return `**/${pattern}`
 }
 
 function toPosixPath(path) {
-  return toPosix(path.split(sep).join('/'));
+  return toPosix(path.split(sep).join('/'))
 }
 
 function addPatternFromLine(rawLine, patterns) {
-  let pattern = rawLine.trim();
+  let pattern = rawLine.trim()
   if (!pattern || pattern.startsWith('#')) {
-    return;
+    return
   }
 
-  let negated = false;
+  let negated = false
   if (pattern.startsWith('!')) {
-    negated = true;
-    pattern = pattern.slice(1);
+    negated = true
+    pattern = pattern.slice(1)
   }
 
-  let directoryOnly = false;
+  let directoryOnly = false
   if (pattern.endsWith('/')) {
-    directoryOnly = true;
-    pattern = pattern.slice(0, -1);
+    directoryOnly = true
+    pattern = pattern.slice(0, -1)
   }
 
-  const anchored = pattern.startsWith('/');
+  const anchored = pattern.startsWith('/')
   if (anchored) {
-    pattern = pattern.slice(1);
+    pattern = pattern.slice(1)
   }
 
   if (!pattern) {
-    return;
+    return
   }
 
-  const globPattern = anchored ? pattern : ensureLeadingDoubleStar(pattern);
-  const regex = globToRegExp(globPattern);
-  patterns.push({ regex, negated, directoryOnly });
+  const globPattern = anchored ? pattern : ensureLeadingDoubleStar(pattern)
+  const regexes = []
+  regexes.push(globToRegExp(globPattern))
+  if (directoryOnly) {
+    regexes.push(globToRegExp(`${globPattern}/**`))
+  }
+
+  for (const regex of regexes) {
+    patterns.push({ regex, negated })
+  }
 }

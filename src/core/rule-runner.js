@@ -1,23 +1,25 @@
-import { ScopeManager } from './scope-manager.js';
-import { RuleContext } from './rule-context.js';
-import { builtInRules } from '../rules/index.js';
-import { Severity } from './constants.js';
-import { getDefaultRuleConfig } from '../config/defaults.js';
+import { ScopeManager } from './scope-manager.js'
+import { RuleContext } from './rule-context.js'
+import { builtInRules } from '../rules/index.js'
+import { Severity } from './constants.js'
+import { getDefaultRuleConfig } from '../config/defaults.js'
 
 export function runRules({ ast, filePath, source, ruleConfig, globals }) {
-  const effectiveConfig = ruleConfig ?? getDefaultRuleConfig();
-  const activeRules = [];
+  const effectiveConfig = ruleConfig ?? getDefaultRuleConfig()
+  const activeRules = []
 
   for (const [name, rule] of builtInRules.entries()) {
-    const config = effectiveConfig.get(name) ?? { severity: rule.meta?.defaultSeverity ?? Severity.error };
-    if (!config || config.severity === Severity.off) {
-      continue;
+    const config = effectiveConfig.get(name) ?? {
+      severity: rule.meta?.defaultSeverity ?? Severity.error
     }
-    activeRules.push({ name, rule, config });
+    if (!config || config.severity === Severity.off) {
+      continue
+    }
+    activeRules.push({ name, rule, config })
   }
 
-  const scopeManager = new ScopeManager();
-  const diagnostics = [];
+  const scopeManager = new ScopeManager()
+  const diagnostics = []
 
   const ruleEntries = activeRules.map(({ rule, name, config }) => {
     const context = new RuleContext({
@@ -27,148 +29,168 @@ export function runRules({ ast, filePath, source, ruleConfig, globals }) {
       scopeManager,
       ruleId: name,
       ruleSeverity: config.severity,
-      globals,
-    });
-    const listeners = normalizeListeners(rule.create(context) ?? {});
-    return { context, listeners };
-  });
+      globals
+    })
+    const listeners = normalizeListeners(rule.create(context) ?? {})
+    return { context, listeners }
+  })
 
   const state = {
     scopeManager,
-    ruleEntries,
-  };
+    ruleEntries
+  }
 
-  traverse(ast, state, []);
+  traverse(ast, state, [])
 
-  return diagnostics;
+  return diagnostics
 }
 
 function traverse(node, state, ancestors) {
   if (!node || typeof node.type !== 'string') {
-    return;
+    return
   }
 
-  const parent = ancestors[ancestors.length - 1] ?? null;
+  const parent = ancestors[ancestors.length - 1] ?? null
 
-  const scopeType = getScopeType(node, parent);
+  const scopeType = getScopeType(node, parent)
   if (scopeType) {
-    state.scopeManager.enterScope(scopeType, node);
-    hoistFunctionDeclarations(node, state.scopeManager);
-    handleScopeIntroductions(node, state.scopeManager);
+    state.scopeManager.enterScope(scopeType, node)
+    hoistFunctionDeclarations(node, state.scopeManager)
+    handleScopeIntroductions(node, state.scopeManager)
   }
 
-  handleInScopeDeclarations(node, state.scopeManager);
+  handleInScopeDeclarations(node, state.scopeManager)
 
-  const nextAncestors = ancestors.concat(node);
-  notifyListeners('enter', node, nextAncestors, state);
+  const nextAncestors = ancestors.concat(node)
+  notifyListeners('enter', node, nextAncestors, state)
 
   for (const child of iterateChildren(node)) {
-    traverse(child, state, nextAncestors);
+    traverse(child, state, nextAncestors)
   }
 
-  notifyListeners('exit', node, nextAncestors, state);
+  notifyListeners('exit', node, nextAncestors, state)
 
   if (scopeType) {
-    state.scopeManager.exitScope();
+    state.scopeManager.exitScope()
   }
 }
 
 function notifyListeners(phase, node, ancestors, state) {
   for (const entry of state.ruleEntries) {
-    const handlers = entry.listeners[phase].get(node.type);
-    if (!handlers) continue;
-    entry.context.setTraversalState({ node, ancestors: ancestors.slice(0, -1) });
+    const handlers = entry.listeners[phase].get(node.type)
+    if (!handlers) continue
+    entry.context.setTraversalState({ node, ancestors: ancestors.slice(0, -1) })
     for (const handler of handlers) {
-      maybeRecordReference(entry.context, node, phase === 'enter');
-      handler(node);
+      maybeRecordReference(entry.context, node, phase === 'enter')
+      handler(node)
     }
   }
 }
 
 function normalizeListeners(listenerMap) {
-  const enter = new Map();
-  const exit = new Map();
+  const enter = new Map()
+  const exit = new Map()
 
   for (const [selector, handler] of Object.entries(listenerMap)) {
     if (typeof handler === 'function') {
       if (selector.endsWith(':exit')) {
-        const type = selector.slice(0, -5);
-        pushHandler(exit, type, handler);
+        const type = selector.slice(0, -5)
+        pushHandler(exit, type, handler)
       } else {
-        pushHandler(enter, selector, handler);
+        pushHandler(enter, selector, handler)
       }
-      continue;
+      continue
     }
 
     if (handler && typeof handler === 'object') {
       if (typeof handler.enter === 'function') {
-        pushHandler(enter, selector, handler.enter);
+        pushHandler(enter, selector, handler.enter)
       }
       if (typeof handler.exit === 'function') {
-        pushHandler(exit, selector, handler.exit);
+        pushHandler(exit, selector, handler.exit)
       }
     }
   }
 
-  return { enter, exit };
+  return { enter, exit }
 }
 
 function pushHandler(store, type, handler) {
   if (!store.has(type)) {
-    store.set(type, []);
+    store.set(type, [])
   }
-  store.get(type).push(handler);
+  store.get(type).push(handler)
 }
 
 function getScopeType(node, parent) {
   switch (node.type) {
     case 'Program':
-      return 'program';
+      return 'program'
     case 'FunctionDeclaration':
     case 'FunctionExpression':
     case 'ArrowFunctionExpression':
-      return 'function';
+      return 'function'
     case 'BlockStatement':
-      return 'block';
+      return 'block'
     case 'CatchClause':
-      return 'block';
+      return 'block'
     default:
-      if (node.type === 'ForStatement' || node.type === 'ForInStatement' || node.type === 'ForOfStatement') {
-        return null;
+      if (
+        node.type === 'ForStatement' ||
+        node.type === 'ForInStatement' ||
+        node.type === 'ForOfStatement'
+      ) {
+        return null
       }
-      return null;
+      return null
   }
 }
 
 function handleScopeIntroductions(node, scopeManager) {
   if (node.type === 'Program') {
-    return;
+    return
   }
 
-  if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
+  if (
+    node.type === 'FunctionDeclaration' ||
+    node.type === 'FunctionExpression' ||
+    node.type === 'ArrowFunctionExpression'
+  ) {
     for (const param of node.params ?? []) {
       for (const { name, node: id } of extractPatternIdentifiers(param)) {
-        scopeManager.declare(name, createDeclarationInfo(id, {
-          kind: 'param',
-          hoisted: true,
-        }));
+        scopeManager.declare(
+          name,
+          createDeclarationInfo(id, {
+            kind: 'param',
+            hoisted: true
+          })
+        )
       }
     }
 
-    if ((node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') && node.id) {
-      scopeManager.declare(node.id.name, createDeclarationInfo(node.id, {
-        kind: 'function',
-        hoisted: true,
-      }));
+    if (
+      (node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') &&
+      node.id
+    ) {
+      scopeManager.declare(
+        node.id.name,
+        createDeclarationInfo(node.id, {
+          kind: 'function',
+          hoisted: true
+        })
+      )
     }
   }
 
   if (node.type === 'CatchClause' && node.param) {
     for (const { name, node: id } of extractPatternIdentifiers(node.param)) {
-      scopeManager.declare(name, createDeclarationInfo(id, {
-        kind: 'catch',
-        hoisted: true,
-      }));
+      scopeManager.declare(
+        name,
+        createDeclarationInfo(id, {
+          kind: 'catch',
+          hoisted: true
+        })
+      )
     }
   }
 }
@@ -177,45 +199,75 @@ function handleInScopeDeclarations(node, scopeManager) {
   if (node.type === 'VariableDeclaration') {
     for (const declarator of node.declarations) {
       for (const { name, node: id } of extractPatternIdentifiers(declarator.id)) {
-        const hoisted = node.kind === 'var';
+        const hoisted = node.kind === 'var'
         const info = createDeclarationInfo(id, {
           kind: node.kind,
           hoisted,
-          index: hoisted ? undefined : inferTemporalDeadZoneIndex(declarator),
-        });
-        scopeManager.declare(name, info, { hoistTo: hoisted ? 'function' : undefined });
+          index: hoisted ? undefined : inferTemporalDeadZoneIndex(declarator)
+        })
+        scopeManager.declare(name, info, { hoistTo: hoisted ? 'function' : undefined })
       }
     }
   }
 
   if (node.type === 'ImportDeclaration') {
     for (const specifier of node.specifiers) {
-      const local = specifier.local;
-      scopeManager.declare(local.name, createDeclarationInfo(local, {
-        kind: 'import',
-        hoisted: true,
-      }));
+      const local = specifier.local
+      scopeManager.declare(
+        local.name,
+        createDeclarationInfo(local, {
+          kind: 'import',
+          hoisted: true
+        })
+      )
     }
   }
 
   if (node.type === 'ClassDeclaration' && node.id) {
-    scopeManager.declare(node.id.name, createDeclarationInfo(node.id, {
-      kind: 'class',
-      hoisted: false,
-    }));
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'class',
+        hoisted: false
+      })
+    )
   }
 }
 
 function hoistFunctionDeclarations(node, scopeManager) {
-  const body = getBodyStatements(node);
-  if (!body) return;
+  const body = getBodyStatements(node)
+  if (!body) return
 
   for (const statement of body) {
-    if (statement && statement.type === 'FunctionDeclaration' && statement.id) {
-      scopeManager.declare(statement.id.name, createDeclarationInfo(statement.id, {
-        kind: 'function',
-        hoisted: true,
-      }), { hoistTo: 'function' });
+    if (!statement) continue
+    if (statement.type === 'FunctionDeclaration' && statement.id) {
+      scopeManager.declare(
+        statement.id.name,
+        createDeclarationInfo(statement.id, {
+          kind: 'function',
+          hoisted: true
+        }),
+        { hoistTo: 'function' }
+      )
+      continue
+    }
+
+    if (
+      (statement.type === 'ExportNamedDeclaration' ||
+        statement.type === 'ExportDefaultDeclaration') &&
+      statement.declaration
+    ) {
+      const decl = statement.declaration
+      if (decl.type === 'FunctionDeclaration' && decl.id) {
+        scopeManager.declare(
+          decl.id.name,
+          createDeclarationInfo(decl.id, {
+            kind: 'function',
+            hoisted: true
+          }),
+          { hoistTo: 'function' }
+        )
+      }
     }
   }
 }
@@ -223,18 +275,18 @@ function hoistFunctionDeclarations(node, scopeManager) {
 function getBodyStatements(node) {
   switch (node.type) {
     case 'Program':
-      return node.body;
+      return node.body
     case 'BlockStatement':
-      return node.body;
+      return node.body
     case 'FunctionDeclaration':
     case 'FunctionExpression':
     case 'ArrowFunctionExpression':
       if (node.body && node.body.type === 'BlockStatement') {
-        return node.body.body;
+        return node.body.body
       }
-      return null;
+      return null
     default:
-      return null;
+      return null
   }
 }
 
@@ -243,134 +295,134 @@ function createDeclarationInfo(node, { kind, hoisted, index }) {
     kind,
     hoisted,
     node,
-    index: resolveIndex(node, index),
-  };
+    index: resolveIndex(node, index)
+  }
 }
 
 function resolveIndex(node, providedIndex) {
   if (typeof providedIndex === 'number') {
-    return providedIndex;
+    return providedIndex
   }
-  return typeof node.start === 'number' ? node.start : Number.NEGATIVE_INFINITY;
+  return typeof node.start === 'number' ? node.start : Number.NEGATIVE_INFINITY
 }
 
 function inferTemporalDeadZoneIndex(declarator) {
   if (declarator?.init && typeof declarator.init.end === 'number') {
-    return declarator.init.end;
+    return declarator.init.end
   }
   if (declarator && typeof declarator.end === 'number') {
-    return declarator.end;
+    return declarator.end
   }
-  return undefined;
+  return undefined
 }
 
 function maybeRecordReference(context, node, isEntering) {
-  if (!isEntering) return;
-  if (node.type !== 'Identifier') return;
+  if (!isEntering) return
+  if (node.type !== 'Identifier') return
 
-  const parent = context.getParent();
+  const parent = context.getParent()
   if (!isReferenceInContext(node, parent)) {
-    return;
+    return
   }
 
   context.addReference({
     name: node.name,
-    node,
-  });
+    node
+  })
 }
 
 function isReferenceInContext(node, parent) {
-  if (!parent) return true;
+  if (!parent) return true
 
   switch (parent.type) {
     case 'VariableDeclarator':
-      return parent.id !== node;
+      return parent.id !== node
     case 'FunctionDeclaration':
     case 'FunctionExpression':
-      return parent.id !== node;
+      return parent.id !== node
     case 'ClassDeclaration':
     case 'ClassExpression':
-      return parent.id !== node;
+      return parent.id !== node
     case 'ImportSpecifier':
     case 'ImportDefaultSpecifier':
     case 'ImportNamespaceSpecifier':
-      return false;
+      return false
     case 'LabeledStatement':
-      return false;
+      return false
     case 'BreakStatement':
     case 'ContinueStatement':
-      return false;
+      return false
     case 'CatchClause':
-      return parent.param !== node;
+      return parent.param !== node
     case 'MemberExpression':
-      return parent.object === node || parent.computed;
+      return parent.object === node || parent.computed
     case 'Property':
       if (parent.shorthand && parent.value === node) {
-        return true;
+        return true
       }
-      return parent.key !== node;
+      return parent.key !== node
     case 'PropertyDefinition':
-      return parent.key !== node;
+      return parent.key !== node
     case 'MethodDefinition':
-      return parent.key !== node;
+      return parent.key !== node
     case 'ArrayPattern':
     case 'ObjectPattern':
-      return false;
+      return false
     case 'AssignmentPattern':
-      return parent.left !== node;
+      return parent.left !== node
     default:
-      return true;
+      return true
   }
 }
 
 function extractPatternIdentifiers(pattern) {
-  const results = [];
-  if (!pattern) return results;
+  const results = []
+  if (!pattern) return results
 
   switch (pattern.type) {
     case 'Identifier':
-      results.push({ name: pattern.name, node: pattern });
-      break;
+      results.push({ name: pattern.name, node: pattern })
+      break
     case 'RestElement':
-      results.push(...extractPatternIdentifiers(pattern.argument));
-      break;
+      results.push(...extractPatternIdentifiers(pattern.argument))
+      break
     case 'AssignmentPattern':
-      results.push(...extractPatternIdentifiers(pattern.left));
-      break;
+      results.push(...extractPatternIdentifiers(pattern.left))
+      break
     case 'ArrayPattern':
       for (const element of pattern.elements) {
-        results.push(...extractPatternIdentifiers(element));
+        results.push(...extractPatternIdentifiers(element))
       }
-      break;
+      break
     case 'ObjectPattern':
       for (const prop of pattern.properties) {
         if (prop.type === 'RestElement') {
-          results.push(...extractPatternIdentifiers(prop.argument));
+          results.push(...extractPatternIdentifiers(prop.argument))
         } else {
-          results.push(...extractPatternIdentifiers(prop.value));
+          results.push(...extractPatternIdentifiers(prop.value))
         }
       }
-      break;
+      break
     default:
-      break;
+      break
   }
 
-  return results;
+  return results
 }
 
 function* iterateChildren(node) {
   for (const key of Object.keys(node)) {
-    if (key === 'loc' || key === 'range' || key === 'start' || key === 'end') continue;
-    const value = node[key];
-    if (!value) continue;
+    if (key === 'loc' || key === 'range' || key === 'start' || key === 'end') continue
+    const value = node[key]
+    if (!value) continue
     if (Array.isArray(value)) {
       for (const element of value) {
         if (element && typeof element.type === 'string') {
-          yield element;
+          yield element
         }
       }
     } else if (value && typeof value.type === 'string') {
-      yield value;
+      yield value
     }
   }
 }

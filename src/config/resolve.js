@@ -1,7 +1,7 @@
-import { builtInRules } from '../rules/index.js';
-import { getDefaultRuleConfig } from './defaults.js';
-import { Severity } from '../core/constants.js';
-import { ENV_GLOBALS, BASE_GLOBALS } from './envs.js';
+import { builtInRules } from '../rules/index.js'
+import { getDefaultRuleConfig } from './defaults.js'
+import { Severity } from '../core/constants.js'
+import { ENV_GLOBALS, BASE_GLOBALS } from './envs.js'
 
 const SEVERITY_ALIASES = new Map([
   ['off', Severity.off],
@@ -11,62 +11,62 @@ const SEVERITY_ALIASES = new Map([
   ['1', Severity.warning],
   ['error', Severity.error],
   ['err', Severity.error],
-  ['2', Severity.error],
-]);
+  ['2', Severity.error]
+])
 
 export function resolveConfig({ ruleOverrides = [], envNames = [], globals = [] } = {}) {
-  const ruleConfig = resolveRuleConfig(ruleOverrides);
-  const globalSet = new Set();
+  const ruleConfig = resolveRuleConfig(ruleOverrides)
+  const globalSet = new Set()
 
   for (const name of BASE_GLOBALS) {
-    globalSet.add(name);
+    globalSet.add(name)
   }
 
-  const activeEnvNames = new Set(envNames.length > 0 ? envNames : ['node']);
+  const activeEnvNames = new Set(envNames.length > 0 ? envNames : ['node'])
   for (const envName of activeEnvNames) {
-    const entries = ENV_GLOBALS[envName];
-    if (!entries) continue;
+    const entries = ENV_GLOBALS[envName]
+    if (!entries) continue
     for (const name of entries) {
-      globalSet.add(name);
+      globalSet.add(name)
     }
   }
 
   for (const name of globals) {
     if (typeof name === 'string' && name.trim()) {
-      globalSet.add(name.trim());
+      globalSet.add(name.trim())
     }
   }
 
-  return { ruleConfig, globals: globalSet };
+  return { ruleConfig, globals: globalSet }
 }
 
 export function resolveRuleConfig(overrides = []) {
-  const config = getDefaultRuleConfig();
+  const config = getDefaultRuleConfig()
 
   for (const override of overrides) {
-    const { name, severity } = override ?? {};
+    const { name, severity } = override ?? {}
     if (!name || !builtInRules.has(name)) {
-      continue;
+      continue
     }
-    const normalized = normalizeSeverity(severity);
+    const normalized = normalizeSeverity(severity)
     if (!normalized) {
-      continue;
+      continue
     }
-    config.set(name, { severity: normalized });
+    config.set(name, { severity: normalized })
   }
 
-  return config;
+  return config
 }
 
 export function normalizeSeverity(value) {
   if (typeof value === 'string') {
-    const normalized = SEVERITY_ALIASES.get(value.toLowerCase());
+    const normalized = SEVERITY_ALIASES.get(value.toLowerCase())
     if (normalized) {
-      return normalized;
+      return normalized
     }
   }
   if (typeof value === 'number') {
-    return normalizeSeverity(String(value));
+    return normalizeSeverity(String(value))
   }
-  return null;
+  return null
 }
