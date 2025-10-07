@@ -14,7 +14,7 @@ export const noUseBeforeDefine = {
       Identifier(node) {
         const parent = context.getParent();
 
-        if (!isReferenceIdentifier(node, parent)) {
+        if (!isReferenceIdentifier(node, parent, context)) {
           return;
         }
 
@@ -49,8 +49,11 @@ export const noUseBeforeDefine = {
   },
 };
 
-function isReferenceIdentifier(node, parent) {
+function isReferenceIdentifier(node, parent, context) {
   if (!parent) return true;
+
+  const ancestors = context.getAncestors();
+  const grandparent = ancestors.length > 0 ? ancestors[ancestors.length - 1] : null;
 
   switch (parent.type) {
     case 'VariableDeclarator':
@@ -65,6 +68,8 @@ function isReferenceIdentifier(node, parent) {
     case 'ImportDefaultSpecifier':
     case 'ImportNamespaceSpecifier':
       return false;
+    case 'MetaProperty':
+      return false;
     case 'LabeledStatement':
       return false;
     case 'BreakStatement':
@@ -75,6 +80,9 @@ function isReferenceIdentifier(node, parent) {
     case 'MemberExpression':
       return parent.object === node || parent.computed;
     case 'Property':
+      if (grandparent && grandparent.type === 'ObjectPattern') {
+        return false;
+      }
       if (parent.shorthand && parent.value === node) {
         return true;
       }

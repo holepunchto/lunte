@@ -5,6 +5,8 @@ import { globToRegExp, toPosix } from './glob.js';
 
 const DEFAULT_IGNORE_FILE = '.lunteignore';
 
+const DEFAULT_PATTERNS = ['node_modules/'];
+
 export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
   const patterns = [];
   const files = [];
@@ -13,6 +15,10 @@ export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
     files.push(isAbsolute(ignorePath) ? ignorePath : join(cwd, ignorePath));
   } else {
     files.push(join(cwd, DEFAULT_IGNORE_FILE));
+  }
+
+  for (const pattern of DEFAULT_PATTERNS) {
+    addPatternFromLine(pattern, patterns);
   }
 
   for (const filePath of files) {
@@ -32,31 +38,7 @@ export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
         continue;
       }
 
-      let negated = false;
-      let pattern = line;
-      if (pattern.startsWith('!')) {
-        negated = true;
-        pattern = pattern.slice(1);
-      }
-
-      let directoryOnly = false;
-      if (pattern.endsWith('/')) {
-        directoryOnly = true;
-        pattern = pattern.slice(0, -1);
-      }
-
-      const anchored = pattern.startsWith('/');
-      if (anchored) {
-        pattern = pattern.slice(1);
-      }
-
-      if (!pattern) {
-        continue;
-      }
-
-      const globPattern = anchored ? pattern : ensureLeadingDoubleStar(pattern);
-      const regex = globToRegExp(globPattern);
-      patterns.push({ regex, negated, directoryOnly });
+      addPatternFromLine(line, patterns);
     }
   }
 
@@ -76,6 +58,7 @@ export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
       for (const pattern of patterns) {
         const match = pattern.regex.test(value) || (isDir && pattern.regex.test(`${value}/`));
         if (!match) continue;
+        if (pattern.directoryOnly && !isDir) continue;
         ignored = !pattern.negated;
       }
       return ignored;
@@ -92,4 +75,36 @@ function ensureLeadingDoubleStar(pattern) {
 
 function toPosixPath(path) {
   return toPosix(path.split(sep).join('/'));
+}
+
+function addPatternFromLine(rawLine, patterns) {
+  let pattern = rawLine.trim();
+  if (!pattern || pattern.startsWith('#')) {
+    return;
+  }
+
+  let negated = false;
+  if (pattern.startsWith('!')) {
+    negated = true;
+    pattern = pattern.slice(1);
+  }
+
+  let directoryOnly = false;
+  if (pattern.endsWith('/')) {
+    directoryOnly = true;
+    pattern = pattern.slice(0, -1);
+  }
+
+  const anchored = pattern.startsWith('/');
+  if (anchored) {
+    pattern = pattern.slice(1);
+  }
+
+  if (!pattern) {
+    return;
+  }
+
+  const globPattern = anchored ? pattern : ensureLeadingDoubleStar(pattern);
+  const regex = globToRegExp(globPattern);
+  patterns.push({ regex, negated, directoryOnly });
 }
