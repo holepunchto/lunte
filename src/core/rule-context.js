@@ -45,6 +45,14 @@ export class RuleContext {
     return this.scopeManager.resolve(name, beforeIndex);
   }
 
+  addReference(ref) {
+    this.scopeManager.addReference(ref);
+  }
+
+  getReferences(scope) {
+    return this.scopeManager.getReferences(scope);
+  }
+
   getSource(node = this._currentNode) {
     if (!node || typeof node.start !== 'number' || typeof node.end !== 'number') {
       return undefined;

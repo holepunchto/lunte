@@ -63,6 +63,7 @@ function notifyListeners(phase, node, ancestors, state) {
     if (!handlers) continue;
     entry.context.setTraversalState({ node, ancestors: ancestors.slice(0, -1) });
     for (const handler of handlers) {
+      maybeRecordReference(entry.context, node, phase === 'enter');
       handler(node);
     }
   }
@@ -234,6 +235,65 @@ function inferTemporalDeadZoneIndex(declarator) {
     return declarator.end;
   }
   return undefined;
+}
+
+function maybeRecordReference(context, node, isEntering) {
+  if (!isEntering) return;
+  if (node.type !== 'Identifier') return;
+
+  const parent = context.getParent();
+  if (!isReferenceInContext(node, parent)) {
+    return;
+  }
+
+  context.addReference({
+    name: node.name,
+    node,
+  });
+}
+
+function isReferenceInContext(node, parent) {
+  if (!parent) return true;
+
+  switch (parent.type) {
+    case 'VariableDeclarator':
+      return parent.id !== node;
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+      return parent.id !== node;
+    case 'ClassDeclaration':
+    case 'ClassExpression':
+      return parent.id !== node;
+    case 'ImportSpecifier':
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+      return false;
+    case 'LabeledStatement':
+      return false;
+    case 'BreakStatement':
+    case 'ContinueStatement':
+      return false;
+    case 'CatchClause':
+      return parent.param !== node;
+    case 'MemberExpression':
+      return parent.object === node || parent.computed;
+    case 'Property':
+      if (parent.shorthand && parent.value === node) {
+        return true;
+      }
+      return parent.key !== node;
+    case 'PropertyDefinition':
+      return parent.key !== node;
+    case 'MethodDefinition':
+      return parent.key !== node;
+    case 'ArrayPattern':
+    case 'ObjectPattern':
+      return false;
+    case 'AssignmentPattern':
+      return parent.left !== node;
+    default:
+      return true;
+  }
 }
 
 function extractPatternIdentifiers(pattern) {

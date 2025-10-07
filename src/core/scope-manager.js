@@ -4,6 +4,7 @@ export class Scope {
     this.parent = parent;
     this.children = [];
     this.declarations = new Map();
+    this.references = [];
   }
 
   declare(name, info) {
@@ -15,6 +16,14 @@ export class Scope {
 
   getDeclarations(name) {
     return this.declarations.get(name) ?? [];
+  }
+
+  addReference(ref) {
+    this.references.push(ref);
+  }
+
+  getReferences() {
+    return this.references;
   }
 }
 
@@ -62,6 +71,18 @@ export class ScopeManager {
       scope = scope.parent;
     }
     return null;
+  }
+
+  addReference(ref) {
+    if (!this.currentScope) {
+      throw new Error('Cannot add reference without an active scope.');
+    }
+    this.currentScope.addReference(ref);
+  }
+
+  getReferences(scope = this.currentScope) {
+    if (!scope) return [];
+    return scope.getReferences();
   }
 
   getCurrentScope() {
