@@ -3,10 +3,12 @@ import { spawn } from 'node:child_process'
 import { once } from 'node:events'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile, mkdtemp, rm, mkdir } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)
+const lspBinary = join(projectRoot, '../lunte-lsp/bin/lunte-lsp')
 
 test('LSP server publishes diagnostics for open document', async (t) => {
   const client = await createLspClient(t)
@@ -48,9 +50,98 @@ test('LSP server publishes diagnostics for open document', async (t) => {
   await client.shutdown()
 })
 
-async function createLspClient(t) {
-  const child = spawn(process.execPath, ['../lunte-lsp/bin/lunte-lsp'], {
-    cwd: projectRoot,
+test('workspace config changes trigger revalidation', async (t) => {
+  const workspaceDir = await createTempWorkspace(t, {
+    '.lunterc': JSON.stringify({ rules: { 'no-unused-vars': 'off' } }),
+    'file.js': 'const keep = 1\n'
+  })
+
+  const client = await createLspClient(t, { cwd: workspaceDir })
+  const rootUri = pathToFileURL(workspaceDir).href
+  await client.sendRequest('initialize', { rootUri })
+  client.sendNotification('initialized', {})
+
+  const documentPath = join(workspaceDir, 'file.js')
+  const documentUri = pathToFileURL(documentPath).href
+  const initialText = await readFile(documentPath, 'utf8')
+
+  client.sendNotification('textDocument/didOpen', {
+    textDocument: {
+      uri: documentUri,
+      languageId: 'javascript',
+      version: 1,
+      text: initialText
+    }
+  })
+
+  const firstPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.is(firstPublish.params?.diagnostics?.length ?? 0, 0, 'rule disabled via config')
+
+  await writeFile(join(workspaceDir, '.lunterc'), JSON.stringify({ rules: { 'no-unused-vars': 'error' } }))
+  client.sendNotification('workspace/didChangeConfiguration', {})
+
+  const secondPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  const diagnostics = secondPublish.params?.diagnostics ?? []
+  t.ok(diagnostics.some((d) => d.code === 'no-unused-vars'), 'diagnostics appear after config reload')
+
+  await client.shutdown()
+})
+
+test('LSP honours ignore patterns and clears diagnostics on close', async (t) => {
+  const workspaceDir = await createTempWorkspace(t, {
+    '.lunteignore': 'ignored.js\n',
+    'ignored.js': 'const unused = 1\n',
+    'watched.js': 'const unused = 1\n'
+  })
+
+  const client = await createLspClient(t, { cwd: workspaceDir })
+  const rootUri = pathToFileURL(workspaceDir).href
+  await client.sendRequest('initialize', { rootUri })
+  client.sendNotification('initialized', {})
+
+  const ignoredUri = pathToFileURL(join(workspaceDir, 'ignored.js')).href
+  const watchedUri = pathToFileURL(join(workspaceDir, 'watched.js')).href
+  const ignoredText = await readFile(join(workspaceDir, 'ignored.js'), 'utf8')
+  const watchedText = await readFile(join(workspaceDir, 'watched.js'), 'utf8')
+
+  client.sendNotification('textDocument/didOpen', {
+    textDocument: {
+      uri: ignoredUri,
+      languageId: 'javascript',
+      version: 1,
+      text: ignoredText
+    }
+  })
+
+  const ignoredPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.is(ignoredPublish.params?.diagnostics?.length ?? 0, 0, 'ignored file should not report diagnostics')
+
+  client.sendNotification('textDocument/didOpen', {
+    textDocument: {
+      uri: watchedUri,
+      languageId: 'javascript',
+      version: 1,
+      text: watchedText
+    }
+  })
+
+  const watchedPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  const diagnostics = watchedPublish.params?.diagnostics ?? []
+  t.ok(diagnostics.length > 0, 'watched file should report diagnostics')
+
+  client.sendNotification('textDocument/didClose', {
+    textDocument: { uri: watchedUri }
+  })
+
+  const cleared = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.is(cleared.params?.diagnostics?.length ?? 0, 0, 'closing file should clear diagnostics')
+
+  await client.shutdown()
+})
+
+async function createLspClient(t, { cwd = projectRoot } = {}) {
+  const child = spawn(process.execPath, [lspBinary], {
+    cwd,
     stdio: ['pipe', 'pipe', 'pipe']
   })
 
@@ -202,4 +293,19 @@ async function createLspClient(t) {
     waitForNotification,
     shutdown
   }
+}
+
+async function createTempWorkspace(t, files) {
+  const dir = await mkdtemp(join(tmpdir(), 'lunte-lsp-'))
+  t.teardown(async () => {
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  for (const [relativePath, content] of Object.entries(files)) {
+    const fullPath = join(dir, relativePath)
+    await mkdir(dirname(fullPath), { recursive: true })
+    await writeFile(fullPath, content)
+  }
+
+  return dir
 }
