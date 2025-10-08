@@ -91,7 +91,7 @@ function notifyListeners(phase, node, ancestors, parentAncestors, state) {
   const parent = parentAncestors[parentAncestors.length - 1] ?? null
 
   if (phase === 'enter') {
-    recordReferenceIfNeeded(node, parent, state.scopeManager)
+    recordReferenceIfNeeded(node, parent, state.scopeManager, parentAncestors)
   }
 
   for (const entry of state.ruleEntries) {
@@ -422,8 +422,8 @@ function inferTemporalDeadZoneIndex(declarator) {
   return undefined
 }
 
-function recordReferenceIfNeeded(node, parent, scopeManager) {
-  if (!shouldRecordReference(node, parent)) {
+function recordReferenceIfNeeded(node, parent, scopeManager, ancestors) {
+  if (!shouldRecordReference(node, parent, ancestors)) {
     return
   }
 
@@ -433,15 +433,17 @@ function recordReferenceIfNeeded(node, parent, scopeManager) {
   })
 }
 
-function shouldRecordReference(node, parent) {
+function shouldRecordReference(node, parent, ancestors = []) {
   if (!node || node.type !== 'Identifier') {
     return false
   }
-  return isReferenceInContext(node, parent)
+  return isReferenceInContext(node, parent, ancestors)
 }
 
-function isReferenceInContext(node, parent) {
+function isReferenceInContext(node, parent, ancestors) {
   if (!parent) return true
+  const parentIndex = ancestors.length - 1
+  const grandparent = parentIndex > 0 ? ancestors[parentIndex - 1] : null
 
   switch (parent.type) {
     case 'VariableDeclarator':
@@ -466,6 +468,9 @@ function isReferenceInContext(node, parent) {
     case 'MemberExpression':
       return parent.object === node || parent.computed
     case 'Property':
+      if (grandparent && grandparent.type === 'ObjectPattern') {
+        return false
+      }
       if (parent.shorthand && parent.value === node) {
         return true
       }
@@ -474,6 +479,13 @@ function isReferenceInContext(node, parent) {
       return parent.key !== node
     case 'MethodDefinition':
       return parent.key !== node
+    case 'RestElement':
+      return false
+    case 'UnaryExpression':
+      if (parent.operator === 'typeof') {
+        return false
+      }
+      return true
     case 'ArrayPattern':
     case 'ObjectPattern':
       return false

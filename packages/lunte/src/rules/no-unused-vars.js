@@ -44,6 +44,9 @@ export const noUnusedVars = {
       FunctionExpression(node) {
         if (node.id) {
           definedSymbols.set(node.id, { name: node.id.name, node: node.id })
+          if (isCommonJsExported(node, context)) {
+            usedSymbols.add(node.id.name)
+          }
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
@@ -145,6 +148,78 @@ function extractPatternIdentifiers(pattern) {
   }
 
   return results
+}
+
+function isCommonJsExported(functionNode, context) {
+  if (!functionNode?.id) return false
+  const parent = context.getParent()
+  if (!parent) return false
+
+  if (parent.type === 'AssignmentExpression' && parent.right === functionNode) {
+    return isCommonJsExportTarget(parent.left)
+  }
+
+  if (parent.type === 'Property' && parent.value === functionNode) {
+    const ancestors = context.getAncestors()
+    const grandparent = ancestors[ancestors.length - 2]
+    if (grandparent && grandparent.type === 'ObjectExpression') {
+      const containerParent = ancestors[ancestors.length - 3]
+      if (containerParent) {
+        if (
+          containerParent.type === 'AssignmentExpression' &&
+          containerParent.right === grandparent
+        ) {
+          return isCommonJsExportTarget(containerParent.left)
+        }
+        if (
+          containerParent.type === 'CallExpression' &&
+          containerParent.callee.type === 'Identifier'
+        ) {
+          // Best effort: ignore
+        }
+      }
+    }
+  }
+
+  return false
+}
+
+function isCommonJsExportTarget(node) {
+  if (!node) return false
+  if (node.type === 'Identifier') {
+    return node.name === 'exports'
+  }
+  if (node.type !== 'MemberExpression') {
+    return false
+  }
+
+  if (isModuleExports(node)) {
+    return true
+  }
+
+  return isCommonJsExportTarget(node.object)
+}
+
+function isModuleExports(node) {
+  if (!node || node.type !== 'MemberExpression') return false
+  if (
+    isIdentifier(node.object, 'module') &&
+    matchesProperty(node.property, 'exports', node.computed)
+  ) {
+    return true
+  }
+  return isModuleExports(node.object)
+}
+
+function isIdentifier(node, name) {
+  return node?.type === 'Identifier' && node.name === name
+}
+
+function matchesProperty(property, name, computed) {
+  if (computed) {
+    return property?.type === 'Literal' && property.value === name
+  }
+  return property?.type === 'Identifier' && property.name === name
 }
 
 function isReferenceIdentifier(node, parent) {

@@ -90,6 +90,11 @@ function isReferenceIdentifier(node, parent, ancestors) {
       return false
     case 'AssignmentPattern':
       return parent.left !== node
+    case 'UnaryExpression':
+      if (parent.operator === 'typeof') {
+        return false
+      }
+      return true
     default:
       return true
   }

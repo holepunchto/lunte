@@ -150,6 +150,13 @@ function isReferenceIdentifier(node, parent, ancestors) {
       return parent.key !== node
     case 'MethodDefinition':
       return parent.key !== node
+    case 'RestElement':
+      return false
+    case 'UnaryExpression':
+      if (parent.operator === 'typeof') {
+        return false
+      }
+      return true
     case 'ArrayPattern':
     case 'ObjectPattern':
       return false

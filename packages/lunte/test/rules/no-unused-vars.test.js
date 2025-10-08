@@ -52,6 +52,18 @@ test('does not flag unused parameters by default', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('allows CommonJS exported generator functions', async (t) => {
+  const result = await runSnippet(
+    'module.exports = async function * audit (store) {\n  yield store\n}\n'
+  )
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows CommonJS property exports', async (t) => {
+  const result = await runSnippet('exports.audit = function audit () {}\n')
+  t.is(result.diagnostics.length, 0)
+})
+
 test('flags unused bindings while allowing used destructured params', async (t) => {
   const unusedLocal = await runSnippet('function demo () { const unused = 1; }\ndemo()\n')
   t.is(unusedLocal.diagnostics.length, 1)

@@ -20,3 +20,17 @@ test('extractFileDirectives parses eslint-env directives', (t) => {
   t.ok(directives.envs.has('node'))
   t.is(directives.envs.has('foo'), false)
 })
+
+test('extractFileDirectives handles globals after directive prolog', (t) => {
+  const source = `'use strict';\n/* global Pear */\nconsole.log(Pear)\n`
+  const directives = extractFileDirectives(source)
+
+  t.ok(directives.globals.has('Pear'))
+})
+
+test('extractFileDirectives skips shebang before directives', (t) => {
+  const source = `#!/usr/bin/env node\n/* global Pear */\nconsole.log(Pear)\n`
+  const directives = extractFileDirectives(source)
+
+  t.ok(directives.globals.has('Pear'))
+})

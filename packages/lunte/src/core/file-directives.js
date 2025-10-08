@@ -12,8 +12,14 @@ export function extractFileDirectives(source) {
   while (index < length) {
     const char = source[index]
 
-    if (char === ' ' || char === '\t' || char === '\r' || char === '\n') {
+    if (isWhitespaceChar(char)) {
       index += 1
+      continue
+    }
+
+    if (index === 0 && source.startsWith('#!', index)) {
+      const endOfLine = findLineTerminator(source, index + 2, length)
+      index = endOfLine === -1 ? length : endOfLine
       continue
     }
 
@@ -27,10 +33,16 @@ export function extractFileDirectives(source) {
     }
 
     if (source.startsWith('//', index)) {
-      const end = source.indexOf('\n', index + 2)
+      const end = findLineTerminator(source, index + 2, length)
       const content = source.slice(index + 2, end === -1 ? length : end).trim()
       handleLineDirective(content, directives)
-      index = end === -1 ? length : end + 1
+      index = end === -1 ? length : end
+      continue
+    }
+
+    const directiveEnd = consumeDirectivePrologue(source, index, length)
+    if (directiveEnd !== -1) {
+      index = directiveEnd
       continue
     }
 
@@ -112,4 +124,69 @@ function addEnvsFromPayload(payload, directives) {
   for (const env of parseEnvList(payload)) {
     directives.envs.add(env)
   }
+}
+
+function isWhitespaceChar(char) {
+  return char === ' ' || char === '\t' || char === '\r' || char === '\n' || char === '\uFEFF'
+}
+
+function consumeDirectivePrologue(source, startIndex, limit) {
+  const quote = source[startIndex]
+  if (quote !== "'" && quote !== '"') {
+    return -1
+  }
+
+  let index = startIndex + 1
+  while (index < limit) {
+    const char = source[index]
+    if (char === '\\') {
+      index += 2
+      continue
+    }
+    if (char === quote) {
+      break
+    }
+    index += 1
+  }
+
+  if (index >= limit || source[index] !== quote) {
+    return -1
+  }
+
+  const literal = source.slice(startIndex + 1, index)
+  if (!literal.startsWith('use ')) {
+    return -1
+  }
+
+  index += 1
+
+  while (index < limit && (source[index] === ' ' || source[index] === '\t')) {
+    index += 1
+  }
+
+  if (index < limit && source[index] === ';') {
+    index += 1
+  }
+
+  while (index < limit && isWhitespaceChar(source[index])) {
+    index += 1
+  }
+
+  return index
+}
+
+function findLineTerminator(source, fromIndex, limit) {
+  for (let i = fromIndex; i < limit; i += 1) {
+    const char = source[i]
+    if (char === '\n') {
+      return i + 1
+    }
+    if (char === '\r') {
+      if (i + 1 < limit && source[i + 1] === '\n') {
+        return i + 2
+      }
+      return i + 1
+    }
+  }
+  return -1
 }

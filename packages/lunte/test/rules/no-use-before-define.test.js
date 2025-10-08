@@ -69,6 +69,13 @@ test('allows references inside deferred function bodies', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('allows rest destructuring bindings in the same scope', async (t) => {
+  const result = await analyzeSnippet(
+    "function wrap (err) {\n  const { ...info } = err\n  Object.defineProperty(info, 'err', { value: err })\n}\nwrap({})\n"
+  )
+  t.is(result.diagnostics.length, 0)
+})
+
 test('reports block-scoped usage before declaration within same function', async (t) => {
   const result = await analyzeSnippet(
     'function demo () {\n  foo()\n  const foo = () => {}\n}\ndemo()\n'
