@@ -36,16 +36,23 @@ export class RuleContext {
 
   report({ node, message, severity }) {
     const target = node ?? this._currentNode
-    const loc = target?.loc?.start ?? {}
-    const line = loc.line
+    const startLoc = target?.loc?.start ?? {}
+    const endLoc = target?.loc?.end ?? startLoc
+    const line = startLoc.line
 
-    if (
-      this.ignoreMatcher?.shouldIgnore({
+    const ignoreMatcher = this.ignoreMatcher
+    if (ignoreMatcher) {
+      const shouldSkipStart = ignoreMatcher.shouldIgnore({
         line,
         ruleId: this.ruleId
       })
-    ) {
-      return
+      const shouldSkipEnd =
+        !shouldSkipStart && endLoc.line != null
+          ? ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
+          : false
+      if (shouldSkipStart || shouldSkipEnd) {
+        return
+      }
     }
 
     this.diagnostics.push({
@@ -54,7 +61,7 @@ export class RuleContext {
       severity: severity ?? this.ruleSeverity ?? Severity.error,
       ruleId: this.ruleId,
       line,
-      column: loc.column != null ? loc.column + 1 : undefined
+      column: startLoc.column != null ? startLoc.column + 1 : undefined
     })
   }
 

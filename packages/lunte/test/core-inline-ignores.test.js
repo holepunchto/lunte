@@ -73,3 +73,18 @@ test('next-line directive applies to following line even with trailing whitespac
   t.ok(matcher.shouldIgnore({ line: 13, ruleId: 'no-undef' }))
   t.is(matcher.shouldIgnore({ line: 12, ruleId: 'no-undef' }), false)
 })
+
+test('file-level disable applies to all subsequent lines', (t) => {
+  const matcher = buildInlineIgnoreMatcher([makeComment(' eslint-disable no-var ', 3, 3)])
+
+  t.ok(matcher.shouldIgnore({ line: 3, ruleId: 'no-var' }))
+  t.ok(matcher.shouldIgnore({ line: 200, ruleId: 'no-var' }))
+  t.is(matcher.shouldIgnore({ line: 200, ruleId: 'no-undef' }), false)
+})
+
+test('file-level disable without rules suppresses all rules', (t) => {
+  const matcher = buildInlineIgnoreMatcher([makeComment(' eslint-disable ', 1, 1)])
+
+  t.ok(matcher.shouldIgnore({ line: 1, ruleId: 'anything' }))
+  t.ok(matcher.shouldIgnore({ line: 500, ruleId: 'no-unused-vars' }))
+})

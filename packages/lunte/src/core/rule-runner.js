@@ -151,6 +151,9 @@ function getScopeType(node, parent) {
       return 'block'
     case 'CatchClause':
       return 'block'
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return 'block'
     case 'ClassExpression':
       return 'class'
     default:
@@ -472,6 +475,9 @@ function isReferenceInContext(node, parent, ancestors) {
         return false
       }
       if (parent.shorthand && parent.value === node) {
+        return true
+      }
+      if (parent.computed && parent.key === node) {
         return true
       }
       return parent.key !== node

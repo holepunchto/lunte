@@ -22,6 +22,9 @@ export const noUnusedVars = {
           ) {
             usedSymbols.add(name)
           }
+          if (shouldIgnoreName(name)) {
+            usedSymbols.add(name)
+          }
         }
       },
       FunctionDeclaration(node) {
@@ -34,10 +37,16 @@ export const noUnusedVars = {
           ) {
             usedSymbols.add(node.id.name)
           }
+          if (shouldIgnoreName(node.id.name)) {
+            usedSymbols.add(node.id.name)
+          }
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
             definedSymbols.set(id, { name, node: id, isParam: true })
+            if (shouldIgnoreName(name)) {
+              usedSymbols.add(name)
+            }
           }
         }
       },
@@ -47,10 +56,16 @@ export const noUnusedVars = {
           if (isCommonJsExported(node, context)) {
             usedSymbols.add(node.id.name)
           }
+          if (shouldIgnoreName(node.id.name)) {
+            usedSymbols.add(node.id.name)
+          }
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
             definedSymbols.set(id, { name, node: id, isParam: true })
+            if (shouldIgnoreName(name)) {
+              usedSymbols.add(name)
+            }
           }
         }
       },
@@ -58,6 +73,9 @@ export const noUnusedVars = {
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
             definedSymbols.set(id, { name, node: id, isParam: true })
+            if (shouldIgnoreName(name)) {
+              usedSymbols.add(name)
+            }
           }
         }
       },
@@ -148,6 +166,11 @@ function extractPatternIdentifiers(pattern) {
   }
 
   return results
+}
+
+function shouldIgnoreName(name) {
+  if (typeof name !== 'string') return false
+  return name.startsWith('_')
 }
 
 function isCommonJsExported(functionNode, context) {
@@ -253,6 +276,9 @@ function isReferenceIdentifier(node, parent) {
       return parent.object === node || parent.computed
     case 'Property':
       if (parent.shorthand && parent.value === node) {
+        return true
+      }
+      if (parent.computed && parent.key === node) {
         return true
       }
       return parent.key !== node

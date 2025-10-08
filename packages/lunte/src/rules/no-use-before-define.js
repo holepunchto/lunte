@@ -145,6 +145,9 @@ function isReferenceIdentifier(node, parent, ancestors) {
       if (parent.shorthand && parent.value === node) {
         return true
       }
+      if (parent.computed && parent.key === node) {
+        return true
+      }
       return parent.key !== node
     case 'PropertyDefinition':
       return parent.key !== node

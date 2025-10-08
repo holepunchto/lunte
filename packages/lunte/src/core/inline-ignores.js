@@ -1,12 +1,15 @@
 const DIRECTIVES = [
   { keyword: 'lunte-disable-line', mode: 'line' },
   { keyword: 'lunte-disable-next-line', mode: 'next-line' },
+  { keyword: 'lunte-disable', mode: 'file' },
   { keyword: 'eslint-disable-line', mode: 'line' },
-  { keyword: 'eslint-disable-next-line', mode: 'next-line' }
+  { keyword: 'eslint-disable-next-line', mode: 'next-line' },
+  { keyword: 'eslint-disable', mode: 'file' }
 ]
 
 export function buildInlineIgnoreMatcher(comments = []) {
   const entries = new Map()
+  const globalState = { all: false, rules: new Set() }
 
   for (const comment of comments) {
     if (!comment || typeof comment.value !== 'string' || !comment.loc) continue
@@ -21,14 +24,22 @@ export function buildInlineIgnoreMatcher(comments = []) {
 
       const payload = text.slice(directive.keyword.length).trim()
       const baseLine = comment.loc.end?.line ?? comment.loc.start.line
-      const targetLine = directive.mode === 'next-line' ? baseLine + 1 : baseLine
-      registerLine(entries, targetLine, parseRuleList(payload))
+      if (directive.mode === 'file') {
+        registerGlobal(globalState, parseRuleList(payload))
+      } else {
+        const targetLine = directive.mode === 'next-line' ? baseLine + 1 : baseLine
+        registerLine(entries, targetLine, parseRuleList(payload))
+      }
       break
     }
   }
 
   return {
     shouldIgnore({ line, ruleId }) {
+      if (globalState.all) return true
+      if (ruleId && globalState.rules.has(ruleId)) {
+        return true
+      }
       if (!line) return false
       const entry = entries.get(line)
       if (!entry) return false
@@ -59,6 +70,22 @@ function registerLine(target, line, ruleIds) {
 
   for (const id of ruleIds) {
     entry.rules.add(id)
+  }
+}
+
+function registerGlobal(state, ruleIds) {
+  if (!ruleIds) {
+    state.all = true
+    state.rules.clear()
+    return
+  }
+
+  if (state.all) {
+    return
+  }
+
+  for (const id of ruleIds) {
+    state.rules.add(id)
   }
 }
 
