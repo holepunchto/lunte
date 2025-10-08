@@ -26,14 +26,15 @@
 - Publish a small programmatic API with typings/JSDoc and author contributor docs.
 - Design LSP-ready service interfaces (diagnostics, code actions).
 
-## Stage 5 – LSP Prototype 🧭 (not started)
+## Stage 5 – LSP Prototype 🧭 (in progress)
 
-- Build the lightweight LSP server on top of the shared analyzer.
-- Emit proper LSP diagnostics and quick-fix actions; test with VS Code / Neovim adapters.
-- Document editor integration in `docs/integration.md`.
+- DONE: Build the lightweight LSP server on top of the shared analyzer.
+- DONE: Document editor integration in `docs/integration.md`.
+- TODO: Emit code actions (suppressions, quick fixes) and exercise the server with VS Code / Neovim adapters.
 
 ## Near-Term Next Steps
 
 - Finish Stage 2 deliverables (reporters + config docs).
 - Add rule options/overrides documentation and expose severity toggles via config.
 - Plan incremental analysis work (API sketch + cache semantics).
+- Expand LSP server capabilities (incremental sync, diagnostics metadata, code actions) and add VS Code launch recipe.

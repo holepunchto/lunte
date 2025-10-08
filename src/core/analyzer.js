@@ -5,7 +5,13 @@ import { extractFileDirectives } from './file-directives.js'
 import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 
-export async function analyze({ files, ruleOverrides, envOverrides, globalOverrides }) {
+export async function analyze({
+  files,
+  ruleOverrides,
+  envOverrides,
+  globalOverrides,
+  sourceText
+}) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
     ruleOverrides,
@@ -13,27 +19,38 @@ export async function analyze({ files, ruleOverrides, envOverrides, globalOverri
     globals: globalOverrides
   })
 
+  const sourceOverrides = normalizeSourceOverrides(sourceText)
+
   for (const file of files) {
-    const result = await analyzeFile(file, { ruleConfig, baseGlobals })
+    const result = await analyzeFile(file, {
+      ruleConfig,
+      baseGlobals,
+      sourceOverrides
+    })
     diagnostics.push(...result.diagnostics)
   }
 
   return { diagnostics }
 }
 
-async function analyzeFile(filePath, { ruleConfig, baseGlobals }) {
+async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides }) {
   const diagnostics = []
   let source
+  const hasOverride = sourceOverrides?.has(filePath)
 
-  try {
-    source = await readFileText(filePath)
-  } catch (error) {
-    diagnostics.push({
-      filePath,
-      message: error.code === 'ENOENT' ? 'File not found' : error.message,
-      severity: 'error'
-    })
-    return { diagnostics }
+  if (hasOverride) {
+    source = String(sourceOverrides.get(filePath) ?? '')
+  } else {
+    try {
+      source = await readFileText(filePath)
+    } catch (error) {
+      diagnostics.push({
+        filePath,
+        message: error.code === 'ENOENT' ? 'File not found' : error.message,
+        severity: 'error'
+      })
+      return { diagnostics }
+    }
   }
 
   try {
@@ -61,6 +78,19 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals }) {
 async function readFileText(filePath) {
   const { readFile } = await import('node:fs/promises')
   return readFile(filePath, 'utf8')
+}
+
+function normalizeSourceOverrides(value) {
+  if (!value) {
+    return new Map()
+  }
+  if (value instanceof Map) {
+    return value
+  }
+  if (typeof value === 'object') {
+    return new Map(Object.entries(value))
+  }
+  return new Map()
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {

@@ -66,3 +66,35 @@ useGlobalResource()
 ## Status
 
 The project is under active development. Expect rule APIs, configuration formats, and CLI options to evolve.
+
+## Editor Integration (LSP)
+
+A lightweight Language Server Protocol endpoint ships as `lunte-lsp`. It reuses the CLI analyser, honours `.lunterc` / `.lunterc.json`, and streams diagnostics for open buffers.
+
+Start it manually:
+
+```sh
+npx lunte-lsp
+```
+
+### Neovim
+
+Use the built-in LSP client (via `lspconfig`) to surface errors in buffers:
+
+```lua
+local lspconfig = require('lspconfig')
+local configs = require('lspconfig.configs')
+
+configs.lunte = configs.lunte or {
+  default_config = {
+    cmd = { 'npx', 'lunte-lsp' },
+    filetypes = { 'javascript' },
+    root_dir = lspconfig.util.find_git_ancestor,
+    single_file_support = true,
+  },
+}
+
+lspconfig.lunte.setup({})
+```
+
+The v0 server performs full-document sync and does not yet support code actions or autofix.
