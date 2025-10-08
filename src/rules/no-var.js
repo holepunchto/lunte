@@ -5,7 +5,7 @@ export const noVar = {
     name: 'no-var',
     description: 'Disallow var declarations.',
     recommended: true,
-    defaultSeverity: Severity.warning
+    defaultSeverity: Severity.error
   },
   create (context) {
     return {

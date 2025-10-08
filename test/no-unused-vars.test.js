@@ -15,7 +15,7 @@ test('flags unused variable', async (t) => {
   t.is(result.diagnostics.length, 1)
   const [diag] = result.diagnostics
   t.ok(diag.message.includes('never used'))
-  t.is(diag.severity, 'warning')
+  t.is(diag.severity, 'error')
 })
 
 test('does not flag used variable', async (t) => {

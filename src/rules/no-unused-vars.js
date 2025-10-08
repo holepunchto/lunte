@@ -5,7 +5,7 @@ export const noUnusedVars = {
     name: 'no-unused-vars',
     description: 'Disallow unused variables.',
     recommended: true,
-    defaultSeverity: Severity.warning
+    defaultSeverity: Severity.error
   },
   create(context) {
     const definedSymbols = new Map()
@@ -101,11 +101,10 @@ export const noUnusedVars = {
         exit() {
           for (const { name, node } of definedSymbols.values()) {
             if (usedSymbols.has(name)) continue
-            context.report({
-              node,
-              message: `'${name}' is defined but never used.`,
-              severity: Severity.warning
-            })
+          context.report({
+            node,
+            message: `'${name}' is defined but never used.`
+          })
           }
         }
       }
