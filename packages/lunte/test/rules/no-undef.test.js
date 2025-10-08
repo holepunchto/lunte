@@ -2,12 +2,12 @@ import test from 'brittle'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-import { analyze } from '../src/core/analyzer.js'
+import { analyze } from '../../src/core/analyzer.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 function fixturePath(name) {
-  return join(__dirname, 'fixtures', name)
+  return join(__dirname, '..', 'fixtures', name)
 }
 
 test('reports use of undefined variable', async (t) => {
