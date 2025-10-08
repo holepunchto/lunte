@@ -21,12 +21,13 @@ async function analyzeSnippet(source) {
   })
 }
 
-test('allows identifier used before definition at module scope', async (t) => {
+test('reports identifier used before definition at module scope', async (t) => {
   const result = await analyze({
     files: [fixturePath('use-before-define-invalid.js')],
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
-  t.is(result.diagnostics.length, 0)
+  t.is(result.diagnostics.length, 1)
+  t.ok(result.diagnostics[0].message.includes('was used before it was defined'))
 })
 
 test('allows const used before definition at module scope', async (t) => {
@@ -61,14 +62,23 @@ test('allows exported class before usage', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows usage before block-scoped declaration within function (current behaviour)', async (t) => {
+test('allows references inside deferred function bodies', async (t) => {
   const result = await analyzeSnippet(
-    'function demo () {\n  foo()\n  const foo = () => {}\n}\ndemo()\n'
+    'const stream = new Readable({\n  read () {\n    stream.push(null)\n  }\n})\n'
   )
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows function expressions referenced before declaration', async (t) => {
+test('reports block-scoped usage before declaration within same function', async (t) => {
+  const result = await analyzeSnippet(
+    'function demo () {\n  foo()\n  const foo = () => {}\n}\ndemo()\n'
+  )
+  t.is(result.diagnostics.length, 1)
+  t.ok(result.diagnostics[0].message.includes('was used before it was defined'))
+})
+
+test('reports function expressions referenced before declaration', async (t) => {
   const expression = await analyzeSnippet('call()\nconst call = function () {}\n')
-  t.is(expression.diagnostics.length, 0)
+  t.is(expression.diagnostics.length, 1)
+  t.ok(expression.diagnostics[0].message.includes('was used before it was defined'))
 })

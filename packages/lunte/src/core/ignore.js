@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { isAbsolute, join, relative, sep } from 'node:path'
+import { dirname, isAbsolute, join, relative } from 'node:path'
 
 import { globToRegExp, toPosix } from './glob.js'
 
@@ -7,68 +7,24 @@ const DEFAULT_IGNORE_FILE = '.lunteignore'
 const DEFAULT_PATTERNS = ['node_modules/']
 
 export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
-  const patterns = []
-  const ignoreFiles = [
-    ignorePath
-      ? isAbsolute(ignorePath)
-        ? ignorePath
-        : join(cwd, ignorePath)
-      : join(cwd, DEFAULT_IGNORE_FILE)
-  ]
+  const absoluteIgnorePath = ignorePath
+    ? isAbsolute(ignorePath)
+      ? ignorePath
+      : join(cwd, ignorePath)
+    : join(cwd, DEFAULT_IGNORE_FILE)
+
+  const basePatterns = []
+  const cache = new Map()
 
   for (const pattern of DEFAULT_PATTERNS) {
-    addPatternFromLine(pattern, patterns)
+    addPatternFromLine(pattern, basePatterns, { base: '' })
   }
 
-  for (const filePath of ignoreFiles) {
-    let content
-    try {
-      content = await readFile(filePath, 'utf8')
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        continue
-      }
-      throw error
-    }
+  await appendIgnoreFile({ filePath: absoluteIgnorePath, cwd, patterns: basePatterns })
 
-    for (const rawLine of content.split(/\r?\n/)) {
-      addPatternFromLine(rawLine, patterns)
-    }
-  }
-
-  return {
-    ignores(targetPath, { isDir = false } = {}) {
-      if (patterns.length === 0) {
-        return false
-      }
-
-      const rel = toPosixPath(relative(cwd, targetPath))
-      const abs = toPosixPath(targetPath)
-      const relValue = rel === '' ? '.' : rel
-      const withinCwd = !rel.startsWith('..')
-      const normalizedAbs = abs.endsWith('/') ? abs.replace(/\/+$/, '') : abs
-
-      const candidates = []
-      if (withinCwd) {
-        candidates.push(relValue)
-      }
-      candidates.push(abs)
-      if (isDir) {
-        if (withinCwd) {
-          candidates.push(`${relValue}/`)
-        }
-        candidates.push(`${normalizedAbs}/`)
-      }
-
-      let ignored = false
-      for (const pattern of patterns) {
-        const matched = candidates.some((candidate) => pattern.regex.test(candidate))
-        if (!matched) continue
-        ignored = !pattern.negated
-      }
-      return ignored
-    }
-  }
+  const rootContext = new IgnoreContext({ cwd, patterns: basePatterns, cache })
+  cache.set(toPosixPath(cwd), Promise.resolve(rootContext))
+  return rootContext
 }
 
 function ensureLeadingDoubleStar(pattern) {
@@ -79,10 +35,12 @@ function ensureLeadingDoubleStar(pattern) {
 }
 
 function toPosixPath(path) {
-  return toPosix(path)
+  const converted = toPosix(path)
+  if (converted === '.') return ''
+  return converted
 }
 
-function addPatternFromLine(rawLine, patterns) {
+function addPatternFromLine(rawLine, patterns, { base }) {
   let pattern = rawLine.trim()
   if (!pattern || pattern.startsWith('#')) {
     return
@@ -105,11 +63,17 @@ function addPatternFromLine(rawLine, patterns) {
     pattern = pattern.slice(1)
   }
 
+  while (pattern.startsWith('./')) {
+    pattern = pattern.slice(2)
+  }
+
   if (!pattern) {
     return
   }
 
-  const globPattern = anchored ? pattern : ensureLeadingDoubleStar(pattern)
+  const basePrefix = base ? `${base}/` : ''
+  const normalized = anchored ? pattern : ensureLeadingDoubleStar(pattern)
+  const globPattern = basePrefix ? `${basePrefix}${normalized}` : normalized
   const regexes = []
   regexes.push(globToRegExp(globPattern))
   if (directoryOnly) {
@@ -118,5 +82,84 @@ function addPatternFromLine(rawLine, patterns) {
 
   for (const regex of regexes) {
     patterns.push({ regex, negated })
+  }
+}
+
+async function appendIgnoreFile({ filePath, cwd, patterns }) {
+  const dir = dirname(filePath)
+  let content
+  try {
+    content = await readFile(filePath, 'utf8')
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return
+    }
+    throw error
+  }
+
+  const base = toPosixPath(relative(cwd, dir))
+  for (const rawLine of content.split(/\r?\n/)) {
+    addPatternFromLine(rawLine, patterns, { base })
+  }
+}
+
+class IgnoreContext {
+  constructor({ cwd, patterns, cache }) {
+    this.cwd = cwd
+    this.patterns = patterns
+    this.cache = cache
+  }
+
+  async extend(directory) {
+    const key = toPosixPath(directory)
+    if (this.cache.has(key)) {
+      return this.cache.get(key)
+    }
+
+    const promise = this.#buildChild(directory)
+    this.cache.set(key, promise)
+    return promise
+  }
+
+  async #buildChild(directory) {
+    const nextPatterns = this.patterns.slice()
+    await appendIgnoreFile({
+      filePath: join(directory, DEFAULT_IGNORE_FILE),
+      cwd: this.cwd,
+      patterns: nextPatterns
+    })
+    return new IgnoreContext({ cwd: this.cwd, patterns: nextPatterns, cache: this.cache })
+  }
+
+  ignores(targetPath, { isDir = false } = {}) {
+    if (this.patterns.length === 0) {
+      return false
+    }
+
+    const rel = toPosixPath(relative(this.cwd, targetPath))
+    const abs = toPosixPath(targetPath)
+    const relValue = rel === '' ? '.' : rel
+    const withinCwd = rel !== '' && !rel.startsWith('..')
+    const normalizedAbs = abs.endsWith('/') ? abs.replace(/\/+$/, '') : abs
+
+    const candidates = []
+    if (withinCwd || rel === '') {
+      candidates.push(relValue)
+    }
+    candidates.push(abs)
+    if (isDir) {
+      if (withinCwd || rel === '') {
+        candidates.push(`${relValue}/`)
+      }
+      candidates.push(`${normalizedAbs}/`)
+    }
+
+    let ignored = false
+    for (const pattern of this.patterns) {
+      const matched = candidates.some((candidate) => pattern.regex.test(candidate))
+      if (!matched) continue
+      ignored = !pattern.negated
+    }
+    return ignored
   }
 }

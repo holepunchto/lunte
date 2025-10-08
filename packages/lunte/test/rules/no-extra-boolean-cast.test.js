@@ -37,8 +37,8 @@ test('flags redundant double negation in fixtures', async (t) => {
   t.is(result.diagnostics[0].ruleId, 'no-extra-boolean-cast')
 })
 
-test('allows double negation in conditional test', async (t) => {
-  const result = await analyzeSnippet('if (!!maybe) { console.log(maybe) }\n')
+test('allows double negation when explicitly coercing values', async (t) => {
+  const result = await analyzeSnippet('const flag = !!maybe\n')
   t.is(result.diagnostics.length, 0)
 })
 

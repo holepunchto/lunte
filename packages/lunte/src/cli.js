@@ -13,7 +13,6 @@ export async function run(argv = []) {
     return 0
   }
 
-  // Placeholder: wire the analyzer once file reading is implemented.
   if (options.files.length === 0) {
     console.error('No input files specified.')
     return 1
@@ -28,8 +27,8 @@ export async function run(argv = []) {
     return 1
   }
 
-  const mergedEnv = mergeEnv(config.env, options.envs)
-  const mergedGlobals = mergeGlobals(config.globals, options.globals)
+  const mergedEnv = safeMerge(config.env, options.envs)
+  const mergedGlobals = safeMerge(config.globals, options.globals)
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, options.ruleOverrides)
 
   const result = await analyze({
@@ -99,7 +98,7 @@ function parseArguments(argv) {
 }
 
 function printHelp() {
-  console.log('Usage: lunte [options] <file ...>')
+  console.log('Usage: lunte [options] <file_or_dir ...>')
   console.log('  --help, -h    Show this usage information.')
   console.log('  --rule name=severity  Override rule severity (error, warn, off).')
   console.log('  --env name             Enable predefined environment globals.')
@@ -144,12 +143,8 @@ function parseListArgument(arg, nextValue, flagName) {
     .filter(Boolean)
 }
 
-function mergeEnv(configEnv = [], cliEnv = []) {
-  return [...configEnv, ...cliEnv]
-}
-
-function mergeGlobals(configGlobals = [], cliGlobals = []) {
-  return [...configGlobals, ...cliGlobals]
+function safeMerge(one = [], two = []) {
+  return [...one, ...two]
 }
 
 function mergeRuleOverrides(configRules = {}, cliOverrides = []) {

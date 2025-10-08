@@ -10,6 +10,8 @@ export const noUseBeforeDefine = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    const pendingReferences = []
+
     return {
       Identifier(node) {
         const parent = context.getParent()
@@ -23,27 +25,82 @@ export const noUseBeforeDefine = {
           return
         }
 
-        const resolved = context.resolve(node.name, Number.POSITIVE_INFINITY)
-
-        if (!resolved) {
-          return
-        }
-
-        if (resolved.hoisted) {
-          return
-        }
-
-        if (resolved.index <= node.start) {
-          return
-        }
-
-        context.report({
+        pendingReferences.push({
           node,
-          message: `'${node.name}' was used before it was defined.`
+          ancestors: ancestors.slice(),
+          scope: context.getCurrentScope()
         })
+      },
+      'Program:exit'() {
+        const scopeManager = context.getScopeManager()
+        const originalScope = scopeManager.getCurrentScope()
+        for (const reference of pendingReferences) {
+          context.setTraversalState({ node: reference.node, ancestors: reference.ancestors })
+          if (reference.scope) {
+            scopeManager.currentScope = reference.scope
+          }
+          const resolved = context.resolve(reference.node.name, Number.POSITIVE_INFINITY)
+
+          if (!resolved) {
+            continue
+          }
+
+          if (resolved.hoisted) {
+            continue
+          }
+
+          if (isDeferredReference(reference.node, reference.ancestors, resolved.node)) {
+            continue
+          }
+
+          if (resolved.index <= reference.node.start) {
+            continue
+          }
+
+          context.report({
+            node: reference.node,
+            message: `'${reference.node.name}' was used before it was defined.`
+          })
+        }
+        scopeManager.currentScope = originalScope
       }
     }
   }
+}
+
+function isDeferredReference(node, ancestors, declarationNode) {
+  if (!declarationNode) return false
+
+  for (let i = ancestors.length - 1; i >= 0; i -= 1) {
+    const ancestor = ancestors[i]
+    if (isFunctionLike(ancestor)) {
+      if (!containsNode(ancestor, declarationNode)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+function isFunctionLike(node) {
+  return (
+    node &&
+    (node.type === 'FunctionDeclaration' ||
+      node.type === 'FunctionExpression' ||
+      node.type === 'ArrowFunctionExpression')
+  )
+}
+
+function containsNode(container, maybeChild) {
+  if (!container || !maybeChild) return false
+  if (typeof container.start !== 'number' || typeof container.end !== 'number') {
+    return false
+  }
+  if (typeof maybeChild.start !== 'number' || typeof maybeChild.end !== 'number') {
+    return false
+  }
+  return container.start <= maybeChild.start && maybeChild.end <= container.end
 }
 
 function isReferenceIdentifier(node, parent, ancestors) {

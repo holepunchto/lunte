@@ -151,6 +151,8 @@ function getScopeType(node, parent) {
       return 'block'
     case 'CatchClause':
       return 'block'
+    case 'ClassExpression':
+      return 'class'
     default:
       return null
   }
@@ -202,6 +204,16 @@ function handleScopeIntroductions(node, scopeManager) {
         })
       )
     }
+  }
+
+  if (node.type === 'ClassExpression' && node.id) {
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'class',
+        hoisted: true
+      })
+    )
   }
 }
 
@@ -300,13 +312,14 @@ function hoistProgramDeclarations(programNode, scopeManager) {
     if (statement.type === 'VariableDeclaration') {
       for (const declarator of statement.declarations) {
         for (const { name, node: id } of extractPatternIdentifiers(declarator.id)) {
+          const isVar = statement.kind === 'var'
           scopeManager.declare(
             name,
             createDeclarationInfo(id, {
               kind: statement.kind,
-              hoisted: true
+              hoisted: isVar
             }),
-            { hoistTo: 'function' }
+            isVar ? { hoistTo: 'function' } : undefined
           )
         }
       }

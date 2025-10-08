@@ -59,3 +59,11 @@ test('allows exported class before usage', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('allows class expression name inside its body', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('class-expression-reference.js')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0)
+})

@@ -21,3 +21,8 @@ test('inline disable directives suppress targeted diagnostics', async (t) => {
   t.is(noUnusedDiagnostics.length, 1, 'should not suppress other rules by default')
   t.is(noUnusedDiagnostics[0].line, 1)
 })
+
+test('eslint-style disable directives are respected', async (t) => {
+  const result = await analyze({ files: [fixturePath('inline-ignore-eslint.js')] })
+  t.is(result.diagnostics.length, 0)
+})

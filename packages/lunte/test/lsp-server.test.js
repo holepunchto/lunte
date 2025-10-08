@@ -11,9 +11,15 @@ const projectRoot = dirname(__dirname)
 const lspBinary = join(projectRoot, '../lunte-lsp/bin/lunte-lsp')
 
 test('LSP server publishes diagnostics for open document', async (t) => {
-  const client = await createLspClient(t)
+  const fixturePath = join(__dirname, 'fixtures', 'lsp-diagnostic.js')
+  const fixtureText = await readFile(fixturePath, 'utf8')
+  const workspaceDir = await createTempWorkspace(t, {
+    'file.js': fixtureText
+  })
 
-  const rootUri = pathToFileURL(projectRoot).href
+  const client = await createLspClient(t, { cwd: workspaceDir })
+
+  const rootUri = pathToFileURL(workspaceDir).href
   const initResult = await client.sendRequest('initialize', { rootUri })
   t.is(
     initResult.capabilities?.textDocumentSync?.change,
@@ -23,16 +29,15 @@ test('LSP server publishes diagnostics for open document', async (t) => {
 
   client.sendNotification('initialized', {})
 
-  const fixturePath = join(__dirname, 'fixtures', 'lsp-diagnostic.js')
-  const documentUri = pathToFileURL(fixturePath).href
-  const text = await readFile(fixturePath, 'utf8')
+  const documentPath = join(workspaceDir, 'file.js')
+  const documentUri = pathToFileURL(documentPath).href
 
   client.sendNotification('textDocument/didOpen', {
     textDocument: {
       uri: documentUri,
       languageId: 'javascript',
       version: 1,
-      text
+      text: fixtureText
     }
   })
 

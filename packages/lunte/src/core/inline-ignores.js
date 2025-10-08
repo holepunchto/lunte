@@ -1,5 +1,9 @@
-const DIRECTIVE_DISABLE_LINE = 'lunte-disable-line'
-const DIRECTIVE_DISABLE_NEXT_LINE = 'lunte-disable-next-line'
+const DIRECTIVES = [
+  { keyword: 'lunte-disable-line', mode: 'line' },
+  { keyword: 'lunte-disable-next-line', mode: 'next-line' },
+  { keyword: 'eslint-disable-line', mode: 'line' },
+  { keyword: 'eslint-disable-next-line', mode: 'next-line' }
+]
 
 export function buildInlineIgnoreMatcher(comments = []) {
   const entries = new Map()
@@ -10,17 +14,16 @@ export function buildInlineIgnoreMatcher(comments = []) {
     const text = comment.value.trim()
     if (!text) continue
 
-    if (text.startsWith(DIRECTIVE_DISABLE_LINE)) {
-      const payload = text.slice(DIRECTIVE_DISABLE_LINE.length).trim()
-      const line = comment.loc.end?.line ?? comment.loc.start.line
-      registerLine(entries, line, parseRuleList(payload))
-      continue
-    }
+    for (const directive of DIRECTIVES) {
+      if (!text.startsWith(directive.keyword)) {
+        continue
+      }
 
-    if (text.startsWith(DIRECTIVE_DISABLE_NEXT_LINE)) {
-      const payload = text.slice(DIRECTIVE_DISABLE_NEXT_LINE.length).trim()
-      const line = (comment.loc.end?.line ?? comment.loc.start.line) + 1
-      registerLine(entries, line, parseRuleList(payload))
+      const payload = text.slice(directive.keyword.length).trim()
+      const baseLine = comment.loc.end?.line ?? comment.loc.start.line
+      const targetLine = directive.mode === 'next-line' ? baseLine + 1 : baseLine
+      registerLine(entries, targetLine, parseRuleList(payload))
+      break
     }
   }
 

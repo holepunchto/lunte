@@ -43,12 +43,14 @@ async function collectPath(resolved, { files, ignore }) {
     throw error
   }
 
-  if (shouldIgnore(ignore, resolved, { isDir: info.isDirectory() })) {
+  const isDir = info.isDirectory()
+  if (shouldIgnore(ignore, resolved, { isDir })) {
     return
   }
 
-  if (info.isDirectory()) {
-    await collectDirectory(resolved, { files, ignore })
+  if (isDir) {
+    const nextIgnore = await extendIgnore(ignore, resolved)
+    await collectDirectory(resolved, { files, ignore: nextIgnore })
     return
   }
 
@@ -61,19 +63,19 @@ async function collectDirectory(dir, { files, ignore }) {
   if (shouldIgnore(ignore, dir, { isDir: true })) {
     return
   }
-
+  const dirIgnore = await extendIgnore(ignore, dir)
   const entries = await readdir(dir, { withFileTypes: true })
   for (const entry of entries) {
     if (entry.name === '.' || entry.name === '..') continue
     if (entry.name.startsWith('.')) continue
     const fullPath = join(dir, entry.name)
     const isDir = entry.isDirectory()
-    if (shouldIgnore(ignore, fullPath, { isDir })) {
+    if (shouldIgnore(dirIgnore, fullPath, { isDir })) {
       continue
     }
 
     if (isDir) {
-      await collectDirectory(fullPath, { files, ignore })
+      await collectDirectory(fullPath, { files, ignore: dirIgnore })
     } else if (entry.isFile() && isJavaScriptFile(fullPath)) {
       files.add(fullPath)
     }
@@ -107,18 +109,19 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
     return
   }
 
+  const dirIgnore = await extendIgnore(ignore, dir)
   const entries = await readdir(dir, { withFileTypes: true })
   for (const entry of entries) {
     if (entry.name === '.' || entry.name === '..') continue
     if (entry.name.startsWith('.')) continue
     const fullPath = join(dir, entry.name)
     const isDir = entry.isDirectory()
-    if (shouldIgnore(ignore, fullPath, { isDir })) {
+    if (shouldIgnore(dirIgnore, fullPath, { isDir })) {
       continue
     }
 
     if (isDir) {
-      await walkGlob(fullPath, { matcher, files, ignore, cwd })
+      await walkGlob(fullPath, { matcher, files, ignore: dirIgnore, cwd })
       continue
     }
 
@@ -160,4 +163,15 @@ function getGlobBase(pattern) {
 
 function shouldIgnore(ignore, path, meta) {
   return Boolean(ignore?.ignores?.(path, meta))
+}
+
+async function extendIgnore(ignore, dir) {
+  if (typeof ignore?.extend === 'function') {
+    try {
+      return await ignore.extend(dir)
+    } catch (error) {
+      // fall through to return original ignore if extension fails
+    }
+  }
+  return ignore
 }

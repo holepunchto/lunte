@@ -1,8 +1,2 @@
-test/fixtures/sample-project/subdir/bad.js
+test/fixtures/*
 vendor/
-# Ignore intentional negative test fixtures
-/test/fixtures/env-browser.js
-/test/fixtures/invalid.js
-/test/fixtures/no-undef-invalid.js
-/test/fixtures/no-unused-vars-invalid.js
-/test/fixtures/use-before-define-invalid.js
