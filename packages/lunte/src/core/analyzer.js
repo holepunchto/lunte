@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+
 import { parse } from './parser.js'
 import { resolveConfig } from '../config/resolve.js'
 import { ENV_GLOBALS } from '../config/envs.js'
@@ -30,13 +32,11 @@ export async function analyze({ files, ruleOverrides, envOverrides, globalOverri
 async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides }) {
   const diagnostics = []
   let source
-  const hasOverride = sourceOverrides?.has(filePath)
-
-  if (hasOverride) {
+  if (sourceOverrides?.has(filePath)) {
     source = String(sourceOverrides.get(filePath) ?? '')
   } else {
     try {
-      source = await readFileText(filePath)
+      source = await readFile(filePath, 'utf8')
     } catch (error) {
       diagnostics.push({
         filePath,
@@ -69,14 +69,9 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
   return { diagnostics }
 }
 
-async function readFileText(filePath) {
-  const { readFile } = await import('node:fs/promises')
-  return readFile(filePath, 'utf8')
-}
-
 function normalizeSourceOverrides(value) {
   if (!value) {
-    return new Map()
+    return undefined
   }
   if (value instanceof Map) {
     return value
@@ -84,7 +79,7 @@ function normalizeSourceOverrides(value) {
   if (typeof value === 'object') {
     return new Map(Object.entries(value))
   }
-  return new Map()
+  return undefined
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {
@@ -108,6 +103,10 @@ function inferLineFromError(error, source) {
 }
 
 function mergeGlobals(baseGlobals, directives) {
+  if (directives.envs.size === 0 && directives.globals.size === 0) {
+    return baseGlobals
+  }
+
   const globals = new Set(baseGlobals)
 
   for (const envName of directives.envs) {

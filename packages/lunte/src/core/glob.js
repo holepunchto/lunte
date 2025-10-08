@@ -42,10 +42,10 @@ export function globToRegExp(glob) {
     }
 
     if (char === '[') {
-      const { segment, length } = readCharacterClass(normalized.slice(i))
-      if (segment) {
-        re += segment
-        i += length
+      const result = readCharacterClass(normalized, i)
+      if (result) {
+        re += result.segment
+        i += result.length
         continue
       }
       // Treat as literal if malformed
@@ -63,15 +63,15 @@ export function globToRegExp(glob) {
 }
 
 export function toPosix(path) {
-  return path.replace(/\\+/g, '/')
+  return path.includes('\\') ? path.replace(/\\+/g, '/') : path
 }
 
 function escapeRegExp(char) {
   return char.replace(SPECIAL_CHARS, '\\$&')
 }
 
-function readCharacterClass(input) {
-  let i = 1
+function readCharacterClass(input, startIndex) {
+  let i = startIndex + 1
   if (input[i] === '!' || input[i] === '^') {
     i += 1
   }
@@ -89,8 +89,8 @@ function readCharacterClass(input) {
     i += 1
   }
   if (i >= input.length) {
-    return { segment: null, length: 0 }
+    return null
   }
-  const content = input.slice(0, i + 1)
-  return { segment: content, length: i + 1 }
+  const length = i - startIndex + 1
+  return { segment: input.slice(startIndex, i + 1), length }
 }

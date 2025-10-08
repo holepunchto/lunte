@@ -51,7 +51,10 @@ test('shouldIgnore treats missing ruleId as match when specific rules provided',
     makeComment('lunte-disable-line no-undef, no-unused-vars', 7)
   ])
 
-  t.ok(matcher.shouldIgnore({ line: 7 }), 'unspecified rule should still be suppressed when directive lists rules')
+  t.ok(
+    matcher.shouldIgnore({ line: 7 }),
+    'unspecified rule should still be suppressed when directive lists rules'
+  )
 })
 
 test('non-directive comments do not affect ignore matcher', (t) => {
@@ -65,9 +68,7 @@ test('non-directive comments do not affect ignore matcher', (t) => {
 })
 
 test('next-line directive applies to following line even with trailing whitespace', (t) => {
-  const matcher = buildInlineIgnoreMatcher([
-    makeComment('lunte-disable-next-line   ', 12)
-  ])
+  const matcher = buildInlineIgnoreMatcher([makeComment('lunte-disable-next-line   ', 12)])
 
   t.ok(matcher.shouldIgnore({ line: 13, ruleId: 'no-undef' }))
   t.is(matcher.shouldIgnore({ line: 12, ruleId: 'no-undef' }), false)

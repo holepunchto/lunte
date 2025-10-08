@@ -8,19 +8,19 @@ const DEFAULT_PATTERNS = ['node_modules/']
 
 export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
   const patterns = []
-  const files = []
-
-  if (ignorePath) {
-    files.push(isAbsolute(ignorePath) ? ignorePath : join(cwd, ignorePath))
-  } else {
-    files.push(join(cwd, DEFAULT_IGNORE_FILE))
-  }
+  const ignoreFiles = [
+    ignorePath
+      ? isAbsolute(ignorePath)
+        ? ignorePath
+        : join(cwd, ignorePath)
+      : join(cwd, DEFAULT_IGNORE_FILE)
+  ]
 
   for (const pattern of DEFAULT_PATTERNS) {
     addPatternFromLine(pattern, patterns)
   }
 
-  for (const filePath of files) {
+  for (const filePath of ignoreFiles) {
     let content
     try {
       content = await readFile(filePath, 'utf8')
@@ -45,17 +45,19 @@ export async function loadIgnore({ cwd = process.cwd(), ignorePath } = {}) {
       const rel = toPosixPath(relative(cwd, targetPath))
       const abs = toPosixPath(targetPath)
       const relValue = rel === '' ? '.' : rel
+      const withinCwd = !rel.startsWith('..')
+      const normalizedAbs = abs.endsWith('/') ? abs.replace(/\/+$/, '') : abs
 
       const candidates = []
-      if (!rel.startsWith('..')) {
+      if (withinCwd) {
         candidates.push(relValue)
       }
       candidates.push(abs)
       if (isDir) {
-        if (!rel.startsWith('..')) {
+        if (withinCwd) {
           candidates.push(`${relValue}/`)
         }
-        candidates.push(`${abs.replace(/\/+$/, '')}/`)
+        candidates.push(`${normalizedAbs}/`)
       }
 
       let ignored = false
@@ -77,7 +79,7 @@ function ensureLeadingDoubleStar(pattern) {
 }
 
 function toPosixPath(path) {
-  return toPosix(path.split(sep).join('/'))
+  return toPosix(path)
 }
 
 function addPatternFromLine(rawLine, patterns) {

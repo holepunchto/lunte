@@ -24,15 +24,14 @@ export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() }
         cwd
       })
     } else {
-      await collectPath(resolvePath(cwd, input), { files, ignore: ignoreMatcher, cwd })
+      await collectPath(resolvePath(cwd, input), { files, ignore: ignoreMatcher })
     }
   }
 
   return Array.from(files)
 }
 
-async function collectPath(target, { files, ignore, cwd }) {
-  const resolved = resolvePath(cwd, target)
+async function collectPath(resolved, { files, ignore }) {
   let info
   try {
     info = await stat(resolved)
@@ -44,12 +43,12 @@ async function collectPath(target, { files, ignore, cwd }) {
     throw error
   }
 
-  if (ignore.ignores?.(resolved, { isDir: info.isDirectory() })) {
+  if (shouldIgnore(ignore, resolved, { isDir: info.isDirectory() })) {
     return
   }
 
   if (info.isDirectory()) {
-    await collectDirectory(resolved, { files, ignore, cwd })
+    await collectDirectory(resolved, { files, ignore })
     return
   }
 
@@ -58,8 +57,8 @@ async function collectPath(target, { files, ignore, cwd }) {
   }
 }
 
-async function collectDirectory(dir, { files, ignore, cwd }) {
-  if (ignore.ignores?.(dir, { isDir: true })) {
+async function collectDirectory(dir, { files, ignore }) {
+  if (shouldIgnore(ignore, dir, { isDir: true })) {
     return
   }
 
@@ -69,17 +68,12 @@ async function collectDirectory(dir, { files, ignore, cwd }) {
     if (entry.name.startsWith('.')) continue
     const fullPath = join(dir, entry.name)
     const isDir = entry.isDirectory()
-    if (ignore.ignores?.(fullPath, { isDir })) {
-      if (entry.isDirectory()) {
-        continue
-      }
-      if (entry.isFile()) {
-        continue
-      }
+    if (shouldIgnore(ignore, fullPath, { isDir })) {
+      continue
     }
 
-    if (entry.isDirectory()) {
-      await collectDirectory(fullPath, { files, ignore, cwd })
+    if (isDir) {
+      await collectDirectory(fullPath, { files, ignore })
     } else if (entry.isFile() && isJavaScriptFile(fullPath)) {
       files.add(fullPath)
     }
@@ -109,7 +103,7 @@ async function collectGlob({ baseDir, matcher, files, ignore, cwd }) {
 }
 
 async function walkGlob(dir, { matcher, files, ignore, cwd }) {
-  if (ignore.ignores?.(dir, { isDir: true })) {
+  if (shouldIgnore(ignore, dir, { isDir: true })) {
     return
   }
 
@@ -119,16 +113,11 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
     if (entry.name.startsWith('.')) continue
     const fullPath = join(dir, entry.name)
     const isDir = entry.isDirectory()
-    if (ignore.ignores?.(fullPath, { isDir })) {
-      if (entry.isDirectory()) {
-        continue
-      }
-      if (entry.isFile()) {
-        continue
-      }
+    if (shouldIgnore(ignore, fullPath, { isDir })) {
+      continue
     }
 
-    if (entry.isDirectory()) {
+    if (isDir) {
       await walkGlob(fullPath, { matcher, files, ignore, cwd })
       continue
     }
@@ -167,4 +156,8 @@ function getGlobBase(pattern) {
   }
   const slashIndex = pattern.lastIndexOf('/', index)
   return slashIndex === -1 ? '' : pattern.slice(0, slashIndex)
+}
+
+function shouldIgnore(ignore, path, meta) {
+  return Boolean(ignore?.ignores?.(path, meta))
 }

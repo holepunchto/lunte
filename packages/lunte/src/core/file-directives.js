@@ -42,46 +42,74 @@ export function extractFileDirectives(source) {
 
 function handleBlockDirective(content, directives) {
   if (!content) return
-  if (content.startsWith('global')) {
-    const payload = content.slice('global'.length).trim()
-    for (const name of parseGlobalList(payload)) {
-      directives.globals.add(name)
-    }
+  const globalsPayload = extractDirectivePayload(content, ['globals', 'global'])
+  if (globalsPayload) {
+    addGlobalsFromPayload(globalsPayload, directives)
     return
   }
 
-  if (content.startsWith('eslint-env')) {
-    const payload = content.slice('eslint-env'.length).trim()
-    for (const env of parseEnvList(payload)) {
-      directives.envs.add(env)
-    }
+  const envPayload = extractDirectivePayload(content, ['eslint-env'])
+  if (envPayload) {
+    addEnvsFromPayload(envPayload, directives)
   }
 }
 
 function handleLineDirective(content, directives) {
   if (!content) return
-  if (content.startsWith('global')) {
-    const payload = content.slice('global'.length).trim()
-    for (const name of parseGlobalList(payload)) {
-      directives.globals.add(name)
-    }
+  const globalsPayload = extractDirectivePayload(content, ['globals', 'global'])
+  if (globalsPayload) {
+    addGlobalsFromPayload(globalsPayload, directives)
   }
 }
 
 function parseGlobalList(payload) {
   if (!payload) return []
-  return payload
-    .split(',')
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .map((entry) => entry.split(':')[0].trim())
-    .filter(Boolean)
+  const result = []
+  for (const segment of payload.split(',')) {
+    const trimmed = segment.trim()
+    if (!trimmed) continue
+    const colonIndex = trimmed.indexOf(':')
+    const name = colonIndex === -1 ? trimmed : trimmed.slice(0, colonIndex).trim()
+    if (name) result.push(name)
+  }
+  return result
 }
 
 function parseEnvList(payload) {
   if (!payload) return []
-  return payload
-    .split(',')
-    .map((segment) => segment.trim())
-    .filter(Boolean)
+  const result = []
+  for (const segment of payload.split(',')) {
+    const trimmed = segment.trim()
+    if (trimmed) {
+      result.push(trimmed)
+    }
+  }
+  return result
+}
+
+function extractDirectivePayload(content, directiveNames) {
+  for (const name of directiveNames) {
+    if (content.startsWith(name) && hasDirectiveBoundary(content, name.length)) {
+      return content.slice(name.length).trim()
+    }
+  }
+  return ''
+}
+
+function hasDirectiveBoundary(content, index) {
+  if (index >= content.length) return true
+  const nextChar = content[index]
+  return nextChar === ' ' || nextChar === '\t' || nextChar === '\n' || nextChar === '\r'
+}
+
+function addGlobalsFromPayload(payload, directives) {
+  for (const name of parseGlobalList(payload)) {
+    directives.globals.add(name)
+  }
+}
+
+function addEnvsFromPayload(payload, directives) {
+  for (const env of parseEnvList(payload)) {
+    directives.envs.add(env)
+  }
 }

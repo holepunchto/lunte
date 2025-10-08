@@ -61,12 +61,12 @@ function registerLine(target, line, ruleIds) {
 
 function parseRuleList(payload) {
   if (!payload) return null
-  const cleaned = payload
-    .split(/[,\s]+/)
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-  if (cleaned.length === 0) {
-    return null
+  const rules = new Set()
+  for (const segment of payload.split(/[,\s]+/)) {
+    const name = segment.trim()
+    if (name) {
+      rules.add(name)
+    }
   }
-  return cleaned
+  return rules.size > 0 ? rules : null
 }

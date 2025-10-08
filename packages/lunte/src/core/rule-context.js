@@ -1,5 +1,11 @@
 import { Severity } from './constants.js'
 
+const DEFAULT_IGNORE_MATCHER = {
+  shouldIgnore() {
+    return false
+  }
+}
+
 export class RuleContext {
   constructor({
     filePath,
@@ -20,16 +26,12 @@ export class RuleContext {
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
     this.globals = globals ?? new Set()
-    this.ignoreMatcher = ignoreMatcher ?? {
-      shouldIgnore() {
-        return false
-      }
-    }
+    this.ignoreMatcher = ignoreMatcher ?? DEFAULT_IGNORE_MATCHER
   }
 
   setTraversalState({ node, ancestors }) {
-    this._currentNode = node
-    this._ancestors = ancestors
+    this._currentNode = node ?? null
+    this._ancestors = ancestors ?? []
   }
 
   report({ node, message, severity }) {

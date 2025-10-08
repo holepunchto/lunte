@@ -20,7 +20,7 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
 }))
 
 async function analyzeSnippet(source) {
-  const filePath = join(__dirname, `__virtual__/${RULE_ID}-${virtualId += 1}.js`)
+  const filePath = join(__dirname, `__virtual__/${RULE_ID}-${(virtualId += 1)}.js`)
   return analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,

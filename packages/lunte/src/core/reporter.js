@@ -1,18 +1,16 @@
 import { Severity } from './constants.js'
 
-const colorSupport = process.stdout.isTTY
+const colorSupport = Boolean(process.stdout?.isTTY)
 
 const COLORS = colorSupport
   ? {
       reset: '\u001b[0m',
-      dim: '\u001b[2m',
       red: '\u001b[31m',
       yellow: '\u001b[33m',
       green: '\u001b[32m'
     }
   : {
       reset: '',
-      dim: '',
       red: '',
       yellow: '',
       green: ''
@@ -37,8 +35,17 @@ function formatDiagnosticLine(diag) {
 }
 
 function buildSummary(diagnostics) {
-  const errorCount = diagnostics.filter((d) => d.severity === Severity.error).length
-  const warningCount = diagnostics.filter((d) => d.severity === Severity.warning).length
+  let errorCount = 0
+  let warningCount = 0
+  for (const diagnostic of diagnostics) {
+    if (diagnostic.severity === Severity.error) {
+      errorCount += 1
+      continue
+    }
+    if (diagnostic.severity === Severity.warning) {
+      warningCount += 1
+    }
+  }
   const parts = []
   if (errorCount) parts.push(`${errorCount} error${errorCount === 1 ? '' : 's'}`)
   if (warningCount) parts.push(`${warningCount} warning${warningCount === 1 ? '' : 's'}`)

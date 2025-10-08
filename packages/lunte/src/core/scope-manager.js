@@ -2,7 +2,6 @@ export class Scope {
   constructor(type, parent = null) {
     this.type = type
     this.parent = parent
-    this.children = []
     this.declarations = new Map()
     this.references = []
   }
@@ -36,9 +35,6 @@ export class ScopeManager {
   enterScope(type, node) {
     const scope = new Scope(type, this.currentScope)
     scope.node = node
-    if (this.currentScope) {
-      this.currentScope.children.push(scope)
-    }
     this.currentScope = scope
     if (!this.globalScope) {
       this.globalScope = scope

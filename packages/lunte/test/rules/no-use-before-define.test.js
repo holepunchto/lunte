@@ -13,7 +13,7 @@ function fixturePath(name) {
 let virtualId = 0
 
 async function analyzeSnippet(source) {
-  const filePath = join(__dirname, `__virtual__/nufd-${virtualId += 1}.js`)
+  const filePath = join(__dirname, `__virtual__/nufd-${(virtualId += 1)}.js`)
   return analyze({
     files: [filePath],
     sourceText: new Map([[filePath, source]]),
@@ -69,8 +69,6 @@ test('allows usage before block-scoped declaration within function (current beha
 })
 
 test('allows function expressions referenced before declaration', async (t) => {
-  const expression = await analyzeSnippet(
-    'call()\nconst call = function () {}\n'
-  )
+  const expression = await analyzeSnippet('call()\nconst call = function () {}\n')
   t.is(expression.diagnostics.length, 0)
 })

@@ -20,7 +20,7 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
 }))
 
 async function analyzeSnippet(source, overrides = BASE_OVERRIDES) {
-  const filePath = join(__dirname, `__virtual__/no-var-${virtualId += 1}.js`)
+  const filePath = join(__dirname, `__virtual__/no-var-${(virtualId += 1)}.js`)
   return analyze({
     files: [filePath],
     ruleOverrides: overrides,
@@ -38,7 +38,9 @@ test('flags var declarations', async (t) => {
 })
 
 test('flags var in for loop initialiser', async (t) => {
-  const result = await analyzeSnippet('for (var i = 0; i < 1; i++) { use(i) }\nfunction use () {}\n')
+  const result = await analyzeSnippet(
+    'for (var i = 0; i < 1; i++) { use(i) }\nfunction use () {}\n'
+  )
   const noVarDiagnostics = result.diagnostics.filter((d) => d.ruleId === 'no-var')
   t.is(noVarDiagnostics.length, 1)
   t.is(noVarDiagnostics[0].ruleId, 'no-var')

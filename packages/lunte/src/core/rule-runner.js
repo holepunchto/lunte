@@ -4,15 +4,17 @@ import { builtInRules } from '../rules/index.js'
 import { Severity } from './constants.js'
 import { getDefaultRuleConfig } from '../config/defaults.js'
 
+const DEFAULT_IGNORE_MATCHER = {
+  shouldIgnore() {
+    return false
+  }
+}
+
 export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgnores }) {
   const effectiveConfig = ruleConfig ?? getDefaultRuleConfig()
   const activeRules = []
 
-  const ignoreMatcher = inlineIgnores ?? {
-    shouldIgnore() {
-      return false
-    }
-  }
+  const ignoreMatcher = inlineIgnores ?? DEFAULT_IGNORE_MATCHER
 
   for (const [name, rule] of builtInRules.entries()) {
     const config = effectiveConfig.get(name) ?? {
@@ -72,26 +74,31 @@ function traverse(node, state, ancestors) {
   handleInScopeDeclarations(node, state.scopeManager)
 
   const nextAncestors = ancestors.concat(node)
-  notifyListeners('enter', node, nextAncestors, state)
+  notifyListeners('enter', node, nextAncestors, ancestors, state)
 
   for (const child of iterateChildren(node)) {
     traverse(child, state, nextAncestors)
   }
 
-  notifyListeners('exit', node, nextAncestors, state)
+  notifyListeners('exit', node, nextAncestors, ancestors, state)
 
   if (scopeType) {
     state.scopeManager.exitScope()
   }
 }
 
-function notifyListeners(phase, node, ancestors, state) {
+function notifyListeners(phase, node, ancestors, parentAncestors, state) {
+  const parent = parentAncestors[parentAncestors.length - 1] ?? null
+
+  if (phase === 'enter') {
+    recordReferenceIfNeeded(node, parent, state.scopeManager)
+  }
+
   for (const entry of state.ruleEntries) {
     const handlers = entry.listeners[phase].get(node.type)
     if (!handlers) continue
-    entry.context.setTraversalState({ node, ancestors: ancestors.slice(0, -1) })
+    entry.context.setTraversalState({ node, ancestors: parentAncestors })
     for (const handler of handlers) {
-      maybeRecordReference(entry.context, node, phase === 'enter')
       handler(node)
     }
   }
@@ -145,13 +152,6 @@ function getScopeType(node, parent) {
     case 'CatchClause':
       return 'block'
     default:
-      if (
-        node.type === 'ForStatement' ||
-        node.type === 'ForInStatement' ||
-        node.type === 'ForOfStatement'
-      ) {
-        return null
-      }
       return null
   }
 }
@@ -409,19 +409,22 @@ function inferTemporalDeadZoneIndex(declarator) {
   return undefined
 }
 
-function maybeRecordReference(context, node, isEntering) {
-  if (!isEntering) return
-  if (node.type !== 'Identifier') return
-
-  const parent = context.getParent()
-  if (!isReferenceInContext(node, parent)) {
+function recordReferenceIfNeeded(node, parent, scopeManager) {
+  if (!shouldRecordReference(node, parent)) {
     return
   }
 
-  context.addReference({
+  scopeManager.addReference({
     name: node.name,
     node
   })
+}
+
+function shouldRecordReference(node, parent) {
+  if (!node || node.type !== 'Identifier') {
+    return false
+  }
+  return isReferenceInContext(node, parent)
 }
 
 function isReferenceInContext(node, parent) {
