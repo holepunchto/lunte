@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 4
-- Partially supported: 6
-- Not yet supported: 151
+- Fully supported: 10
+- Partially supported: 7
+- Not yet supported: 144
 
 Status definitions:
 
@@ -55,8 +55,8 @@ Status definitions:
 | `no-constant-condition`           | [link](https://eslint.org/docs/latest/rules/no-constant-condition)                                         | None    | Not implemented yet.                                                                                         |
 | `no-control-regex`                | [link](https://eslint.org/docs/latest/rules/no-control-regex)                                              | None    | Not implemented yet.                                                                                         |
 | `no-debugger`                     | [link](https://eslint.org/docs/latest/rules/no-debugger)                                                   | Full    | Implemented as a direct match for StandardJS.                                                                |
-| `no-delete-var`                   | [link](https://eslint.org/docs/latest/rules/no-delete-var)                                                 | None    | Not implemented yet.                                                                                         |
-| `no-dupe-args`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-args)                                                  | None    | Not implemented yet.                                                                                         |
+| `no-delete-var`                   | [link](https://eslint.org/docs/latest/rules/no-delete-var)                                                 | Full    | `delete` on identifiers is already a syntax error in module code, so violations surface as parse diagnostics. |
+| `no-dupe-args`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-args)                                                  | Full    | Strict-mode parsing rejects duplicate parameters, matching StandardJS expectations.                          |
 | `no-dupe-class-members`           | [link](https://eslint.org/docs/latest/rules/no-dupe-class-members)                                         | None    | Not implemented yet.                                                                                         |
 | `no-dupe-keys`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-keys)                                                  | None    | Not implemented yet.                                                                                         |
 | `no-duplicate-case`               | [link](https://eslint.org/docs/latest/rules/no-duplicate-case)                                             | None    | Not implemented yet.                                                                                         |
@@ -96,16 +96,16 @@ Status definitions:
 | `no-new-symbol`                   | [link](https://eslint.org/docs/latest/rules/no-new-symbol)                                                 | None    | Not implemented yet.                                                                                         |
 | `no-new-wrappers`                 | [link](https://eslint.org/docs/latest/rules/no-new-wrappers)                                               | None    | Not implemented yet.                                                                                         |
 | `no-obj-calls`                    | [link](https://eslint.org/docs/latest/rules/no-obj-calls)                                                  | None    | Not implemented yet.                                                                                         |
-| `no-octal`                        | [link](https://eslint.org/docs/latest/rules/no-octal)                                                      | None    | Not implemented yet.                                                                                         |
-| `no-octal-escape`                 | [link](https://eslint.org/docs/latest/rules/no-octal-escape)                                               | None    | Not implemented yet.                                                                                         |
+| `no-octal`                        | [link](https://eslint.org/docs/latest/rules/no-octal)                                                      | Full    | Octal numeric literals are rejected during parse in strict-mode modules, matching StandardJS.                |
+| `no-octal-escape`                 | [link](https://eslint.org/docs/latest/rules/no-octal-escape)                                               | Full    | Strict mode forbids octal escapes, so the parser reports the same error StandardJS would.                    |
 | `no-proto`                        | [link](https://eslint.org/docs/latest/rules/no-proto)                                                      | None    | Not implemented yet.                                                                                         |
-| `no-redeclare`                    | [link](https://eslint.org/docs/latest/rules/no-redeclare)                                                  | None    | Not implemented yet.                                                                                         |
+| `no-redeclare`                    | [link](https://eslint.org/docs/latest/rules/no-redeclare)                                                  | Partial | Strict parsing catches duplicate `let`/`const` bindings, but duplicate `var` declarations still slip by.     |
 | `no-regex-spaces`                 | [link](https://eslint.org/docs/latest/rules/no-regex-spaces)                                               | None    | Not implemented yet.                                                                                         |
 | `no-return-assign`                | [link](https://eslint.org/docs/latest/rules/no-return-assign)                                              | Partial | Covers block returns but misses implicit arrow-return assignments.                                           |
 | `no-self-assign`                  | [link](https://eslint.org/docs/latest/rules/no-self-assign)                                                | None    | Not implemented yet.                                                                                         |
 | `no-self-compare`                 | [link](https://eslint.org/docs/latest/rules/no-self-compare)                                               | None    | Not implemented yet.                                                                                         |
 | `no-sequences`                    | [link](https://eslint.org/docs/latest/rules/no-sequences)                                                  | None    | Not implemented yet.                                                                                         |
-| `no-shadow-restricted-names`      | [link](https://eslint.org/docs/latest/rules/no-shadow-restricted-names)                                    | None    | Not implemented yet.                                                                                         |
+| `no-shadow-restricted-names`      | [link](https://eslint.org/docs/latest/rules/no-shadow-restricted-names)                                    | Full    | Binding `eval` or `arguments` is forbidden in strict mode, so we emit the same diagnostics as StandardJS.    |
 | `no-sparse-arrays`                | [link](https://eslint.org/docs/latest/rules/no-sparse-arrays)                                              | None    | Not implemented yet.                                                                                         |
 | `no-tabs`                         | [link](https://eslint.org/docs/latest/rules/no-tabs)                                                       | None    | Not implemented yet.                                                                                         |
 | `no-template-curly-in-string`     | [link](https://eslint.org/docs/latest/rules/no-template-curly-in-string)                                   | None    | Not implemented yet.                                                                                         |
@@ -132,7 +132,7 @@ Status definitions:
 | `no-useless-return`               | [link](https://eslint.org/docs/latest/rules/no-useless-return)                                             | None    | Not implemented yet.                                                                                         |
 | `no-void`                         | [link](https://eslint.org/docs/latest/rules/no-void)                                                       | None    | Not implemented yet.                                                                                         |
 | `no-whitespace-before-property`   | [link](https://eslint.org/docs/latest/rules/no-whitespace-before-property)                                 | None    | Not implemented yet.                                                                                         |
-| `no-with`                         | [link](https://eslint.org/docs/latest/rules/no-with)                                                       | None    | Not implemented yet.                                                                                         |
+| `no-with`                         | [link](https://eslint.org/docs/latest/rules/no-with)                                                       | Full    | `with` statements are forbidden in strict-mode modules, producing the expected parse error.                  |
 | `object-curly-newline`            | [link](https://eslint.org/docs/latest/rules/object-curly-newline)                                          | None    | Not implemented yet.                                                                                         |
 | `object-curly-spacing`            | [link](https://eslint.org/docs/latest/rules/object-curly-spacing)                                          | None    | Not implemented yet.                                                                                         |
 | `object-property-newline`         | [link](https://eslint.org/docs/latest/rules/object-property-newline)                                       | None    | Not implemented yet.                                                                                         |
