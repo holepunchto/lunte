@@ -1,10 +1,10 @@
 import { fileURLToPath } from 'node:url'
 import { normalize } from 'node:path'
 
-import { analyze } from '../core/analyzer.js'
-import { Severity } from '../core/constants.js'
-import { loadConfig } from '../config/loader.js'
-import { loadIgnore } from '../core/ignore.js'
+import { analyze } from 'lunte'
+import { Severity } from 'lunte/src/core/constants.js'
+import { loadConfig } from 'lunte/src/config/loader.js'
+import { loadIgnore } from 'lunte/src/core/ignore.js'
 
 const ErrorCodes = {
   ParseError: -32700,

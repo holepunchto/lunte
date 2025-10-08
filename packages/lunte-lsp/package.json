@@ -1,0 +1,15 @@
+{
+  "name": "lunte-lsp",
+  "version": "1.0.0",
+  "description": "Language Server Protocol wrapper for Lunte",
+  "type": "module",
+  "main": "./src/server.js",
+  "bin": {
+    "lunte-lsp": "./bin/lunte-lsp"
+  },
+  "license": "Apache-2.0",
+  "author": "Mikkel Malmberg <mikkel@brnbw.com>",
+  "dependencies": {
+    "lunte": "file:../lunte"
+  }
+}

@@ -49,7 +49,7 @@ test('LSP server publishes diagnostics for open document', async (t) => {
 })
 
 async function createLspClient(t) {
-  const child = spawn(process.execPath, ['bin/lunte-lsp'], {
+  const child = spawn(process.execPath, ['../lunte-lsp/bin/lunte-lsp'], {
     cwd: projectRoot,
     stdio: ['pipe', 'pipe', 'pipe']
   })

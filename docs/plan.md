@@ -2,8 +2,9 @@
 
 ## Stage 0 – Project Scaffold ✅ (complete)
 
-- CLI entry wired via `package.json`, Acorn vendored under `vendor/acorn`, and the repository structured as a plain JavaScript project with `node:test`.
-- Shared layout for core utilities (`src/core`), rules (`src/rules`), and docs is in place.
+- CLI entry wired via the `lunte` workspace, Acorn vendored under `packages/lunte/vendor`, and the repository managed via npm workspaces.
+- Shared layout for core utilities (`packages/lunte/src/core`), rules (`packages/lunte/src/rules`), and docs is in place.
+- Companion workspaces `lunte-lsp` and `vscode-lunte` host the editor-facing integration points.
 
 ## Stage 1 – Minimal Analyzer ✅ (complete)
 
@@ -29,12 +30,12 @@
 ## Stage 5 – LSP Prototype 🧭 (in progress)
 
 - DONE: Build the lightweight LSP server on top of the shared analyzer.
-- DONE: Document editor integration in `docs/integration.md`.
-- TODO: Emit code actions (suppressions, quick fixes) and exercise the server with VS Code / Neovim adapters.
+- DONE: Document editor integration (Neovim + VS Code) in `docs/integration.md`.
+- TODO: Emit code actions (suppressions, quick fixes) and run manual smoke tests in both VS Code and Neovim.
 
 ## Near-Term Next Steps
 
 - Finish Stage 2 deliverables (reporters + config docs).
 - Add rule options/overrides documentation and expose severity toggles via config.
 - Plan incremental analysis work (API sketch + cache semantics).
-- Expand LSP server capabilities (incremental sync, diagnostics metadata, code actions) and add VS Code launch recipe.
+- Expand LSP server capabilities (incremental sync, diagnostics metadata, code actions) and harden the VS Code client bootstrap.

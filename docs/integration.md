@@ -27,6 +27,25 @@ lspconfig.lunte.setup({})
 
 Once attached, the client streams diagnostics as you edit JavaScript files. The current server expects full-text change notifications; ensure your client is configured accordingly (Neovim’s defaults are compatible).
 
+## VS Code Quick Start
+
+The repository already includes a client implementation at `packages/vscode-lunte`.
+
+1. Install its dependencies:
+
+   ```sh
+   cd packages/vscode-lunte
+   npm install
+   ```
+
+2. Launch VS Code with the extension in development mode:
+
+   ```sh
+   code --extensionDevelopmentPath="${PWD}"
+   ```
+
+3. Open a JavaScript file. The extension activates and spawns `npx lunte-lsp` from your workspace root. Override the command via the `lunte.lsp.command` / `lunte.lsp.args` settings if you want to pin a specific binary.
+
 ## Roadmap
 
 - Support incremental sync and background analysis caches.

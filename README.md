@@ -1,6 +1,12 @@
 # Lunte
 
-Lunte is a work-in-progress JavaScript linter focused on a small, vendorable core. It parses with Acorn, runs a minimal rule suite, and reports findings via a simple CLI.
+This repository hosts a small vendorable JavaScript linter and its editor integrations. It is split into three workspaces:
+
+- `lunte` – the CLI and core analysis engine.
+- `lunte-lsp` – a stdio Language Server Protocol wrapper around the core.
+- `vscode-lunte` – a minimal VS Code extension that spawns the LSP server.
+
+The CLI parses with Acorn, runs a focused rule suite, and emits console diagnostics.
 
 ## Installation
 
@@ -98,3 +104,15 @@ lspconfig.lunte.setup({})
 ```
 
 The v0 server performs full-document sync and does not yet support code actions or autofix.
+
+### VS Code
+
+The repository ships a ready-made client in `packages/vscode-lunte`. To try it in development mode:
+
+```sh
+cd packages/vscode-lunte
+npm install
+code --extensionDevelopmentPath="${PWD}"
+```
+
+By default the extension runs `npx lunte-lsp`. Adjust `lunte.lsp.command` / `lunte.lsp.args` in VS Code settings to point at another binary (for example a globally installed `lunte-lsp`).
