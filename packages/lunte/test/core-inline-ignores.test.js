@@ -22,14 +22,20 @@ test('buildInlineIgnoreMatcher handles line and next-line directives', (t) => {
   t.ok(matcher.shouldIgnore({ line: 2, ruleId: 'no-undef' }), 'line directive suppresses all rules')
   t.ok(matcher.shouldIgnore({ line: 2, ruleId: 'random-rule' }))
 
-  t.ok(matcher.shouldIgnore({ line: 4, ruleId: 'no-undef' }), 'next-line directive targets following line')
+  t.ok(
+    matcher.shouldIgnore({ line: 4, ruleId: 'no-undef' }),
+    'next-line directive targets following line'
+  )
   t.is(
     matcher.shouldIgnore({ line: 4, ruleId: 'no-unused-vars' }),
     false,
     'next-line directive limited to listed rules'
   )
 
-  t.ok(matcher.shouldIgnore({ line: 5, ruleId: 'no-unused-vars' }), 'multiple rule ids parsed from comma list')
+  t.ok(
+    matcher.shouldIgnore({ line: 5, ruleId: 'no-unused-vars' }),
+    'multiple rule ids parsed from comma list'
+  )
   t.ok(matcher.shouldIgnore({ line: 5, ruleId: 'no-undef' }))
   t.is(
     matcher.shouldIgnore({ line: 5, ruleId: 'no-debugger' }),

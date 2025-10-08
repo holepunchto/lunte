@@ -7,9 +7,9 @@ export const noVar = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      VariableDeclaration (node) {
+      VariableDeclaration(node) {
         if (node.kind === 'var') {
           context.report({
             node,

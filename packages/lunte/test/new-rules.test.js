@@ -19,11 +19,11 @@ const ALL_RULES = [
   'no-extra-boolean-cast'
 ]
 
-function fixture (name) {
+function fixture(name) {
   return join(__dirname, 'fixtures', name)
 }
 
-function overridesFor (target, severity = 'error') {
+function overridesFor(target, severity = 'error') {
   return ALL_RULES.map((name) => ({ name, severity: name === target ? severity : 'off' }))
 }
 
@@ -51,7 +51,7 @@ test('no-case-declarations flags lexical declarations', async (t) => {
     ruleOverrides: overridesFor('no-case-declarations')
   })
   t.is(result.diagnostics.length, 2)
-  t.ok(result.diagnostics.every(d => d.ruleId === 'no-case-declarations'))
+  t.ok(result.diagnostics.every((d) => d.ruleId === 'no-case-declarations'))
 })
 
 test('no-return-assign disallows assignment in return', async (t) => {

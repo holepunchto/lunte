@@ -4,14 +4,7 @@ import { builtInRules } from '../rules/index.js'
 import { Severity } from './constants.js'
 import { getDefaultRuleConfig } from '../config/defaults.js'
 
-export function runRules({
-  ast,
-  filePath,
-  source,
-  ruleConfig,
-  globals,
-  inlineIgnores
-}) {
+export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgnores }) {
   const effectiveConfig = ruleConfig ?? getDefaultRuleConfig()
   const activeRules = []
 
@@ -311,7 +304,7 @@ function hoistProgramDeclarations(programNode, scopeManager) {
             name,
             createDeclarationInfo(id, {
               kind: statement.kind,
-              hoisted: true,
+              hoisted: true
             }),
             { hoistTo: 'function' }
           )
@@ -325,7 +318,7 @@ function hoistProgramDeclarations(programNode, scopeManager) {
         statement.id.name,
         createDeclarationInfo(statement.id, {
           kind: 'function',
-          hoisted: true,
+          hoisted: true
         }),
         { hoistTo: 'function' }
       )
@@ -337,7 +330,7 @@ function hoistProgramDeclarations(programNode, scopeManager) {
         statement.id.name,
         createDeclarationInfo(statement.id, {
           kind: 'class',
-          hoisted: true,
+          hoisted: true
         }),
         { hoistTo: 'function' }
       )
@@ -355,7 +348,7 @@ function hoistProgramDeclarations(programNode, scopeManager) {
           decl.id.name,
           createDeclarationInfo(decl.id, {
             kind: 'class',
-            hoisted: true,
+            hoisted: true
           }),
           { hoistTo: 'function' }
         )

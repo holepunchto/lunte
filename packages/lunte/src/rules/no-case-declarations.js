@@ -1,6 +1,6 @@
 import { Severity } from '../core/constants.js'
 
-function isProhibitedStatement (statement) {
+function isProhibitedStatement(statement) {
   if (!statement) return false
   if (statement.type === 'BlockStatement') return false
   if (statement.type === 'VariableDeclaration' && statement.kind !== 'var') return true
@@ -14,9 +14,9 @@ export const noCaseDeclarations = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      SwitchCase (node) {
+      SwitchCase(node) {
         for (const statement of node.consequent || []) {
           if (isProhibitedStatement(statement)) {
             context.report({

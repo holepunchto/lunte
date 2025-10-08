@@ -1,6 +1,6 @@
 import { Severity } from '../core/constants.js'
 
-function isMultilineEscapedString (node) {
+function isMultilineEscapedString(node) {
   if (node.type !== 'Literal' || typeof node.value !== 'string') return false
   if (typeof node.raw !== 'string') return false
   return /\\\r?\n/.test(node.raw)
@@ -13,9 +13,9 @@ export const noMultiStr = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      Literal (node) {
+      Literal(node) {
         if (isMultilineEscapedString(node)) {
           context.report({
             node,

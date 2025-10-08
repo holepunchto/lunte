@@ -20,12 +20,11 @@ export class RuleContext {
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
     this.globals = globals ?? new Set()
-    this.ignoreMatcher =
-      ignoreMatcher ?? {
-        shouldIgnore() {
-          return false
-        }
+    this.ignoreMatcher = ignoreMatcher ?? {
+      shouldIgnore() {
+        return false
       }
+    }
   }
 
   setTraversalState({ node, ancestors }) {

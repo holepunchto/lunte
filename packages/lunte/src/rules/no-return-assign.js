@@ -1,6 +1,6 @@
 import { Severity } from '../core/constants.js'
 
-function isParenthesized (text) {
+function isParenthesized(text) {
   let trimmed = text.trim().replace(/;\s*$/, '')
   if (trimmed.startsWith('return')) {
     trimmed = trimmed.slice('return'.length).trim()
@@ -15,9 +15,9 @@ export const noReturnAssign = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      ReturnStatement (node) {
+      ReturnStatement(node) {
         const argument = node.argument
         if (!argument || argument.type !== 'AssignmentExpression') return
 

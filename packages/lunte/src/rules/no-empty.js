@@ -1,6 +1,6 @@
 import { Severity } from '../core/constants.js'
 
-function isAllowedEmptyBlock (node, parent) {
+function isAllowedEmptyBlock(node, parent) {
   if (!parent) return false
   if (parent.type === 'CatchClause') return true
   if (
@@ -20,9 +20,9 @@ export const noEmpty = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      BlockStatement (node) {
+      BlockStatement(node) {
         if (node.body.length > 0) return
         const parent = context.getParent()
         if (isAllowedEmptyBlock(node, parent)) return

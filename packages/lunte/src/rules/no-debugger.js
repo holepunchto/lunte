@@ -7,9 +7,9 @@ export const noDebugger = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      DebuggerStatement (node) {
+      DebuggerStatement(node) {
         context.report({
           node,
           message: 'Unexpected debugger statement.'

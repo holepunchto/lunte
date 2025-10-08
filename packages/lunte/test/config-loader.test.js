@@ -12,7 +12,10 @@ async function createTempDir(prefix) {
 
 test('loadConfig supports .lunterc', async (t) => {
   const dir = await createTempDir('dot')
-  await writeFile(join(dir, '.lunterc'), JSON.stringify({ env: ['browser'], globals: ['MY_APP'], rules: { 'no-undef': 'off' } }))
+  await writeFile(
+    join(dir, '.lunterc'),
+    JSON.stringify({ env: ['browser'], globals: ['MY_APP'], rules: { 'no-undef': 'off' } })
+  )
 
   const { config, path } = await loadConfig({ cwd: dir })
   t.is(path, join(dir, '.lunterc'))
@@ -24,7 +27,10 @@ test('loadConfig supports .lunterc', async (t) => {
 test('loadConfig prefers .lunterc when both exist', async (t) => {
   const dir = await createTempDir('json')
   await writeFile(join(dir, '.lunterc'), JSON.stringify({ env: ['node'] }))
-  await writeFile(join(dir, '.lunterc.json'), JSON.stringify({ env: ['browser'], rules: { 'no-unused-vars': 'warn' } }))
+  await writeFile(
+    join(dir, '.lunterc.json'),
+    JSON.stringify({ env: ['browser'], rules: { 'no-unused-vars': 'warn' } })
+  )
 
   const { config, path } = await loadConfig({ cwd: dir })
   t.is(path, join(dir, '.lunterc'))

@@ -98,9 +98,7 @@ async function collectGlob({ baseDir, matcher, files, ignore, cwd }) {
   }
 
   if (!info.isDirectory()) {
-    const candidate = matcher.absolute
-      ? toPosix(baseDir)
-      : toPosix(relative(cwd, baseDir))
+    const candidate = matcher.absolute ? toPosix(baseDir) : toPosix(relative(cwd, baseDir))
     if (!ignore.ignores?.(baseDir, { isDir: false }) && matcher.regex.test(candidate)) {
       files.add(baseDir)
     }
@@ -139,9 +137,7 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
       continue
     }
 
-    const candidate = matcher.absolute
-      ? toPosix(fullPath)
-      : toPosix(relative(cwd, fullPath))
+    const candidate = matcher.absolute ? toPosix(fullPath) : toPosix(relative(cwd, fullPath))
     if (!matcher.regex.test(candidate)) {
       continue
     }

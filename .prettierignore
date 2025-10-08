@@ -1,2 +1,3 @@
-test/fixtures/
-vendor/
+packages/lunte/test/fixtures/
+packages/lunte/vendor/
+

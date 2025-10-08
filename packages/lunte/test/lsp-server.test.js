@@ -15,7 +15,11 @@ test('LSP server publishes diagnostics for open document', async (t) => {
 
   const rootUri = pathToFileURL(projectRoot).href
   const initResult = await client.sendRequest('initialize', { rootUri })
-  t.is(initResult.capabilities?.textDocumentSync?.change, 1, 'server should request full document sync')
+  t.is(
+    initResult.capabilities?.textDocumentSync?.change,
+    1,
+    'server should request full document sync'
+  )
 
   client.sendNotification('initialized', {})
 
@@ -77,12 +81,18 @@ test('workspace config changes trigger revalidation', async (t) => {
   const firstPublish = await client.waitForNotification('textDocument/publishDiagnostics')
   t.is(firstPublish.params?.diagnostics?.length ?? 0, 0, 'rule disabled via config')
 
-  await writeFile(join(workspaceDir, '.lunterc'), JSON.stringify({ rules: { 'no-unused-vars': 'error' } }))
+  await writeFile(
+    join(workspaceDir, '.lunterc'),
+    JSON.stringify({ rules: { 'no-unused-vars': 'error' } })
+  )
   client.sendNotification('workspace/didChangeConfiguration', {})
 
   const secondPublish = await client.waitForNotification('textDocument/publishDiagnostics')
   const diagnostics = secondPublish.params?.diagnostics ?? []
-  t.ok(diagnostics.some((d) => d.code === 'no-unused-vars'), 'diagnostics appear after config reload')
+  t.ok(
+    diagnostics.some((d) => d.code === 'no-unused-vars'),
+    'diagnostics appear after config reload'
+  )
 
   await client.shutdown()
 })
@@ -114,7 +124,11 @@ test('LSP honours ignore patterns and clears diagnostics on close', async (t) =>
   })
 
   const ignoredPublish = await client.waitForNotification('textDocument/publishDiagnostics')
-  t.is(ignoredPublish.params?.diagnostics?.length ?? 0, 0, 'ignored file should not report diagnostics')
+  t.is(
+    ignoredPublish.params?.diagnostics?.length ?? 0,
+    0,
+    'ignored file should not report diagnostics'
+  )
 
   client.sendNotification('textDocument/didOpen', {
     textDocument: {
@@ -213,7 +227,7 @@ async function createLspClient(t, { cwd = projectRoot } = {}) {
   }
 
   function sendRequest(method, params) {
-    const id = nextId += 1
+    const id = (nextId += 1)
     send({ method, params, id })
     return waitForResponse(id)
   }

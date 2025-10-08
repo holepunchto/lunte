@@ -101,10 +101,10 @@ export const noUnusedVars = {
         exit() {
           for (const { name, node } of definedSymbols.values()) {
             if (usedSymbols.has(name)) continue
-          context.report({
-            node,
-            message: `'${name}' is defined but never used.`
-          })
+            context.report({
+              node,
+              message: `'${name}' is defined but never used.`
+            })
           }
         }
       }

@@ -2,20 +2,24 @@ import { Severity } from '../core/constants.js'
 
 const BOOLEAN_CAST_FUNCTIONS = new Set(['Boolean'])
 
-function isBooleanFunction (node) {
-  return node.type === 'CallExpression' &&
+function isBooleanFunction(node) {
+  return (
+    node.type === 'CallExpression' &&
     node.callee.type === 'Identifier' &&
     BOOLEAN_CAST_FUNCTIONS.has(node.callee.name)
+  )
 }
 
-function isDoubleNegation (node) {
-  return node.operator === '!' &&
+function isDoubleNegation(node) {
+  return (
+    node.operator === '!' &&
     node.argument &&
     node.argument.type === 'UnaryExpression' &&
     node.argument.operator === '!'
+  )
 }
 
-function isInBooleanContext (context) {
+function isInBooleanContext(context) {
   const parent = context.getParent()
   if (!parent) return false
   switch (parent.type) {
@@ -42,9 +46,9 @@ export const noExtraBooleanCast = {
     recommended: true,
     defaultSeverity: Severity.error
   },
-  create (context) {
+  create(context) {
     return {
-      UnaryExpression (node) {
+      UnaryExpression(node) {
         if (isDoubleNegation(node) && !isInBooleanContext(context)) {
           context.report({
             node,
@@ -52,7 +56,7 @@ export const noExtraBooleanCast = {
           })
         }
       },
-      CallExpression (node) {
+      CallExpression(node) {
         if (isBooleanFunction(node) && !isInBooleanContext(context)) {
           context.report({
             node,

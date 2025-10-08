@@ -208,9 +208,7 @@ function convertToLspDiagnostic(diagnostic, sourceText) {
   const endCharacter = Math.min(lineLength, columnIndex + 1)
 
   const severity =
-    diagnostic.severity === Severity.error
-      ? DiagnosticSeverity.error
-      : DiagnosticSeverity.warning
+    diagnostic.severity === Severity.error ? DiagnosticSeverity.error : DiagnosticSeverity.warning
 
   return {
     range: {
@@ -340,7 +338,11 @@ function createConnection(input, output) {
     if (message.method && message.id !== undefined) {
       const handler = requestHandlers.get(message.method)
       if (!handler) {
-        sendErrorResponse(message.id, ErrorCodes.MethodNotFound, `Unsupported method ${message.method}`)
+        sendErrorResponse(
+          message.id,
+          ErrorCodes.MethodNotFound,
+          `Unsupported method ${message.method}`
+        )
         return
       }
 
@@ -417,5 +419,7 @@ process.on('uncaughtException', (error) => {
 })
 
 process.on('unhandledRejection', (reason) => {
-  log(`Unhandled rejection: ${reason instanceof Error ? reason.stack ?? reason.message : String(reason)}`)
+  log(
+    `Unhandled rejection: ${reason instanceof Error ? (reason.stack ?? reason.message) : String(reason)}`
+  )
 })
