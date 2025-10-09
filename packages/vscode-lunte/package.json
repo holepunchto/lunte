@@ -31,7 +31,7 @@
     }
   },
   "license": "Apache-2.0",
-  "author": "Mikkel Malmberg <mikkel@brnbw.com>",
+  "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   }

@@ -1,12 +1,10 @@
 # Lunte
 
-This repository hosts a small vendorable JavaScript linter and its editor integrations. It is split into three workspaces:
+A self-contained JavaScript linter, mostly matching non-formatting rules of Standard.
 
 - `lunte` – the CLI and core analysis engine.
 - `lunte-lsp` – a stdio Language Server Protocol wrapper around the core.
 - `vscode-lunte` – a minimal VS Code extension that spawns the LSP server.
-
-The CLI parses with Acorn, runs a focused rule suite, and emits console diagnostics.
 
 ## Installation
 
@@ -16,16 +14,16 @@ npm install --save-dev lunte
 
 ## Usage
 
-Lint specific files or directories:
+Lint `**/*.{mjs,cjs,js}`:
 
 ```sh
-npx lunte src/ test/utils.js
+lunte .
 ```
 
 Globs are supported:
 
 ```sh
-npx lunte "src/**/*.js"
+lunte "src/**/*.js"
 ```
 
 By default Lunte skips `node_modules/`. Manage additional exclusions with `.lunteignore` (uses gitignore-style patterns).
@@ -37,10 +35,10 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 ```json
 {
   "env": ["node"],
-  "globals": ["MY_APP"],
+  "globals": ["Pear", "Bare"],
   "rules": {
     "no-unused-vars": "warn",
-    "no-undef": "error"
+    "no-undef": "off"
   }
 }
 ```
@@ -52,12 +50,12 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 Command-line overrides are available for ad-hoc runs:
 
 ```sh
-npx lunte --env browser --global MY_GLOBAL --rule no-unused-vars=off src/
+lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
 
 ### Inline Ignores
 
-Silence specific findings inline without touching configuration:
+Silence specific findings inline:
 
 ```js
 const cached = maybeUndefined() // lunte-disable-line no-undef
@@ -69,9 +67,7 @@ useGlobalResource()
 - `lunte-disable-line` suppresses the listed rules (or all rules when none are listed) on the same source line.
 - `lunte-disable-next-line` applies to the following line with the same rule targeting behaviour.
 
-## Status
-
-The project is under active development. Expect rule APIs, configuration formats, and CLI options to evolve.
+`eslint-disable-*` rules are also supported for compatibility.
 
 ## Editor Integration (LSP)
 
@@ -80,7 +76,7 @@ A lightweight Language Server Protocol endpoint ships as `lunte-lsp`. It reuses 
 Start it manually:
 
 ```sh
-npx lunte-lsp
+lunte-lsp
 ```
 
 ### Neovim
@@ -116,3 +112,13 @@ code --extensionDevelopmentPath="${PWD}"
 ```
 
 By default the extension runs `npx lunte-lsp`. Adjust `lunte.lsp.command` / `lunte.lsp.args` in VS Code settings to point at another binary (for example a globally installed `lunte-lsp`).
+
+### Attribution
+
+Lunte comes bundled with [Acorn](https://github.com/acornjs/acorn) (MIT).
+
+### License
+
+Apache-2.0
+
+![lunte](/docs/lunte.webp)

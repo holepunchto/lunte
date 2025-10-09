@@ -13,7 +13,7 @@
     "format": "prettier . --write"
   },
   "keywords": [],
-  "author": "Mikkel Malmberg <mikkel@brnbw.com>",
+  "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "license": "Apache-2.0",
   "type": "module",
   "devDependencies": {
