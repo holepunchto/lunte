@@ -1,7 +1,7 @@
 {
   "name": "lunte",
-  "version": "1.0.0",
-  "description": "Vendored JavaScript linter CLI",
+  "version": "0.1.0",
+  "description": "Self-contained linter",
   "main": "./src/index.js",
   "bin": {
     "lunte": "./bin/lunte"
