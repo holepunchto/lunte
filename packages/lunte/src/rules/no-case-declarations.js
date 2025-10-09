@@ -1,10 +1,17 @@
 import { Severity } from '../core/constants.js'
 
+const BLOCK_SAFE_TYPES = new Set(['FunctionDeclaration', 'ClassDeclaration'])
+
 function isProhibitedStatement(statement) {
-  if (!statement) return false
-  if (statement.type === 'BlockStatement') return false
-  if (statement.type === 'VariableDeclaration' && statement.kind !== 'var') return true
-  return statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration'
+  if (!statement || statement.type === 'BlockStatement') {
+    return false
+  }
+
+  if (statement.type === 'VariableDeclaration') {
+    return statement.kind !== 'var'
+  }
+
+  return BLOCK_SAFE_TYPES.has(statement.type)
 }
 
 export const noCaseDeclarations = {

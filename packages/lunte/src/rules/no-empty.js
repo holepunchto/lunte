@@ -1,16 +1,15 @@
 import { Severity } from '../core/constants.js'
 
-function isAllowedEmptyBlock(node, parent) {
+const ALLOWED_PARENTS = new Set([
+  'FunctionDeclaration',
+  'FunctionExpression',
+  'ArrowFunctionExpression'
+])
+
+function isAllowedEmptyBlock(parent) {
   if (!parent) return false
   if (parent.type === 'CatchClause') return true
-  if (
-    parent.type === 'FunctionDeclaration' ||
-    parent.type === 'FunctionExpression' ||
-    parent.type === 'ArrowFunctionExpression'
-  ) {
-    return true
-  }
-  return false
+  return ALLOWED_PARENTS.has(parent.type)
 }
 
 export const noEmpty = {
@@ -25,7 +24,7 @@ export const noEmpty = {
       BlockStatement(node) {
         if (node.body.length > 0) return
         const parent = context.getParent()
-        if (isAllowedEmptyBlock(node, parent)) return
+        if (isAllowedEmptyBlock(parent)) return
         context.report({
           node,
           message: 'Unexpected empty block.'

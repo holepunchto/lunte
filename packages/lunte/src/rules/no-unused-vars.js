@@ -11,71 +11,66 @@ export const noUnusedVars = {
     const definedSymbols = new Map()
     const usedSymbols = new Set()
 
+    function defineBinding(name, node) {
+      if (!name || !node) return
+      definedSymbols.set(node, { name, node })
+      if (shouldIgnoreName(name)) {
+        usedSymbols.add(name)
+      }
+    }
+
+    function markUsed(name) {
+      if (!name) return
+      usedSymbols.add(name)
+    }
+
     return {
       VariableDeclarator(node) {
         for (const { name, node: id } of extractPatternIdentifiers(node.id)) {
-          definedSymbols.set(id, { name, node: id })
+          defineBinding(name, id)
           if (
             node.parent &&
             node.parent.parent &&
             node.parent.parent.type === 'ExportNamedDeclaration'
           ) {
-            usedSymbols.add(name)
-          }
-          if (shouldIgnoreName(name)) {
-            usedSymbols.add(name)
+            markUsed(name)
           }
         }
       },
       FunctionDeclaration(node) {
         if (node.id) {
-          definedSymbols.set(node.id, { name: node.id.name, node: node.id })
+          defineBinding(node.id.name, node.id)
           if (
             node.parent &&
             (node.parent.type === 'ExportNamedDeclaration' ||
               node.parent.type === 'ExportDefaultDeclaration')
           ) {
-            usedSymbols.add(node.id.name)
-          }
-          if (shouldIgnoreName(node.id.name)) {
-            usedSymbols.add(node.id.name)
+            markUsed(node.id.name)
           }
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            definedSymbols.set(id, { name, node: id, isParam: true })
-            if (shouldIgnoreName(name)) {
-              usedSymbols.add(name)
-            }
+            defineBinding(name, id)
           }
         }
       },
       FunctionExpression(node) {
         if (node.id) {
-          definedSymbols.set(node.id, { name: node.id.name, node: node.id })
+          defineBinding(node.id.name, node.id)
           if (isCommonJsExported(node, context)) {
-            usedSymbols.add(node.id.name)
-          }
-          if (shouldIgnoreName(node.id.name)) {
-            usedSymbols.add(node.id.name)
+            markUsed(node.id.name)
           }
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            definedSymbols.set(id, { name, node: id, isParam: true })
-            if (shouldIgnoreName(name)) {
-              usedSymbols.add(name)
-            }
+            defineBinding(name, id)
           }
         }
       },
       ArrowFunctionExpression(node) {
         for (const param of node.params ?? []) {
           for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            definedSymbols.set(id, { name, node: id, isParam: true })
-            if (shouldIgnoreName(name)) {
-              usedSymbols.add(name)
-            }
+            defineBinding(name, id)
           }
         }
       },
@@ -84,24 +79,24 @@ export const noUnusedVars = {
         if (!isReferenceIdentifier(node, parent)) {
           return
         }
-        usedSymbols.add(node.name)
+        markUsed(node.name)
       },
       ExportNamedDeclaration(node) {
         if (node.declaration) {
           if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id) {
-            usedSymbols.add(node.declaration.id.name)
+            markUsed(node.declaration.id.name)
           }
           if (node.declaration.type === 'VariableDeclaration') {
             for (const declarator of node.declaration.declarations) {
               for (const { name } of extractPatternIdentifiers(declarator.id)) {
-                usedSymbols.add(name)
+                markUsed(name)
               }
             }
           }
         }
         for (const spec of node.specifiers ?? []) {
           if (spec.local && spec.local.type === 'Identifier') {
-            usedSymbols.add(spec.local.name)
+            markUsed(spec.local.name)
           }
         }
       },
@@ -109,13 +104,13 @@ export const noUnusedVars = {
         const declaration = node.declaration
         if (!declaration) return
         if (declaration.type === 'Identifier') {
-          usedSymbols.add(declaration.name)
+          markUsed(declaration.name)
         }
         if (
           (declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') &&
           declaration.id
         ) {
-          usedSymbols.add(declaration.id.name)
+          markUsed(declaration.id.name)
         }
       },
       Program: {
@@ -169,8 +164,7 @@ function extractPatternIdentifiers(pattern) {
 }
 
 function shouldIgnoreName(name) {
-  if (typeof name !== 'string') return false
-  return name.startsWith('_')
+  return typeof name === 'string' && name.startsWith('_')
 }
 
 function isCommonJsExported(functionNode, context) {
