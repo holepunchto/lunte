@@ -1,13 +1,19 @@
 {
-  "name": "lunte",
-  "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "name": "lunte-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/lunte",
+    "packages/lunte-lsp",
+    "packages/vscode-lunte"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm test --workspaces --if-present",
+    "test:core": "npm test --workspace=lunte-core",
+    "test:lsp": "npm test --workspace=lunte-lsp",
+    "format": "prettier . --write"
   },
-  "keywords": [],
-  "author": "Mikkel Malmberg <mikkel@holepunch.to",
-  "license": "Apache-2.0",
-  "type": "module"
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "prettier-config-holepunch": "^2.0.0"
+  }
 }

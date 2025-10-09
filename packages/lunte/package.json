@@ -1,0 +1,22 @@
+{
+  "name": "lunte",
+  "version": "1.0.0",
+  "description": "Vendored JavaScript linter CLI",
+  "main": "./src/index.js",
+  "bin": {
+    "lunte": "./bin/lunte"
+  },
+  "scripts": {
+    "test": "brittle \"test/**/*.test.js\"",
+    "lint": "lunte .",
+    "vendor:acorn": "node scripts/vendor-acorn.js",
+    "format": "prettier . --write"
+  },
+  "keywords": [],
+  "author": "Mikkel Malmberg <mikkel@brnbw.com>",
+  "license": "Apache-2.0",
+  "type": "module",
+  "devDependencies": {
+    "brittle": "^3.19.0"
+  }
+}

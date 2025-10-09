@@ -1,0 +1,38 @@
+{
+  "name": "vscode-lunte",
+  "displayName": "Lunte LSP Client",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "activationEvents": [
+    "onLanguage:javascript"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "lunte.lsp.command": {
+          "type": "string",
+          "default": "npx",
+          "description": "Command used to launch the Lunte language server"
+        },
+        "lunte.lsp.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "lunte-lsp"
+          ],
+          "description": "Arguments passed to the command that launches the Lunte language server"
+        }
+      }
+    }
+  },
+  "license": "Apache-2.0",
+  "author": "Mikkel Malmberg <mikkel@brnbw.com>",
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}
