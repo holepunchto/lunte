@@ -1,3 +1,5 @@
+import { command, flag, rest, bail } from 'paparam'
+
 import { analyze } from './core/analyzer.js'
 import { formatConsoleReport } from './core/reporter.js'
 import { Severity } from './core/constants.js'
@@ -5,15 +7,38 @@ import { resolveFileTargets } from './core/file-resolver.js'
 import { loadIgnore } from './core/ignore.js'
 import { loadConfig } from './config/loader.js'
 
-export async function run(argv = []) {
-  const options = parseArguments(argv)
+const parser = command(
+  'lunte',
+  bail(({ reason, flag, arg }) => {
+    if (flag) {
+      const name = flag.long ? `--${flag.name}` : `-${flag.name}`
+      if (reason === 'UNKNOWN_FLAG') return `Unknown option: ${name}`
+      if (reason === 'INVALID_FLAG') return `Invalid usage for option: ${name}`
+    }
+    if (arg && reason === 'UNKNOWN_ARG') return `Unknown argument: ${arg.value}`
+    return reason
+  }),
+  flag('--rule [name=severity]', 'Override rule severity (error, warn, off).').multiple(),
+  flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
+  flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
+  rest('[...files]', 'Files, directories, or glob patterns to analyze.')
+)
 
-  if (options.showHelp) {
-    printHelp()
+export async function run(argv = []) {
+  parser.parse(argv, { silent: true })
+
+  if (parser.bailed?.output) {
+    console.error(parser.bailed.output)
+    return 1
+  }
+
+  if (parser.flags.help) {
+    console.log(parser.help())
     return 0
   }
 
-  if (options.files.length === 0) {
+  const files = Array.isArray(parser.rest) ? parser.rest : []
+  if (files.length === 0) {
     console.error('No input files specified.')
     return 1
   }
@@ -21,127 +46,40 @@ export async function run(argv = []) {
   const cwd = process.cwd()
   const { config } = await loadConfig({ cwd })
   const ignoreMatcher = await loadIgnore({ cwd })
-  const files = await resolveFileTargets(options.files, { ignore: ignoreMatcher })
-  if (files.length === 0) {
+  const resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
+  if (resolvedFiles.length === 0) {
     console.error('No JavaScript files found.')
     return 1
   }
 
-  const mergedEnv = safeMerge(config.env, options.envs)
-  const mergedGlobals = safeMerge(config.globals, options.globals)
-  const mergedRuleOverrides = mergeRuleOverrides(config.rules, options.ruleOverrides)
+  const mergedEnv = safeMerge(config.env, parseList(parser.flags.env))
+  const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
+  const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
 
   const result = await analyze({
-    files,
+    files: resolvedFiles,
     ruleOverrides: mergedRuleOverrides,
     envOverrides: mergedEnv,
     globalOverrides: mergedGlobals
   })
-  const output = formatConsoleReport(result)
-  console.log(output)
+  console.log(formatConsoleReport(result))
 
   const hasErrors = result.diagnostics.some((d) => d.severity === Severity.error)
   return hasErrors ? 1 : 0
 }
 
-function parseArguments(argv) {
-  const files = []
-  let showHelp = false
-  const ruleOverrides = []
-  const envs = []
-  const globals = []
+const intoArray = (value) => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i]
-    if (arg === '-h' || arg === '--help') {
-      showHelp = true
-      continue
-    }
-
-    if (arg.startsWith('--rule')) {
-      const override = parseRuleOverride(arg, argv[i + 1])
-      if (override) {
-        ruleOverrides.push(override)
-        if (!arg.includes('=')) {
-          i += 1
-        }
-      }
-      continue
-    }
-
-    if (arg.startsWith('--env')) {
-      const value = parseListArgument(arg, argv[i + 1], '--env')
-      if (value) {
-        envs.push(...value)
-        if (!arg.includes('=')) {
-          i += 1
-        }
-      }
-      continue
-    }
-
-    if (arg.startsWith('--global')) {
-      const value = parseListArgument(arg, argv[i + 1], '--global')
-      if (value) {
-        globals.push(...value)
-        if (!arg.includes('=')) {
-          i += 1
-        }
-      }
-      continue
-    }
-
-    files.push(arg)
-  }
-
-  return { files, showHelp, ruleOverrides, envs, globals }
-}
-
-function printHelp() {
-  console.log('Usage: lunte [options] <file_or_dir ...>')
-  console.log('  --help, -h    Show this usage information.')
-  console.log('  --rule name=severity  Override rule severity (error, warn, off).')
-  console.log('  --env name             Enable predefined environment globals.')
-  console.log('  --global name          Declare additional global variables.')
-}
-
-function parseRuleOverride(arg, nextValue) {
-  let payload = null
-  if (arg.startsWith('--rule=')) {
-    payload = arg.slice('--rule='.length)
-  } else if (arg === '--rule' && typeof nextValue === 'string') {
-    payload = nextValue
-  }
-
-  if (!payload || !payload.includes('=')) {
-    return null
-  }
-
-  const [name, severity] = payload.split('=')
-  if (!name || !severity) {
-    return null
-  }
-
-  return { name, severity }
-}
-
-function parseListArgument(arg, nextValue, flagName) {
-  let payload = null
-  if (arg.startsWith(`${flagName}=`)) {
-    payload = arg.slice(flagName.length + 1)
-  } else if (arg === flagName && typeof nextValue === 'string') {
-    payload = nextValue
-  }
-
-  if (!payload) {
-    return null
-  }
-
-  return payload
-    .split(',')
-    .map((value) => value.trim())
+const parseList = (values) =>
+  intoArray(values)
+    .flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
+    .map((item) => item.trim())
     .filter(Boolean)
-}
+const parseRules = (values) =>
+  intoArray(values)
+    .map((value) => (typeof value === 'string' ? value.split('=').map((part) => part.trim()) : []))
+    .filter(([name, severity]) => name && severity)
+    .map(([name, severity]) => ({ name, severity }))
 
 function safeMerge(one = [], two = []) {
   return [...one, ...two]

@@ -23,6 +23,15 @@ export const noEmpty = {
     return {
       BlockStatement(node) {
         if (node.body.length > 0) return
+
+        const source = context.getSource(node)
+        if (typeof source === 'string' && source.length > 1) {
+          const inner = source.slice(1, -1).trim()
+          if (inner.length > 0) {
+            return
+          }
+        }
+
         const parent = context.getParent()
         if (isAllowedEmptyBlock(parent)) return
         context.report({

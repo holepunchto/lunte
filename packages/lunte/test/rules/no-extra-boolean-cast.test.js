@@ -42,10 +42,9 @@ test('allows double negation when explicitly coercing values', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('flags Boolean call outside boolean context', async (t) => {
+test('allows Boolean call used for explicit coercion', async (t) => {
   const result = await analyzeSnippet('const flag = Boolean(value)\n')
-  t.is(result.diagnostics.length, 1)
-  t.is(result.diagnostics[0].message, 'Unnecessary boolean cast.')
+  t.is(result.diagnostics.length, 0)
 })
 
 test('allows Boolean call inside logical expression', async (t) => {

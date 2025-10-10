@@ -59,3 +59,8 @@ test('allows empty catch block', async (t) => {
   const result = await analyzeSnippet('try { throw new Error() } catch (error) { }\n')
   t.is(result.diagnostics.length, 0)
 })
+
+test('allows block statements that only contain comments', async (t) => {
+  const result = await analyzeSnippet('if (flag) { // noop\n}\n')
+  t.is(result.diagnostics.length, 0)
+})

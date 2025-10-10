@@ -16,6 +16,9 @@
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "license": "Apache-2.0",
   "type": "module",
+  "dependencies": {
+    "paparam": "^1.8.6"
+  },
   "devDependencies": {
     "brittle": "^3.19.0"
   }

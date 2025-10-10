@@ -87,10 +87,10 @@ export const noExtraBooleanCast = {
           return
         }
 
-        if (!isBooleanTestPosition(node, context.getAncestors())) {
+        if (isBooleanTestPosition(node, context.getAncestors())) {
           context.report({
             node,
-            message: 'Unnecessary boolean cast.'
+            message: 'Redundant Boolean call.'
           })
         }
       }

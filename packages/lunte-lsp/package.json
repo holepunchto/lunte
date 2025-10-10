@@ -10,6 +10,6 @@
   "license": "Apache-2.0",
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "dependencies": {
-    "lunte": "file:../lunte"
+    "lunte": "^0.1.0"
   }
 }
