@@ -103,3 +103,45 @@ test('CLI expands glob patterns', async (t) => {
   t.ok(/No issues/.test(result.stdout))
   t.is(result.stderr, '')
 })
+
+test('CLI verbose flag lists files', async (t) => {
+  const dir = await createTempDir('verbose')
+  const file = join(dir, 'file.js')
+  await writeFile(file, 'console.log(1)\n')
+
+  const result = await runCli(['--verbose', file])
+
+  t.is(result.code, 0)
+  t.ok(result.stdout.includes('Analyzing 1 file'))
+  t.ok(result.stdout.includes('✓'), 'should mark success with a check')
+  t.ok(result.stdout.includes(file))
+  t.is(result.stderr, '')
+})
+
+test('CLI short verbose flag lists files', async (t) => {
+  const dir = await createTempDir('verbose-short')
+  const file = join(dir, 'file.js')
+  await writeFile(file, 'console.log(1)\n')
+
+  const result = await runCli(['-v', file])
+
+  t.is(result.code, 0)
+  t.ok(result.stdout.includes('Analyzing 1 file'))
+  t.ok(result.stdout.includes('✓'), 'should mark success with a check')
+  t.ok(result.stdout.includes(file))
+  t.is(result.stderr, '')
+})
+
+test('CLI verbose flag marks errors per file', async (t) => {
+  const dir = await createTempDir('verbose-error')
+  const file = join(dir, 'invalid.js')
+  await writeFile(file, 'const answer =;\n')
+
+  const result = await runCli(['--verbose', file])
+
+  t.is(result.code, 1)
+  t.ok(result.stdout.includes('Analyzing 1 file'))
+  t.ok(result.stdout.includes('✕'), 'should mark error with a cross')
+  t.ok(result.stdout.includes(file))
+  t.is(result.stderr, '')
+})

@@ -7,7 +7,14 @@ import { extractFileDirectives } from './file-directives.js'
 import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 
-export async function analyze({ files, ruleOverrides, envOverrides, globalOverrides, sourceText }) {
+export async function analyze({
+  files,
+  ruleOverrides,
+  envOverrides,
+  globalOverrides,
+  sourceText,
+  onFileComplete
+}) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
     ruleOverrides,
@@ -24,6 +31,13 @@ export async function analyze({ files, ruleOverrides, envOverrides, globalOverri
       sourceOverrides
     })
     diagnostics.push(...result.diagnostics)
+
+    if (typeof onFileComplete === 'function') {
+      onFileComplete({
+        filePath: file,
+        diagnostics: result.diagnostics
+      })
+    }
   }
 
   return { diagnostics }

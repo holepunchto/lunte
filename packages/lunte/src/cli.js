@@ -7,6 +7,21 @@ import { resolveFileTargets } from './core/file-resolver.js'
 import { loadIgnore } from './core/ignore.js'
 import { loadConfig } from './config/loader.js'
 
+const colorSupport = Boolean(process.stdout?.isTTY)
+const VERBOSE_COLORS = colorSupport
+  ? {
+      reset: '\u001b[0m',
+      red: '\u001b[31m',
+      yellow: '\u001b[33m',
+      green: '\u001b[32m'
+    }
+  : {
+      reset: '',
+      red: '',
+      yellow: '',
+      green: ''
+    }
+
 const parser = command(
   'lunte',
   bail(({ reason, flag, arg }) => {
@@ -21,6 +36,7 @@ const parser = command(
   flag('--rule [name=severity]', 'Override rule severity (error, warn, off).').multiple(),
   flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
+  flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
 
@@ -56,11 +72,30 @@ export async function run(argv = []) {
   const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
 
+  const verbose = Boolean(parser.flags.verbose)
+  if (verbose) {
+    console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
+  }
+
   const result = await analyze({
     files: resolvedFiles,
     ruleOverrides: mergedRuleOverrides,
     envOverrides: mergedEnv,
-    globalOverrides: mergedGlobals
+    globalOverrides: mergedGlobals,
+    onFileComplete: verbose
+      ? ({ filePath, diagnostics }) => {
+          const hasError = diagnostics.some((d) => d.severity === Severity.error)
+          const hasWarning = diagnostics.some((d) => d.severity === Severity.warning)
+          const color = hasError
+            ? VERBOSE_COLORS.red
+            : hasWarning
+              ? VERBOSE_COLORS.yellow
+              : VERBOSE_COLORS.green
+          const symbol = hasError ? '✕' : hasWarning ? '!' : '✓'
+          const detail = hasError ? ' (errors)' : hasWarning ? ' (warnings)' : ''
+          console.log(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)
+        }
+      : undefined
   })
   console.log(formatConsoleReport(result))
 
