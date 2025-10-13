@@ -1,7 +1,7 @@
 import { builtInRules } from '../rules/index.js'
 import { getDefaultRuleConfig } from './defaults.js'
 import { Severity } from '../core/constants.js'
-import { ENV_GLOBALS, BASE_GLOBALS } from './envs.js'
+import { ENV_GLOBALS, BASE_GLOBALS, HOLEPUNCH_GLOBALS } from './envs.js'
 
 const SEVERITY_ALIASES = new Map([
   ['off', Severity.off],
@@ -14,12 +14,23 @@ const SEVERITY_ALIASES = new Map([
   ['2', Severity.error]
 ])
 
-export function resolveConfig({ ruleOverrides = [], envNames = [], globals = [] } = {}) {
+export function resolveConfig({
+  ruleOverrides = [],
+  envNames = [],
+  globals = [],
+  disableHolepunchGlobals = false
+} = {}) {
   const ruleConfig = resolveRuleConfig(ruleOverrides)
   const globalSet = new Set()
 
   for (const name of BASE_GLOBALS) {
     globalSet.add(name)
+  }
+
+  if (!disableHolepunchGlobals) {
+    for (const name of HOLEPUNCH_GLOBALS) {
+      globalSet.add(name)
+    }
   }
 
   const activeEnvNames = new Set(envNames.length > 0 ? envNames : ['node'])

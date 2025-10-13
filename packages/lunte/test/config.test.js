@@ -25,3 +25,17 @@ test('resolveConfig merges envs and globals', (t) => {
   t.ok(globals.has('MY_APP'))
   t.ok(globals.has('console'))
 })
+
+test('resolveConfig includes Holepunch globals by default', (t) => {
+  const { globals } = resolveConfig()
+
+  t.ok(globals.has('Pear'))
+  t.ok(globals.has('Bare'))
+})
+
+test('resolveConfig can disable Holepunch globals', (t) => {
+  const { globals } = resolveConfig({ disableHolepunchGlobals: true })
+
+  t.is(globals.has('Pear'), false)
+  t.is(globals.has('Bare'), false)
+})

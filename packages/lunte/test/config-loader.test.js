@@ -46,3 +46,11 @@ test('loadConfig walks parent directories', async (t) => {
   const { config } = await loadConfig({ cwd: child })
   t.alike(config.globals, ['MY_GLOBAL'])
 })
+
+test('loadConfig normalises disableHolepunchGlobals flag', async (t) => {
+  const dir = await createTempDir('holepunch')
+  await writeFile(join(dir, '.lunterc'), JSON.stringify({ disableHolepunchGlobals: true }))
+
+  const { config } = await loadConfig({ cwd: dir })
+  t.is(config.disableHolepunchGlobals, true)
+})

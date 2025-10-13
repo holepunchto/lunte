@@ -71,6 +71,7 @@ export async function run(argv = []) {
   const mergedEnv = safeMerge(config.env, parseList(parser.flags.env))
   const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
+  const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
 
   const verbose = Boolean(parser.flags.verbose)
   if (verbose) {
@@ -82,6 +83,7 @@ export async function run(argv = []) {
     ruleOverrides: mergedRuleOverrides,
     envOverrides: mergedEnv,
     globalOverrides: mergedGlobals,
+    disableHolepunchGlobals,
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {
           const hasError = diagnostics.some((d) => d.severity === Severity.error)

@@ -62,6 +62,8 @@ export const BASE_GLOBALS = [
   'globalThis'
 ]
 
+export const HOLEPUNCH_GLOBALS = ['Pear', 'Bare']
+
 export const ENV_GLOBALS = {
   node: ['Buffer', 'process', '__dirname', '__filename', 'exports', 'module', 'require', 'global'],
   browser: [

@@ -62,5 +62,8 @@ function normalizeConfig(config) {
       result.rules[String(name)] = severity
     }
   }
+  if (config?.disableHolepunchGlobals !== undefined) {
+    result.disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
+  }
   return result
 }

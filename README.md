@@ -30,22 +30,24 @@ By default Lunte skips `node_modules/`. Manage additional exclusions with `.lunt
 
 ## Configuration
 
-Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.json`) at the project root. A minimal example:
+Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.json`) at the project root.
 
 ```json
 {
   "env": ["node"],
-  "globals": ["Pear", "Bare"],
+  "globals": ["MY_APP"],
   "rules": {
     "no-unused-vars": "warn",
     "no-undef": "off"
-  }
+  },
+  "disableHolepunchGlobals": true
 }
 ```
 
 - `env` enables preset global sets (`node`, `browser`, `es2021`).
 - `globals` adds project-specific globals (strings are case-sensitive).
 - `rules` sets severities per rule (`"off"`, `"warn"`, `"error"`, or `0/1/2`).
+- `disableHolepunchGlobals` skips adding `Pear`/`Bare` globals.
 
 Command-line overrides are available for ad-hoc runs:
 

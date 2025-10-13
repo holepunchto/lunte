@@ -13,13 +13,15 @@ export async function analyze({
   envOverrides,
   globalOverrides,
   sourceText,
-  onFileComplete
+  onFileComplete,
+  disableHolepunchGlobals = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
     ruleOverrides,
     envNames: envOverrides,
-    globals: globalOverrides
+    globals: globalOverrides,
+    disableHolepunchGlobals
   })
 
   const sourceOverrides = normalizeSourceOverrides(sourceText)
