@@ -1,7 +1,9 @@
 {
   "name": "vscode-lunte",
   "displayName": "Lunte LSP Client",
+  "description": "Visual Studio Code extension for Lunte JavaScript linter",
   "version": "0.2.0",
+  "publisher": "holepunch",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -32,6 +34,25 @@
   },
   "license": "Apache-2.0",
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "lunte",
+    "linter",
+    "javascript",
+    "lsp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holepunchto/lunte.git",
+    "directory": "packages/vscode-lunte"
+  },
+  "homepage": "https://github.com/holepunchto/lunte#readme",
+  "bugs": {
+    "url": "https://github.com/holepunchto/lunte/issues"
+  },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   }

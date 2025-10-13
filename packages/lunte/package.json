@@ -12,9 +12,25 @@
     "vendor:acorn": "node scripts/vendor-acorn.js",
     "format": "prettier . --write"
   },
-  "keywords": [],
+  "keywords": [
+    "linter",
+    "lint",
+    "javascript",
+    "standard",
+    "code-quality",
+    "static-analysis"
+  ],
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holepunchto/lunte.git",
+    "directory": "packages/lunte"
+  },
+  "homepage": "https://github.com/holepunchto/lunte#readme",
+  "bugs": {
+    "url": "https://github.com/holepunchto/lunte/issues"
+  },
   "type": "module",
   "dependencies": {
     "paparam": "^1.8.6"

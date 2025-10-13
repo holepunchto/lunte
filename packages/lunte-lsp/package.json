@@ -9,6 +9,23 @@
   },
   "license": "Apache-2.0",
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
+  "keywords": [
+    "lsp",
+    "language-server",
+    "language-server-protocol",
+    "lunte",
+    "linter",
+    "javascript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holepunchto/lunte.git",
+    "directory": "packages/lunte-lsp"
+  },
+  "homepage": "https://github.com/holepunchto/lunte#readme",
+  "bugs": {
+    "url": "https://github.com/holepunchto/lunte/issues"
+  },
   "dependencies": {
     "lunte": "^0.2"
   }
