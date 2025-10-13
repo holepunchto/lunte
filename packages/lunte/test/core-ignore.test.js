@@ -29,6 +29,25 @@ test('loadIgnore ignores node_modules by default', async (t) => {
   t.ok(matcher.ignores(join(dir, 'node_modules/foo.js')), 'node_modules should be ignored')
 })
 
+test('loadIgnore does not ignore workspace root inside node_modules', async (t) => {
+  const dir = await withTempDir(t, {
+    'node_modules/my_project/index.js': '',
+    'node_modules/my_project/node_modules/ignored.js': ''
+  })
+  const projectDir = join(dir, 'node_modules/my_project')
+  const matcher = await loadIgnore({ cwd: projectDir })
+
+  t.is(
+    matcher.ignores(join(projectDir, 'index.js')),
+    false,
+    'project files should not be ignored just because cwd contains node_modules'
+  )
+  t.ok(
+    matcher.ignores(join(projectDir, 'node_modules/ignored.js')),
+    'nested node_modules still ignored'
+  )
+})
+
 test('loadIgnore supports negated patterns', async (t) => {
   const dir = await withTempDir(t, {
     '.lunteignore': 'dist/\n!dist/keep.js\n'

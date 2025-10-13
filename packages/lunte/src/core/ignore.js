@@ -145,13 +145,14 @@ class IgnoreContext {
     const candidates = []
     if (withinCwd || rel === '') {
       candidates.push(relValue)
-    }
-    candidates.push(abs)
-    if (isDir) {
-      if (withinCwd || rel === '') {
+      if (isDir) {
         candidates.push(`${relValue}/`)
       }
-      candidates.push(`${normalizedAbs}/`)
+    } else {
+      candidates.push(abs)
+      if (isDir) {
+        candidates.push(`${normalizedAbs}/`)
+      }
     }
 
     let ignored = false
