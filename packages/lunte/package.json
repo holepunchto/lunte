@@ -1,6 +1,6 @@
 {
   "name": "lunte",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Self-contained linter",
   "main": "./src/index.js",
   "bin": {
