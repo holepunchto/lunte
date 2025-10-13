@@ -2,7 +2,7 @@
   "name": "vscode-lunte",
   "displayName": "Lunte LSP Client",
   "description": "Visual Studio Code extension for Lunte JavaScript linter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "holepunch",
   "engines": {
     "vscode": "^1.90.0"
