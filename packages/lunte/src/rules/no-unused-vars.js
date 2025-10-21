@@ -277,8 +277,14 @@ function isReferenceIdentifier(node, parent) {
       }
       return parent.key !== node
     case 'PropertyDefinition':
+      if (parent.computed && parent.key === node) {
+        return true
+      }
       return parent.key !== node
     case 'MethodDefinition':
+      if (parent.computed && parent.key === node) {
+        return true
+      }
       return parent.key !== node
     case 'ArrayPattern':
     case 'ObjectPattern':

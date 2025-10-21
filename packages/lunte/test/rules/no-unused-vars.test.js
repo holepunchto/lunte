@@ -74,3 +74,15 @@ test('flags unused bindings while allowing used destructured params', async (t) 
   )
   t.is(destructuredParams.diagnostics.length, 0)
 })
+
+test('treats computed class keys as references', async (t) => {
+  const methodKey = await runSnippet(
+    'const foo = Symbol.for(\'test\')\nclass Bar { [foo] () {} }\nexport default Bar\n'
+  )
+  t.is(methodKey.diagnostics.length, 0)
+
+  const fieldKey = await runSnippet(
+    'const foo = Symbol(\'static\')\nclass Baz { static [foo] = true }\n'
+  )
+  t.is(fieldKey.diagnostics.length, 0)
+})
