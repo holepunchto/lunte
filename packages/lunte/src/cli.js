@@ -53,7 +53,7 @@ export async function run(argv = []) {
     return 0
   }
 
-  const files = Array.isArray(parser.rest) ? parser.rest : []
+  const files = Array.isArray(parser.rest) ? parser.rest : ['.']
   if (files.length === 0) {
     console.error('No input files specified.')
     return 1
