@@ -52,6 +52,21 @@ test('does not flag unused parameters by default', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('allows named function expressions used as arguments', async (t) => {
+  const result = await runSnippet(
+    'const w = new Wakeup(function onwakeup () {})\nconsole.log(w)\n'
+  )
+  t.is(result.diagnostics.length, 0)
+})
+
+test('still flags unused named function expressions outside arguments', async (t) => {
+  const result = await runSnippet(
+    'const fn = function named () {}\nconsole.log(fn)\n'
+  )
+  t.is(result.diagnostics.length, 1)
+  t.ok(result.diagnostics[0].message.includes('named'))
+})
+
 test('allows CommonJS exported generator functions', async (t) => {
   const result = await runSnippet(
     'module.exports = async function * audit (store) {\n  yield store\n}\n'

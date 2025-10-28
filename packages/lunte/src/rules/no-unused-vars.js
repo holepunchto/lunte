@@ -57,6 +57,16 @@ export const noUnusedVars = {
       FunctionExpression(node) {
         if (node.id) {
           defineBinding(node.id.name, node.id)
+          const parent = context.getParent()
+          if (
+            parent &&
+            (parent.type === 'CallExpression' || parent.type === 'NewExpression') &&
+            Array.isArray(parent.arguments) &&
+            parent.arguments.includes(node)
+          ) {
+            // Treat callback names as used when the function is supplied as an argument.
+            markUsed(node.id.name)
+          }
           if (isCommonJsExported(node, context)) {
             markUsed(node.id.name)
           }
