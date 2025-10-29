@@ -1,3 +1,3 @@
-function bad(foo, bar) {
-  return (foo = bar)
+function bad (foo, bar) {
+  return foo = bar
 }

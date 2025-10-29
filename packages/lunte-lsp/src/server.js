@@ -420,6 +420,8 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason) => {
   log(
-    `Unhandled rejection: ${reason instanceof Error ? (reason.stack ?? reason.message) : String(reason)}`
+    `Unhandled rejection: ${
+      reason instanceof Error ? reason.stack ?? reason.message : String(reason)
+    }`
   )
 })

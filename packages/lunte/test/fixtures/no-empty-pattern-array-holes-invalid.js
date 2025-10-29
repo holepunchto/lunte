@@ -1,1 +1,1 @@
-const [, , ,] = arr
+const [,,,] = arr

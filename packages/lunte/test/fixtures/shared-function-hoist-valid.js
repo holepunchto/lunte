@@ -1,5 +1,5 @@
-foo()
+foo();
 
 function foo() {
-  return 'ok'
+  return 'ok';
 }

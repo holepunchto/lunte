@@ -1,3 +1,3 @@
-function good(foo, bar) {
+function good (foo, bar) {
   return (foo = bar)
 }

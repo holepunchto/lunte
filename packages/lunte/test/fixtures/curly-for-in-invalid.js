@@ -1,2 +1,2 @@
-// Multi-line for-in without braces is invalid
-for (const key in {}) console.log(key)
+for (const key in {})
+  console.log(key)

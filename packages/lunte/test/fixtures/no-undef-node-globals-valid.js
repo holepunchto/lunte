@@ -1,1 +1,1 @@
-console.log(Buffer.from('hi').toString())
+console.log(Buffer.from('hi').toString());

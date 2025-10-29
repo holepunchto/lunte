@@ -1,4 +1,4 @@
-function check(value) {
+function check (value) {
   if (!!value) {
     return true
   }

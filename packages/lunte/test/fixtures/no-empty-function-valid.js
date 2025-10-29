@@ -1,6 +1,6 @@
 const noop = () => {}
 
-function nothing() {}
+function nothing () {}
 
 noop()
 nothing()

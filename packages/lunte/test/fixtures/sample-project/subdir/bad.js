@@ -1,1 +1,1 @@
-console.log(BAD_GLOBAL)
+console.log(BAD_GLOBAL);

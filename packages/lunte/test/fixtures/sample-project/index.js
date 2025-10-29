@@ -1,1 +1,1 @@
-console.log('project root')
+console.log('project root');

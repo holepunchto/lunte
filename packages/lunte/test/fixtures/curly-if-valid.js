@@ -1,7 +1,5 @@
-// Single-line statement without braces is valid (Standard style)
+// Single-line without braces is valid
 if (true) console.log('test')
 
 // With braces is also valid
-if (false) {
-  console.log('test')
-}
+if (false) { console.log('test') }

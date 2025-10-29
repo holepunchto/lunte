@@ -1,3 +1,3 @@
 do {
   console.log('run')
-} while ((x = false))
+} while (x = false)

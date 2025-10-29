@@ -1,6 +1,6 @@
 function main() {
-  const unused = 42
-  console.log('hi')
+  const unused = 42;
+  console.log('hi');
 }
 
-main()
+main();
