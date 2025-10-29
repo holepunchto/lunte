@@ -30,7 +30,7 @@ async function analyzeSnippet(source) {
 
 test('flags lexical declarations in switch cases', async (t) => {
   const result = await analyze({
-    files: [fixture('case-declaration.js')],
+    files: [fixture('no-case-declarations-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.ok(result.diagnostics.length > 0)

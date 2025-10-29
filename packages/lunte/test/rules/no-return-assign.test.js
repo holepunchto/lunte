@@ -30,7 +30,7 @@ async function analyzeSnippet(source) {
 
 test('flags assignment in return statements', async (t) => {
   const result = await analyze({
-    files: [fixture('return-assign-bad.js')],
+    files: [fixture('no-return-assign-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
@@ -39,7 +39,7 @@ test('flags assignment in return statements', async (t) => {
 
 test('allows parenthesised assignment in return', async (t) => {
   const result = await analyze({
-    files: [fixture('return-assign-good.js')],
+    files: [fixture('no-return-assign-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 0)
