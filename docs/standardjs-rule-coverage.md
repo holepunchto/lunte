@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 45
+- Fully supported: 46
 - Partially supported: 7
-- Not yet supported: 109
+- Not yet supported: 108
 
 Status definitions:
 
@@ -31,7 +31,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `comma-style`                     | [link](https://eslint.org/docs/latest/rules/comma-style)                                                   | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
 | `computed-property-spacing`       | [link](https://eslint.org/docs/latest/rules/computed-property-spacing)                                     | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
 | `constructor-super`               | [link](https://eslint.org/docs/latest/rules/constructor-super)                                             | None    | Not implemented yet.                                                                                          |
-| `curly`                           | [link](https://eslint.org/docs/latest/rules/curly)                                                         | None    | Not implemented yet.                                                                                          |
+| `curly`                           | [link](https://eslint.org/docs/latest/rules/curly)                                                         | Full    | Enforces curly braces for all control statements (if, else, while, do-while, for, for-in, for-of).            |
 | `default-case-last`               | [link](https://eslint.org/docs/latest/rules/default-case-last)                                             | None    | Not implemented yet.                                                                                          |
 | `dot-location`                    | [link](https://eslint.org/docs/latest/rules/dot-location)                                                  | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
 | `dot-notation`                    | [link](https://eslint.org/docs/latest/rules/dot-notation)                                                  | None    | Not implemented yet.                                                                                          |

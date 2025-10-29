@@ -15,6 +15,7 @@ import { noCondAssign } from './no-cond-assign.js'
 import { noDupeKeys } from './no-dupe-keys.js'
 import { noEmptyPattern } from './no-empty-pattern.js'
 import { preferConst } from './prefer-const.js'
+import { curly } from './curly.js'
 
 export const builtInRules = new Map()
 
@@ -35,6 +36,7 @@ registerRule(noCondAssign)
 registerRule(noDupeKeys)
 registerRule(noEmptyPattern)
 registerRule(preferConst)
+registerRule(curly)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
