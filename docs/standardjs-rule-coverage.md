@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 41
+- Fully supported: 44
 - Partially supported: 7
-- Not yet supported: 113
+- Not yet supported: 110
 
 Status definitions:
 
@@ -52,7 +52,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-case-declarations`            | [link](https://eslint.org/docs/latest/rules/no-case-declarations)                                          | Full    | Disallows lexical declarations in switch cases without wrapping blocks.                                       |
 | `no-class-assign`                 | [link](https://eslint.org/docs/latest/rules/no-class-assign)                                               | None    | Not implemented yet.                                                                                          |
 | `no-compare-neg-zero`             | [link](https://eslint.org/docs/latest/rules/no-compare-neg-zero)                                           | None    | Not implemented yet.                                                                                          |
-| `no-cond-assign`                  | [link](https://eslint.org/docs/latest/rules/no-cond-assign)                                                | None    | Not implemented yet.                                                                                          |
+| `no-cond-assign`                  | [link](https://eslint.org/docs/latest/rules/no-cond-assign)                                                | Full    | Disallows assignment operators in conditional expressions (if, while, for, ternary).                          |
 | `no-const-assign`                 | [link](https://eslint.org/docs/latest/rules/no-const-assign)                                               | Full    | Disallows reassigning const variables, including increment/decrement and destructuring.                       |
 | `no-constant-condition`           | [link](https://eslint.org/docs/latest/rules/no-constant-condition)                                         | None    | Not implemented yet.                                                                                          |
 | `no-control-regex`                | [link](https://eslint.org/docs/latest/rules/no-control-regex)                                              | None    | Not implemented yet.                                                                                          |
@@ -60,12 +60,12 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-delete-var`                   | [link](https://eslint.org/docs/latest/rules/no-delete-var)                                                 | Full    | `delete` on identifiers is already a syntax error in module code, so violations surface as parse diagnostics. |
 | `no-dupe-args`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-args)                                                  | Full    | Strict-mode parsing rejects duplicate parameters, matching StandardJS expectations.                           |
 | `no-dupe-class-members`           | [link](https://eslint.org/docs/latest/rules/no-dupe-class-members)                                         | None    | Not implemented yet.                                                                                          |
-| `no-dupe-keys`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-keys)                                                  | None    | Not implemented yet.                                                                                          |
+| `no-dupe-keys`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-keys)                                                  | Full    | Detects duplicate keys in object literals, including string and number literals.                              |
 | `no-duplicate-case`               | [link](https://eslint.org/docs/latest/rules/no-duplicate-case)                                             | None    | Not implemented yet.                                                                                          |
 | `no-useless-backreference`        | [link](https://eslint.org/docs/latest/rules/no-useless-backreference)                                      | None    | Not implemented yet.                                                                                          |
 | `no-empty`                        | [link](https://eslint.org/docs/latest/rules/no-empty)                                                      | Partial | Currently allows empty function bodies; StandardJS only permits empty catch blocks.                           |
 | `no-empty-character-class`        | [link](https://eslint.org/docs/latest/rules/no-empty-character-class)                                      | None    | Not implemented yet.                                                                                          |
-| `no-empty-pattern`                | [link](https://eslint.org/docs/latest/rules/no-empty-pattern)                                              | None    | Not implemented yet.                                                                                          |
+| `no-empty-pattern`                | [link](https://eslint.org/docs/latest/rules/no-empty-pattern)                                              | Full    | Disallows empty destructuring patterns like `const {} = obj` or `const [] = arr`.                             |
 | `no-eval`                         | [link](https://eslint.org/docs/latest/rules/no-eval)                                                       | None    | Not implemented yet.                                                                                          |
 | `no-ex-assign`                    | [link](https://eslint.org/docs/latest/rules/no-ex-assign)                                                  | None    | Not implemented yet.                                                                                          |
 | `no-extend-native`                | [link](https://eslint.org/docs/latest/rules/no-extend-native)                                              | None    | Not implemented yet.                                                                                          |

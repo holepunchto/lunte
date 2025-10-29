@@ -11,6 +11,9 @@ import { noExtraBooleanCast } from './no-extra-boolean-cast.js'
 import { noConstAssign } from './no-const-assign.js'
 import { eqeqeq } from './eqeqeq.js'
 import { noUnreachable } from './no-unreachable.js'
+import { noCondAssign } from './no-cond-assign.js'
+import { noDupeKeys } from './no-dupe-keys.js'
+import { noEmptyPattern } from './no-empty-pattern.js'
 
 export const builtInRules = new Map()
 
@@ -27,6 +30,9 @@ registerRule(noExtraBooleanCast)
 registerRule(noConstAssign)
 registerRule(eqeqeq)
 registerRule(noUnreachable)
+registerRule(noCondAssign)
+registerRule(noDupeKeys)
+registerRule(noEmptyPattern)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
