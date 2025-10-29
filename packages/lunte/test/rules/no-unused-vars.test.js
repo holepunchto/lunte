@@ -101,3 +101,37 @@ test('treats computed class keys as references', async (t) => {
   )
   t.is(fieldKey.diagnostics.length, 0)
 })
+
+test('ignores underscore-prefixed variables', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-underscore-prefix-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows rest destructuring parameters', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-rest-destructuring-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows unused catch parameters', async (t) => {
+  // Catch parameters are often unused (just catching to suppress error)
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-catch-param-invalid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows unused function parameters by default', async (t) => {
+  // Function parameters are often unused (positional arguments, interface compliance)
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-function-params-invalid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
