@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 47
+- Fully supported: 48
 - Partially supported: 7
-- Not yet supported: 107
+- Not yet supported: 106
 
 Status definitions:
 
@@ -167,7 +167,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `import/export`                   | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/export.md)                   | None    | Not implemented yet.                                                                                          |
 | `import/first`                    | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/first.md)                    | None    | Not implemented yet.                                                                                          |
 | `import/no-absolute-path`         | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-absolute-path.md)         | None    | Not implemented yet.                                                                                          |
-| `import/no-duplicates`            | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-duplicates.md)            | None    | Not implemented yet.                                                                                          |
+| `import/no-duplicates`            | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-duplicates.md)            | Full    | Disallows duplicate imports from the same module.                                                             |
 | `import/no-named-default`         | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-named-default.md)         | None    | Not implemented yet.                                                                                          |
 | `import/no-webpack-loader-syntax` | [link](https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-webpack-loader-syntax.md) | None    | Not implemented yet.                                                                                          |
 | `n/handle-callback-err`           | [link](https://github.com/eslint-community/eslint-plugin-n/blob/HEAD/docs/rules/handle-callback-err.md)    | None    | Not implemented yet.                                                                                          |

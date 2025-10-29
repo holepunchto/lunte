@@ -17,6 +17,7 @@ import { noEmptyPattern } from './no-empty-pattern.js'
 import { preferConst } from './prefer-const.js'
 import { curly } from './curly.js'
 import { constructorSuper } from './constructor-super.js'
+import { importNoDuplicates } from './import-no-duplicates.js'
 
 export const builtInRules = new Map()
 
@@ -39,6 +40,7 @@ registerRule(noEmptyPattern)
 registerRule(preferConst)
 registerRule(curly)
 registerRule(constructorSuper)
+registerRule(importNoDuplicates)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {

@@ -22,7 +22,8 @@ test('builtInRules exposes expected rule names', (t) => {
     'no-empty-pattern',
     'prefer-const',
     'curly',
-    'constructor-super'
+    'constructor-super',
+    'import/no-duplicates'
   ]
 
   t.alike(Array.from(builtInRules.keys()).sort(), expected.sort())
