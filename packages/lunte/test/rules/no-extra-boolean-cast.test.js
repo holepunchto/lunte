@@ -38,6 +38,14 @@ test('flags redundant double negation in fixtures', async (t) => {
 })
 
 test('allows double negation when explicitly coercing values', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-extra-boolean-cast-explicit-coercion-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows double negation for explicit coercion (inline)', async (t) => {
   const result = await analyzeSnippet('const flag = !!maybe\n')
   t.is(result.diagnostics.length, 0)
 })

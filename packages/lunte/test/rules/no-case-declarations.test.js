@@ -43,8 +43,14 @@ test('allows var in switch cases', async (t) => {
 })
 
 test('allows block-scoped declarations inside block', async (t) => {
-  const result = await analyzeSnippet(
-    'switch (value) { case 1: { let ok = true; console.log(ok) } break; }\n'
-  )
+  const result = await analyze({
+    files: [fixture('no-case-declarations-block-scoped-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows var in switch cases (inline)', async (t) => {
+  const result = await analyzeSnippet('switch (value) { case 1: var ok = true; break; }\n')
   t.is(result.diagnostics.length, 0)
 })

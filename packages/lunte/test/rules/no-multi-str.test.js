@@ -38,6 +38,14 @@ test('flags multiline string with escapes', async (t) => {
 })
 
 test('allows template literals', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-multi-str-template-literal-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows template literals (inline)', async (t) => {
   const result = await analyzeSnippet('const message = `line1\nline2`\n')
   t.is(result.diagnostics.length, 0)
 })
