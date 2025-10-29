@@ -223,12 +223,12 @@ function handleScopeIntroductions(node, scopeManager) {
 function handleInScopeDeclarations(node, scopeManager) {
   if (node.type === 'VariableDeclaration') {
     for (const declarator of node.declarations) {
-      for (const { name, node: id } of extractPatternIdentifiers(declarator.id)) {
+      for (const { name, node: id, availableAt } of extractPatternIdentifiers(declarator.id)) {
         const hoisted = node.kind === 'var'
         const info = createDeclarationInfo(id, {
           kind: node.kind,
           hoisted,
-          index: hoisted ? undefined : inferTemporalDeadZoneIndex(declarator)
+          index: hoisted ? undefined : (availableAt || inferTemporalDeadZoneIndex(declarator))
         })
         scopeManager.declare(name, info, { hoistTo: hoisted ? 'function' : undefined })
       }
@@ -502,31 +502,31 @@ function isReferenceInContext(node, parent, ancestors) {
   }
 }
 
-function extractPatternIdentifiers(pattern) {
+function extractPatternIdentifiers(pattern, containerEnd) {
   const results = []
   if (!pattern) return results
 
   switch (pattern.type) {
     case 'Identifier':
-      results.push({ name: pattern.name, node: pattern })
+      results.push({ name: pattern.name, node: pattern, availableAt: containerEnd })
       break
     case 'RestElement':
-      results.push(...extractPatternIdentifiers(pattern.argument))
+      results.push(...extractPatternIdentifiers(pattern.argument, containerEnd || pattern.end))
       break
     case 'AssignmentPattern':
-      results.push(...extractPatternIdentifiers(pattern.left))
+      results.push(...extractPatternIdentifiers(pattern.left, containerEnd || pattern.end))
       break
     case 'ArrayPattern':
       for (const element of pattern.elements) {
-        results.push(...extractPatternIdentifiers(element))
+        results.push(...extractPatternIdentifiers(element, element?.end))
       }
       break
     case 'ObjectPattern':
       for (const prop of pattern.properties) {
         if (prop.type === 'RestElement') {
-          results.push(...extractPatternIdentifiers(prop.argument))
+          results.push(...extractPatternIdentifiers(prop.argument, prop.end))
         } else {
-          results.push(...extractPatternIdentifiers(prop.value))
+          results.push(...extractPatternIdentifiers(prop.value, prop.end))
         }
       }
       break

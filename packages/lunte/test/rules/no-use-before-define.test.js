@@ -89,3 +89,22 @@ test('reports function expressions referenced before declaration', async (t) => 
   t.is(expression.diagnostics.length, 1)
   t.ok(expression.diagnostics[0].message.includes('was used before it was defined'))
 })
+
+test('reports identifier used in earlier destructuring default value', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-destructuring-default-invalid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 1)
+  const [diag] = result.diagnostics
+  t.ok(diag.message.includes('name'))
+  t.ok(diag.message.includes('was used before it was defined'))
+})
+
+test('allows identifier used in later destructuring default value', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-destructuring-default-valid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0)
+})
