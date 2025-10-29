@@ -8,6 +8,9 @@ import { noReturnAssign } from './no-return-assign.js'
 import { noMultiStr } from './no-multi-str.js'
 import { noEmpty } from './no-empty.js'
 import { noExtraBooleanCast } from './no-extra-boolean-cast.js'
+import { noConstAssign } from './no-const-assign.js'
+import { eqeqeq } from './eqeqeq.js'
+import { noUnreachable } from './no-unreachable.js'
 
 export const builtInRules = new Map()
 
@@ -21,6 +24,9 @@ registerRule(noReturnAssign)
 registerRule(noMultiStr)
 registerRule(noEmpty)
 registerRule(noExtraBooleanCast)
+registerRule(noConstAssign)
+registerRule(eqeqeq)
+registerRule(noUnreachable)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {

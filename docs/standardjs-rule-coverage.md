@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 38
+- Fully supported: 41
 - Partially supported: 7
-- Not yet supported: 116
+- Not yet supported: 113
 
 Status definitions:
 
@@ -36,7 +36,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `dot-location`                    | [link](https://eslint.org/docs/latest/rules/dot-location)                                                  | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
 | `dot-notation`                    | [link](https://eslint.org/docs/latest/rules/dot-notation)                                                  | None    | Not implemented yet.                                                                                          |
 | `eol-last`                        | [link](https://eslint.org/docs/latest/rules/eol-last)                                                      | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
-| `eqeqeq`                          | [link](https://eslint.org/docs/latest/rules/eqeqeq)                                                        | None    | Not implemented yet.                                                                                          |
+| `eqeqeq`                          | [link](https://eslint.org/docs/latest/rules/eqeqeq)                                                        | Full    | Requires === and !== instead of == and !=.                                                                    |
 | `func-call-spacing`               | [link](https://eslint.org/docs/latest/rules/func-call-spacing)                                             | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
 | `generator-star-spacing`          | [link](https://eslint.org/docs/latest/rules/generator-star-spacing)                                        | None    | Not implemented yet.                                                                                          |
 | `indent`                          | [link](https://eslint.org/docs/latest/rules/indent)                                                        | Full    | Enforced by `prettier --check` with holepunch config.                                                         |
@@ -53,7 +53,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-class-assign`                 | [link](https://eslint.org/docs/latest/rules/no-class-assign)                                               | None    | Not implemented yet.                                                                                          |
 | `no-compare-neg-zero`             | [link](https://eslint.org/docs/latest/rules/no-compare-neg-zero)                                           | None    | Not implemented yet.                                                                                          |
 | `no-cond-assign`                  | [link](https://eslint.org/docs/latest/rules/no-cond-assign)                                                | None    | Not implemented yet.                                                                                          |
-| `no-const-assign`                 | [link](https://eslint.org/docs/latest/rules/no-const-assign)                                               | None    | Not implemented yet.                                                                                          |
+| `no-const-assign`                 | [link](https://eslint.org/docs/latest/rules/no-const-assign)                                               | Full    | Disallows reassigning const variables, including increment/decrement and destructuring.                       |
 | `no-constant-condition`           | [link](https://eslint.org/docs/latest/rules/no-constant-condition)                                         | None    | Not implemented yet.                                                                                          |
 | `no-control-regex`                | [link](https://eslint.org/docs/latest/rules/no-control-regex)                                              | None    | Not implemented yet.                                                                                          |
 | `no-debugger`                     | [link](https://eslint.org/docs/latest/rules/no-debugger)                                                   | Full    | Implemented as a direct match for StandardJS.                                                                 |
@@ -119,7 +119,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-unexpected-multiline`         | [link](https://eslint.org/docs/latest/rules/no-unexpected-multiline)                                       | None    | Not implemented yet.                                                                                          |
 | `no-unmodified-loop-condition`    | [link](https://eslint.org/docs/latest/rules/no-unmodified-loop-condition)                                  | None    | Not implemented yet.                                                                                          |
 | `no-unneeded-ternary`             | [link](https://eslint.org/docs/latest/rules/no-unneeded-ternary)                                           | None    | Not implemented yet.                                                                                          |
-| `no-unreachable`                  | [link](https://eslint.org/docs/latest/rules/no-unreachable)                                                | None    | Not implemented yet.                                                                                          |
+| `no-unreachable`                  | [link](https://eslint.org/docs/latest/rules/no-unreachable)                                                | Full    | Detects unreachable code after return, throw, break, or continue statements.                                  |
 | `no-unreachable-loop`             | [link](https://eslint.org/docs/latest/rules/no-unreachable-loop)                                           | None    | Not implemented yet.                                                                                          |
 | `no-unsafe-finally`               | [link](https://eslint.org/docs/latest/rules/no-unsafe-finally)                                             | None    | Not implemented yet.                                                                                          |
 | `no-unsafe-negation`              | [link](https://eslint.org/docs/latest/rules/no-unsafe-negation)                                            | None    | Not implemented yet.                                                                                          |

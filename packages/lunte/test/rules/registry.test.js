@@ -13,7 +13,10 @@ test('builtInRules exposes expected rule names', (t) => {
     'no-return-assign',
     'no-multi-str',
     'no-empty',
-    'no-extra-boolean-cast'
+    'no-extra-boolean-cast',
+    'no-const-assign',
+    'eqeqeq',
+    'no-unreachable'
   ]
 
   t.alike(Array.from(builtInRules.keys()).sort(), expected.sort())
