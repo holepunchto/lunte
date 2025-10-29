@@ -67,3 +67,11 @@ test('allows class expression name inside its body', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('allows typeof with undeclared variables', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typeof-valid.js')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0)
+})

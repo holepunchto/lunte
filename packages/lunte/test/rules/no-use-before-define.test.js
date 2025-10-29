@@ -108,3 +108,21 @@ test('allows identifier used in later destructuring default value', async (t) =>
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('reports array destructuring used before definition', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-array-destructuring-invalid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.ok(result.diagnostics.length >= 1)
+  t.ok(result.diagnostics.some(d => d.message.includes('used before')))
+})
+
+test('reports nested destructuring used before definition', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-nested-destructuring-invalid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.ok(result.diagnostics.length >= 1)
+  t.ok(result.diagnostics.some(d => d.message.includes('used before')))
+})
