@@ -30,7 +30,7 @@ async function analyzeSnippet(source, overrides = BASE_OVERRIDES) {
 
 test('flags var declarations', async (t) => {
   const result = await analyze({
-    files: [fixture('var-declaration.js')],
+    files: [fixture('no-var-declaration-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)

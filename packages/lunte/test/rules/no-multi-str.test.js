@@ -30,7 +30,7 @@ async function analyzeSnippet(source) {
 
 test('flags multiline string with escapes', async (t) => {
   const result = await analyze({
-    files: [fixture('multiline-string.js')],
+    files: [fixture('no-multi-str-backslash-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)

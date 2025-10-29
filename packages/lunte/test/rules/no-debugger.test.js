@@ -30,7 +30,7 @@ async function analyzeSnippet(source) {
 
 test('flags debugger statements in fixtures', async (t) => {
   const result = await analyze({
-    files: [fixture('has-debugger.js')],
+    files: [fixture('no-debugger-simple-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)

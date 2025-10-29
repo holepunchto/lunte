@@ -30,20 +30,20 @@ async function analyzeSnippet(source) {
 
 test('flags empty blocks except catch', async (t) => {
   const result = await analyze({
-    files: [fixture('empty-block.js')],
+    files: [fixture('no-empty-block-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'no-empty')
 
   const allowed = await analyze({
-    files: [fixture('empty-catch.js')],
+    files: [fixture('no-empty-catch-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(allowed.diagnostics.length, 0)
 
   const functions = await analyze({
-    files: [fixture('empty-function.js')],
+    files: [fixture('no-empty-function-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(functions.diagnostics.length, 0)

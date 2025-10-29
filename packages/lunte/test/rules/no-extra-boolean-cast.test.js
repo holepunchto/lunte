@@ -30,7 +30,7 @@ async function analyzeSnippet(source) {
 
 test('flags redundant double negation in fixtures', async (t) => {
   const result = await analyze({
-    files: [fixture('double-negation.js')],
+    files: [fixture('no-extra-boolean-cast-double-negation-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)

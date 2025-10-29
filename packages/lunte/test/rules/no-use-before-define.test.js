@@ -32,7 +32,7 @@ test('reports identifier used before definition at module scope', async (t) => {
 
 test('allows const used before definition at module scope', async (t) => {
   const result = await analyze({
-    files: [fixturePath('module-const.js')],
+    files: [fixturePath('shared-module-const-valid.js')],
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -48,7 +48,7 @@ test('allows identifier defined before use', async (t) => {
 
 test('allows hoisted function declarations', async (t) => {
   const result = await analyze({
-    files: [fixturePath('function-hoist.js')],
+    files: [fixturePath('shared-function-hoist-valid.js')],
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -56,7 +56,7 @@ test('allows hoisted function declarations', async (t) => {
 
 test('allows exported class before usage', async (t) => {
   const result = await analyze({
-    files: [fixturePath('export-class.js')],
+    files: [fixturePath('shared-export-class-valid.js')],
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)

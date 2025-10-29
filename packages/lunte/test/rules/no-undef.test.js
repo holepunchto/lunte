@@ -30,7 +30,7 @@ test('does not report defined variable', async (t) => {
 
 test('allows node globals by default', async (t) => {
   const result = await analyze({
-    files: [fixturePath('no-undef-node.js')],
+    files: [fixturePath('no-undef-node-globals-valid.js')],
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -38,7 +38,7 @@ test('allows node globals by default', async (t) => {
 
 test('respects eslint-env directive', async (t) => {
   const result = await analyze({
-    files: [fixturePath('no-undef-browser-comment.js')],
+    files: [fixturePath('no-undef-browser-env-comment-valid.js')],
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -46,7 +46,7 @@ test('respects eslint-env directive', async (t) => {
 
 test('respects global directive', async (t) => {
   const result = await analyze({
-    files: [fixturePath('no-undef-custom-global.js')],
+    files: [fixturePath('no-undef-custom-global-directive-valid.js')],
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -54,7 +54,7 @@ test('respects global directive', async (t) => {
 
 test('allows exported class before usage', async (t) => {
   const result = await analyze({
-    files: [fixturePath('export-class.js')],
+    files: [fixturePath('shared-export-class-valid.js')],
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
@@ -62,7 +62,7 @@ test('allows exported class before usage', async (t) => {
 
 test('allows class expression name inside its body', async (t) => {
   const result = await analyze({
-    files: [fixturePath('class-expression-reference.js')],
+    files: [fixturePath('shared-class-expression-reference-valid.js')],
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
   })
   t.is(result.diagnostics.length, 0)
