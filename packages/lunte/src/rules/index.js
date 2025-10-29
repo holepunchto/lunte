@@ -14,6 +14,7 @@ import { noUnreachable } from './no-unreachable.js'
 import { noCondAssign } from './no-cond-assign.js'
 import { noDupeKeys } from './no-dupe-keys.js'
 import { noEmptyPattern } from './no-empty-pattern.js'
+import { preferConst } from './prefer-const.js'
 
 export const builtInRules = new Map()
 
@@ -33,6 +34,7 @@ registerRule(noUnreachable)
 registerRule(noCondAssign)
 registerRule(noDupeKeys)
 registerRule(noEmptyPattern)
+registerRule(preferConst)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {

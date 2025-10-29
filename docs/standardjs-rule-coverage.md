@@ -3,9 +3,9 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 44
+- Fully supported: 45
 - Partially supported: 7
-- Not yet supported: 110
+- Not yet supported: 109
 
 Status definitions:
 
@@ -141,7 +141,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `one-var`                         | [link](https://eslint.org/docs/latest/rules/one-var)                                                       | None    | Not implemented yet.                                                                                          |
 | `operator-linebreak`              | [link](https://eslint.org/docs/latest/rules/operator-linebreak)                                            | None    | Not implemented yet.                                                                                          |
 | `padded-blocks`                   | [link](https://eslint.org/docs/latest/rules/padded-blocks)                                                 | None    | Not implemented yet.                                                                                          |
-| `prefer-const`                    | [link](https://eslint.org/docs/latest/rules/prefer-const)                                                  | None    | Not implemented yet.                                                                                          |
+| `prefer-const`                    | [link](https://eslint.org/docs/latest/rules/prefer-const)                                                  | Full    | Requires const for variables that are never reassigned after declared.                                        |
 | `prefer-promise-reject-errors`    | [link](https://eslint.org/docs/latest/rules/prefer-promise-reject-errors)                                  | None    | Not implemented yet.                                                                                          |
 | `prefer-regex-literals`           | [link](https://eslint.org/docs/latest/rules/prefer-regex-literals)                                         | None    | Not implemented yet.                                                                                          |
 | `quote-props`                     | [link](https://eslint.org/docs/latest/rules/quote-props)                                                   | None    | Not implemented yet.                                                                                          |
