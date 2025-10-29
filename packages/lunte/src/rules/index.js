@@ -16,6 +16,7 @@ import { noDupeKeys } from './no-dupe-keys.js'
 import { noEmptyPattern } from './no-empty-pattern.js'
 import { preferConst } from './prefer-const.js'
 import { curly } from './curly.js'
+import { constructorSuper } from './constructor-super.js'
 
 export const builtInRules = new Map()
 
@@ -37,6 +38,7 @@ registerRule(noDupeKeys)
 registerRule(noEmptyPattern)
 registerRule(preferConst)
 registerRule(curly)
+registerRule(constructorSuper)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
