@@ -38,6 +38,14 @@ test('flags debugger statements in fixtures', async (t) => {
 })
 
 test('does not flag code without debugger', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-debugger-console-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('does not flag string containing debugger', async (t) => {
   const result = await analyzeSnippet('console.log("debugger")\n')
   t.is(result.diagnostics.length, 0)
 })

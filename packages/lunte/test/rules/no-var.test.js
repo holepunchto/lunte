@@ -48,6 +48,14 @@ test('flags var in for loop initialiser', async (t) => {
 })
 
 test('allows let and const declarations', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-var-let-const-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows let and const (inline)', async (t) => {
   const result = await analyzeSnippet('let a = 1; const b = 2; use(a + b)\nfunction use () {}\n')
   t.is(result.diagnostics.length, 0)
 })
