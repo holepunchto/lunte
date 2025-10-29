@@ -1,5 +1,5 @@
 module.exports = class Hyperdrive {
-  constructor () {
+  constructor() {
     this.name = Hyperdrive.name
   }
 }

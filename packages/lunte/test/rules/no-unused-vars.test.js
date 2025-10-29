@@ -53,16 +53,12 @@ test('does not flag unused parameters by default', async (t) => {
 })
 
 test('allows named function expressions used as arguments', async (t) => {
-  const result = await runSnippet(
-    'const w = new Wakeup(function onwakeup () {})\nconsole.log(w)\n'
-  )
+  const result = await runSnippet('const w = new Wakeup(function onwakeup () {})\nconsole.log(w)\n')
   t.is(result.diagnostics.length, 0)
 })
 
 test('still flags unused named function expressions outside arguments', async (t) => {
-  const result = await runSnippet(
-    'const fn = function named () {}\nconsole.log(fn)\n'
-  )
+  const result = await runSnippet('const fn = function named () {}\nconsole.log(fn)\n')
   t.is(result.diagnostics.length, 1)
   t.ok(result.diagnostics[0].message.includes('named'))
 })
@@ -92,12 +88,12 @@ test('flags unused bindings while allowing used destructured params', async (t) 
 
 test('treats computed class keys as references', async (t) => {
   const methodKey = await runSnippet(
-    'const foo = Symbol.for(\'test\')\nclass Bar { [foo] () {} }\nexport default Bar\n'
+    "const foo = Symbol.for('test')\nclass Bar { [foo] () {} }\nexport default Bar\n"
   )
   t.is(methodKey.diagnostics.length, 0)
 
   const fieldKey = await runSnippet(
-    'const foo = Symbol(\'static\')\nclass Baz { static [foo] = true }\n'
+    "const foo = Symbol('static')\nclass Baz { static [foo] = true }\n"
   )
   t.is(fieldKey.diagnostics.length, 0)
 })

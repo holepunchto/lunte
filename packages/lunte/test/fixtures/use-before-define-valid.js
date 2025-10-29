@@ -1,2 +1,2 @@
-const answer = 42;
-console.log(answer);
+const answer = 42
+console.log(answer)

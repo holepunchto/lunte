@@ -1,5 +1,5 @@
 function util() {
-  return 42;
+  return 42
 }
 
-void util();
+void util()

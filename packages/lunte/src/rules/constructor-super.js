@@ -118,8 +118,7 @@ export const constructorSuper = {
           if (!superCall) {
             context.report({
               node,
-              message:
-                "Constructors of derived classes must call 'super()'."
+              message: "Constructors of derived classes must call 'super()'."
             })
             return
           }
@@ -129,8 +128,7 @@ export const constructorSuper = {
           if (thisBeforeSuper) {
             context.report({
               node: thisBeforeSuper,
-              message:
-                "'this' is not allowed before 'super()' in derived class constructors."
+              message: "'this' is not allowed before 'super()' in derived class constructors."
             })
           }
         } else {
@@ -138,8 +136,7 @@ export const constructorSuper = {
           if (superCall) {
             context.report({
               node: superCall,
-              message:
-                "Constructors of non-derived classes must not call 'super()'."
+              message: "Constructors of non-derived classes must not call 'super()'."
             })
           }
         }

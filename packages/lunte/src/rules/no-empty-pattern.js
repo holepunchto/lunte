@@ -27,7 +27,7 @@ export const noEmptyPattern = {
           })
         } else {
           // Check if all elements are holes (null)
-          const hasNonHole = node.elements.some(el => el !== null)
+          const hasNonHole = node.elements.some((el) => el !== null)
           if (!hasNonHole) {
             context.report({
               node,

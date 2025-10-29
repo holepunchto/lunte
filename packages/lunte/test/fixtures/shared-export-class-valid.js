@@ -1,7 +1,7 @@
 const factory = () => new Context()
 
 export class Context {
-  constructor () {
+  constructor() {
     this.value = 1
   }
 }

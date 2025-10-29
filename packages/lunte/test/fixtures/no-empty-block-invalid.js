@@ -1,3 +1,4 @@
 const flag = true
 
-if (flag) {}
+if (flag) {
+}

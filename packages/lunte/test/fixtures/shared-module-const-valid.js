@@ -1,4 +1,4 @@
-export function getState () {
+export function getState() {
   return state
 }
 

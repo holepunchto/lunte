@@ -115,7 +115,7 @@ test('reports array destructuring used before definition', async (t) => {
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
   t.ok(result.diagnostics.length >= 1)
-  t.ok(result.diagnostics.some(d => d.message.includes('used before')))
+  t.ok(result.diagnostics.some((d) => d.message.includes('used before')))
 })
 
 test('reports nested destructuring used before definition', async (t) => {
@@ -124,5 +124,5 @@ test('reports nested destructuring used before definition', async (t) => {
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
   t.ok(result.diagnostics.length >= 1)
-  t.ok(result.diagnostics.some(d => d.message.includes('used before')))
+  t.ok(result.diagnostics.some((d) => d.message.includes('used before')))
 })

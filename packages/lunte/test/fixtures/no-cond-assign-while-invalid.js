@@ -1,3 +1,3 @@
-while (x = getValue()) {
+while ((x = getValue())) {
   console.log(x)
 }

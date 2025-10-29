@@ -69,7 +69,7 @@ function isTerminating(stmt) {
 
   // Block statement terminates if it contains a terminating statement
   if (stmt.type === 'BlockStatement') {
-    return stmt.body.some(s => isTerminating(s))
+    return stmt.body.some((s) => isTerminating(s))
   }
 
   return false

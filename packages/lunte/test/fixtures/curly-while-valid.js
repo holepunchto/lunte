@@ -1,1 +1,7 @@
-while (true) { break }
+// Single-line statement without braces is valid
+while (true) break
+
+// With braces is also valid
+while (false) {
+  break
+}

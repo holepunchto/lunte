@@ -3,7 +3,8 @@ import { Severity } from '../core/constants.js'
 export const preferConst = {
   meta: {
     name: 'prefer-const',
-    description: 'Require const declarations for variables that are never reassigned after declared.',
+    description:
+      'Require const declarations for variables that are never reassigned after declared.',
     recommended: true,
     defaultSeverity: Severity.error
   },
@@ -57,15 +58,15 @@ export const preferConst = {
     }
 
     return {
-      'Program': enterScope,
+      Program: enterScope,
       'Program:exit': exitScope,
-      'BlockStatement': enterScope,
+      BlockStatement: enterScope,
       'BlockStatement:exit': exitScope,
-      'ForStatement': enterScope,
+      ForStatement: enterScope,
       'ForStatement:exit': exitScope,
-      'ForInStatement': enterScope,
+      ForInStatement: enterScope,
       'ForInStatement:exit': exitScope,
-      'ForOfStatement': enterScope,
+      ForOfStatement: enterScope,
       'ForOfStatement:exit': exitScope,
 
       VariableDeclaration(node) {

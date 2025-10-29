@@ -24,7 +24,7 @@ test('flags let that is never reassigned', async (t) => {
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'prefer-const')
-  t.ok(result.diagnostics[0].message.includes("never reassigned"))
+  t.ok(result.diagnostics[0].message.includes('never reassigned'))
 })
 
 test('flags multiple let declarations never reassigned', async (t) => {

@@ -27,9 +27,7 @@ test('flags derived class constructor without super()', async (t) => {
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'constructor-super')
   t.ok(
-    result.diagnostics[0].message.includes(
-      "Constructors of derived classes must call 'super()'"
-    )
+    result.diagnostics[0].message.includes("Constructors of derived classes must call 'super()'")
   )
 })
 
@@ -52,11 +50,7 @@ test('flags this before super() in derived class', async (t) => {
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'constructor-super')
-  t.ok(
-    result.diagnostics[0].message.includes(
-      "'this' is not allowed before 'super()'"
-    )
-  )
+  t.ok(result.diagnostics[0].message.includes("'this' is not allowed before 'super()'"))
 })
 
 // Valid cases

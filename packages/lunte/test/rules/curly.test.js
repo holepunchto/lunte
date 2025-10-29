@@ -17,86 +17,86 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
   severity: name === RULE_ID ? 'error' : 'off'
 }))
 
-test('flags if statement without braces', async (t) => {
+test('flags multi-line if statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-if-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'if'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'if' for multi-line statement"))
 })
 
-test('flags else statement without braces', async (t) => {
+test('flags multi-line else statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-else-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'else'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'else' for multi-line statement"))
 })
 
-test('flags else-if without braces on if part', async (t) => {
+test('flags multi-line else-if without braces on if part', async (t) => {
   const result = await analyze({
     files: [fixture('curly-else-if-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'if'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'if' for multi-line statement"))
 })
 
-test('flags while statement without braces', async (t) => {
+test('flags multi-line while statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-while-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'while'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'while' for multi-line statement"))
 })
 
-test('flags do-while statement without braces', async (t) => {
+test('flags multi-line do-while statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-do-while-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'do'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'do' for multi-line statement"))
 })
 
-test('flags for statement without braces', async (t) => {
+test('flags multi-line for statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'for'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'for' for multi-line statement"))
 })
 
-test('flags for-in statement without braces', async (t) => {
+test('flags multi-line for-in statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-in-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'for-in'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'for-in' for multi-line statement"))
 })
 
-test('flags for-of statement without braces', async (t) => {
+test('flags multi-line for-of statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-of-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'curly')
-  t.ok(result.diagnostics[0].message.includes("Expected { after 'for-of'"))
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'for-of' for multi-line statement"))
 })
 
-test('allows if statement with braces', async (t) => {
+test('allows single-line if statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-if-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -104,7 +104,7 @@ test('allows if statement with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows if-else with braces', async (t) => {
+test('allows single-line if-else without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-if-else-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -112,7 +112,7 @@ test('allows if-else with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows while statement with braces', async (t) => {
+test('allows single-line while statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-while-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -120,7 +120,7 @@ test('allows while statement with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows do-while statement with braces', async (t) => {
+test('allows single-line do-while statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-do-while-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -128,7 +128,7 @@ test('allows do-while statement with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows for statement with braces', async (t) => {
+test('allows single-line for statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -136,7 +136,7 @@ test('allows for statement with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows for-in statement with braces', async (t) => {
+test('allows single-line for-in statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-in-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -144,7 +144,7 @@ test('allows for-in statement with braces', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
-test('allows for-of statement with braces', async (t) => {
+test('allows single-line for-of statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-for-of-valid.js')],
     ruleOverrides: BASE_OVERRIDES
@@ -158,5 +158,5 @@ test('flags multiple violations in same file', async (t) => {
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 3)
-  t.ok(result.diagnostics.every(d => d.ruleId === 'curly'))
+  t.ok(result.diagnostics.every((d) => d.ruleId === 'curly'))
 })

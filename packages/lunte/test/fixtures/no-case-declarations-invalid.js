@@ -3,7 +3,7 @@ switch (value) {
     let result = value
     break
   case 2:
-    function handler () {}
+    function handler() {}
     handler()
     break
   default:
