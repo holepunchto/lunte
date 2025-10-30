@@ -36,9 +36,11 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 {
   "env": ["node"],
   "globals": ["MY_APP"],
+  "plugins": ["lunte-plugin-pear"],
   "rules": {
     "no-unused-vars": "warn",
-    "no-undef": "off"
+    "no-undef": "off",
+    "pear/no-apples": "error"
   },
   "disableHolepunchGlobals": true
 }
@@ -54,6 +56,21 @@ Command-line overrides are available for ad-hoc runs:
 ```sh
 lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
+
+### Plugins
+
+Load third-party rule packs by listing module IDs under `plugins`. Each plugin should export a `rules` array (or object) of rule definitions with unique `meta.name` values. Lunte will call `registerRule` for you:
+
+```json
+{
+  "plugins": ["./rules/lunte-plugin-pear.js", "lunte-plugin-pear"],
+  "rules": {
+    "pear/no-apples": "error"
+  }
+}
+```
+
+For ad-hoc runs, `lunte --plugin lunte-plugin-pear --plugin ./rules/lunte-plugin-pear.js src/` applies the same modules.
 
 ### Inline Ignores
 

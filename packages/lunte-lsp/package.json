@@ -27,6 +27,6 @@
     "url": "https://github.com/holepunchto/lunte/issues"
   },
   "dependencies": {
-    "lunte": "^0.2"
+    "lunte": "^1.0.2"
   }
 }
