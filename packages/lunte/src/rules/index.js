@@ -8,6 +8,16 @@ import { noReturnAssign } from './no-return-assign.js'
 import { noMultiStr } from './no-multi-str.js'
 import { noEmpty } from './no-empty.js'
 import { noExtraBooleanCast } from './no-extra-boolean-cast.js'
+import { noConstAssign } from './no-const-assign.js'
+import { eqeqeq } from './eqeqeq.js'
+import { noUnreachable } from './no-unreachable.js'
+import { noCondAssign } from './no-cond-assign.js'
+import { noDupeKeys } from './no-dupe-keys.js'
+import { noEmptyPattern } from './no-empty-pattern.js'
+import { preferConst } from './prefer-const.js'
+import { curly } from './curly.js'
+import { constructorSuper } from './constructor-super.js'
+import { importNoDuplicates } from './import-no-duplicates.js'
 
 export const builtInRules = new Map()
 
@@ -21,6 +31,16 @@ registerRule(noReturnAssign)
 registerRule(noMultiStr)
 registerRule(noEmpty)
 registerRule(noExtraBooleanCast)
+registerRule(noConstAssign)
+registerRule(eqeqeq)
+registerRule(noUnreachable)
+registerRule(noCondAssign)
+registerRule(noDupeKeys)
+registerRule(noEmptyPattern)
+registerRule(preferConst)
+registerRule(curly)
+registerRule(constructorSuper)
+registerRule(importNoDuplicates)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {

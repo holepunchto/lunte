@@ -228,7 +228,7 @@ function handleInScopeDeclarations(node, scopeManager) {
         const info = createDeclarationInfo(id, {
           kind: node.kind,
           hoisted,
-          index: hoisted ? undefined : (availableAt || inferTemporalDeadZoneIndex(declarator))
+          index: hoisted ? undefined : availableAt || inferTemporalDeadZoneIndex(declarator)
         })
         scopeManager.declare(name, info, { hoistTo: hoisted ? 'function' : undefined })
       }

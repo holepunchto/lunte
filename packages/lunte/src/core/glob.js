@@ -22,7 +22,7 @@ export function globToRegExp(glob) {
         }
         const after = normalized[i + 1]
         if (after === '/') {
-          re += '(?:.*\/)?'
+          re += '(?:.*/)?'
           i += 2
         } else {
           re += '.*'
