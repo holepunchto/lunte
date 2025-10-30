@@ -6,6 +6,7 @@ import { Severity } from './core/constants.js'
 import { resolveFileTargets } from './core/file-resolver.js'
 import { loadIgnore } from './core/ignore.js'
 import { loadConfig } from './config/loader.js'
+import { loadPlugins } from './config/plugins.js'
 
 const colorSupport = Boolean(process.stdout?.isTTY)
 const VERBOSE_COLORS = colorSupport
@@ -36,6 +37,7 @@ const parser = command(
   flag('--rule [name=severity]', 'Override rule severity (error, warn, off).').multiple(),
   flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
+  flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -71,12 +73,18 @@ export async function run(argv = []) {
   const mergedEnv = safeMerge(config.env, parseList(parser.flags.env))
   const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
+  const mergedPlugins = safeMerge(config.plugins, parseList(parser.flags.plugin))
   const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
 
   const verbose = Boolean(parser.flags.verbose)
   if (verbose) {
     console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
   }
+
+  await loadPlugins(mergedPlugins, {
+    cwd,
+    onError: (message) => console.warn(message)
+  })
 
   const result = await analyze({
     files: resolvedFiles,
