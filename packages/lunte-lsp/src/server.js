@@ -4,6 +4,7 @@ import { normalize } from 'node:path'
 import { analyze } from 'lunte'
 import { Severity } from 'lunte/src/core/constants.js'
 import { loadConfig } from 'lunte/src/config/loader.js'
+import { loadPlugins } from 'lunte/src/config/plugins.js'
 import { loadIgnore } from 'lunte/src/core/ignore.js'
 
 const ErrorCodes = {
@@ -28,6 +29,7 @@ let shuttingDown = false
 let cachedRuleOverrides = []
 let cachedEnvOverrides = []
 let cachedGlobalOverrides = []
+let cachedPlugins = []
 let ignoreMatcher = createIgnoreMatcher()
 
 connection.onRequest('initialize', handleInitialize)
@@ -142,13 +144,20 @@ async function refreshWorkspaceState() {
     cachedRuleOverrides = config?.rules
       ? Object.entries(config.rules).map(([name, severity]) => ({ name, severity }))
       : []
+    cachedPlugins = Array.isArray(config?.plugins) ? config.plugins : []
   } catch (error) {
     // Surfacing config failures via diagnostics would be noisy; log to stderr for now.
     log(`Failed to load config: ${error.message}`)
     cachedEnvOverrides = []
     cachedGlobalOverrides = []
     cachedRuleOverrides = []
+    cachedPlugins = []
   }
+
+  await loadPlugins(cachedPlugins, {
+    cwd: rootPath,
+    onError: (message) => log(message)
+  })
 
   try {
     ignoreMatcher = await loadIgnore({ cwd: rootPath })

@@ -56,6 +56,9 @@ function normalizeConfig(config) {
   if (Array.isArray(config?.globals)) {
     result.globals = config.globals.map(String)
   }
+  if (Array.isArray(config?.plugins)) {
+    result.plugins = config.plugins.map((value) => String(value).trim()).filter(Boolean)
+  }
   if (config?.rules && typeof config.rules === 'object') {
     result.rules = {}
     for (const [name, severity] of Object.entries(config.rules)) {
