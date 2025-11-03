@@ -126,3 +126,20 @@ test('reports nested destructuring used before definition', async (t) => {
   t.ok(result.diagnostics.length >= 1)
   t.ok(result.diagnostics.some((d) => d.message.includes('used before')))
 })
+
+test('reports class used before declaration (classes are not hoisted)', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-class-invalid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 1)
+  t.ok(result.diagnostics[0].message.includes('was used before it was defined'))
+})
+
+test('allows class used after declaration', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-class-valid.js')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0)
+})
