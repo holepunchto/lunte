@@ -3,8 +3,8 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 51
-- Partially supported: 4
+- Fully supported: 53
+- Partially supported: 2
 - Not yet supported: 106
 
 Status definitions:
@@ -63,7 +63,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-dupe-keys`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-keys)                                                  | Full    | Detects duplicate keys in object literals, including string and number literals.                                |
 | `no-duplicate-case`               | [link](https://eslint.org/docs/latest/rules/no-duplicate-case)                                             | None    | Not implemented yet.                                                                                            |
 | `no-useless-backreference`        | [link](https://eslint.org/docs/latest/rules/no-useless-backreference)                                      | None    | Not implemented yet.                                                                                            |
-| `no-empty`                        | [link](https://eslint.org/docs/latest/rules/no-empty)                                                      | Partial | Currently allows empty function bodies; StandardJS only permits empty catch blocks.                             |
+| `no-empty`                        | [link](https://eslint.org/docs/latest/rules/no-empty)                                                      | Full    | Flags empty control flow blocks (if, while, try); allows empty functions and catch blocks per StandardJS.       |
 | `no-empty-character-class`        | [link](https://eslint.org/docs/latest/rules/no-empty-character-class)                                      | None    | Not implemented yet.                                                                                            |
 | `no-empty-pattern`                | [link](https://eslint.org/docs/latest/rules/no-empty-pattern)                                              | Full    | Disallows empty destructuring patterns like `const {} = obj` or `const [] = arr`.                               |
 | `no-eval`                         | [link](https://eslint.org/docs/latest/rules/no-eval)                                                       | None    | Not implemented yet.                                                                                            |
@@ -101,9 +101,9 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-octal`                        | [link](https://eslint.org/docs/latest/rules/no-octal)                                                      | Full    | Octal numeric literals are rejected during parse in strict-mode modules, matching StandardJS.                   |
 | `no-octal-escape`                 | [link](https://eslint.org/docs/latest/rules/no-octal-escape)                                               | Full    | Strict mode forbids octal escapes, so the parser reports the same error StandardJS would.                       |
 | `no-proto`                        | [link](https://eslint.org/docs/latest/rules/no-proto)                                                      | None    | Not implemented yet.                                                                                            |
-| `no-redeclare`                    | [link](https://eslint.org/docs/latest/rules/no-redeclare)                                                  | Partial | Strict parsing catches duplicate `let`/`const` bindings, but duplicate `var` declarations still slip by.        |
+| `no-redeclare`                    | [link](https://eslint.org/docs/latest/rules/no-redeclare)                                                  | Full    | Detects all duplicate var declarations; let/const duplicates caught by parser.                                   |
 | `no-regex-spaces`                 | [link](https://eslint.org/docs/latest/rules/no-regex-spaces)                                               | None    | Not implemented yet.                                                                                            |
-| `no-return-assign`                | [link](https://eslint.org/docs/latest/rules/no-return-assign)                                              | Partial | Covers block returns but misses implicit arrow-return assignments.                                              |
+| `no-return-assign`                | [link](https://eslint.org/docs/latest/rules/no-return-assign)                                              | Full    | Detects assignments in both explicit returns and arrow function implicit returns.                                |
 | `no-self-assign`                  | [link](https://eslint.org/docs/latest/rules/no-self-assign)                                                | None    | Not implemented yet.                                                                                            |
 | `no-self-compare`                 | [link](https://eslint.org/docs/latest/rules/no-self-compare)                                               | None    | Not implemented yet.                                                                                            |
 | `no-sequences`                    | [link](https://eslint.org/docs/latest/rules/no-sequences)                                                  | None    | Not implemented yet.                                                                                            |

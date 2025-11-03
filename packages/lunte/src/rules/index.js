@@ -18,6 +18,7 @@ import { preferConst } from './prefer-const.js'
 import { curly } from './curly.js'
 import { constructorSuper } from './constructor-super.js'
 import { importNoDuplicates } from './import-no-duplicates.js'
+import { noRedeclare } from './no-redeclare.js'
 
 export const builtInRules = new Map()
 
@@ -41,6 +42,7 @@ registerRule(preferConst)
 registerRule(curly)
 registerRule(constructorSuper)
 registerRule(importNoDuplicates)
+registerRule(noRedeclare)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
