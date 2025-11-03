@@ -39,10 +39,7 @@ export async function loadPlugins(pluginIds = [], { cwd = process.cwd(), onError
 
       loadedPlugins.add(pluginId)
     } catch (error) {
-      emitError(
-        onError,
-        `Failed to load plugin "${pluginId}": ${error?.message ?? String(error)}`
-      )
+      emitError(onError, `Failed to load plugin "${pluginId}": ${error?.message ?? String(error)}`)
     }
   }
 }

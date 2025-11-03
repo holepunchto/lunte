@@ -1,6 +1,6 @@
 {
   "name": "lunte",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Self-contained linter",
   "main": "./src/index.js",
   "bin": {
@@ -10,7 +10,7 @@
     "test": "brittle \"test/**/*.test.js\"",
     "lint": "lunte .",
     "vendor:acorn": "node scripts/vendor-acorn.js",
-    "format": "prettier . --write"
+    "format": "cd ../.. && npm run format"
   },
   "keywords": [
     "linter",
