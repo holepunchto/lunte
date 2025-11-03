@@ -3,8 +3,8 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 48
-- Partially supported: 7
+- Fully supported: 51
+- Partially supported: 4
 - Not yet supported: 106
 
 Status definitions:
@@ -114,7 +114,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-this-before-super`            | [link](https://eslint.org/docs/latest/rules/no-this-before-super)                                          | None    | Not implemented yet.                                                                                            |
 | `no-throw-literal`                | [link](https://eslint.org/docs/latest/rules/no-throw-literal)                                              | None    | Not implemented yet.                                                                                            |
 | `no-trailing-spaces`              | [link](https://eslint.org/docs/latest/rules/no-trailing-spaces)                                            | Full    | Enforced by `prettier --check` with holepunch config.                                                           |
-| `no-undef`                        | [link](https://eslint.org/docs/latest/rules/no-undef)                                                      | Partial | Now respects `typeof` guards; still missing certain environment-specific globals provided by StandardJS.        |
+| `no-undef`                        | [link](https://eslint.org/docs/latest/rules/no-undef)                                                      | Full    | Respects `typeof` guards and includes comprehensive environment-specific globals matching StandardJS.            |
 | `no-undef-init`                   | [link](https://eslint.org/docs/latest/rules/no-undef-init)                                                 | None    | Not implemented yet.                                                                                            |
 | `no-unexpected-multiline`         | [link](https://eslint.org/docs/latest/rules/no-unexpected-multiline)                                       | None    | Not implemented yet.                                                                                            |
 | `no-unmodified-loop-condition`    | [link](https://eslint.org/docs/latest/rules/no-unmodified-loop-condition)                                  | None    | Not implemented yet.                                                                                            |
@@ -124,8 +124,8 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-unsafe-finally`               | [link](https://eslint.org/docs/latest/rules/no-unsafe-finally)                                             | None    | Not implemented yet.                                                                                            |
 | `no-unsafe-negation`              | [link](https://eslint.org/docs/latest/rules/no-unsafe-negation)                                            | None    | Not implemented yet.                                                                                            |
 | `no-unused-expressions`           | [link](https://eslint.org/docs/latest/rules/no-unused-expressions)                                         | None    | Not implemented yet.                                                                                            |
-| `no-unused-vars`                  | [link](https://eslint.org/docs/latest/rules/no-unused-vars)                                                | Partial | Basic unused-variable detection, but lacks StandardJS option parity (e.g. rest siblings, argument defaults).    |
-| `no-use-before-define`            | [link](https://eslint.org/docs/latest/rules/no-use-before-define)                                          | Partial | Improved TDZ handling but still diverges from ESLint on class hoisting and export edge cases.                   |
+| `no-unused-vars`                  | [link](https://eslint.org/docs/latest/rules/no-unused-vars)                                                | Full    | Full unused-variable detection with `ignoreRestSiblings` support matching StandardJS behavior.                   |
+| `no-use-before-define`            | [link](https://eslint.org/docs/latest/rules/no-use-before-define)                                          | Full    | Complete TDZ handling with correct class hoisting behavior (non-hoisted) matching StandardJS.                    |
 | `no-useless-call`                 | [link](https://eslint.org/docs/latest/rules/no-useless-call)                                               | None    | Not implemented yet.                                                                                            |
 | `no-useless-computed-key`         | [link](https://eslint.org/docs/latest/rules/no-useless-computed-key)                                       | None    | Not implemented yet.                                                                                            |
 | `no-useless-constructor`          | [link](https://eslint.org/docs/latest/rules/no-useless-constructor)                                        | None    | Not implemented yet.                                                                                            |

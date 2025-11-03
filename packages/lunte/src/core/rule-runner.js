@@ -214,7 +214,7 @@ function handleScopeIntroductions(node, scopeManager) {
       node.id.name,
       createDeclarationInfo(node.id, {
         kind: 'class',
-        hoisted: true
+        hoisted: false // Classes are not hoisted in JavaScript
       })
     )
   }
@@ -297,9 +297,8 @@ function hoistFunctionDeclarations(node, scopeManager) {
           decl.id.name,
           createDeclarationInfo(decl.id, {
             kind: 'class',
-            hoisted: true
-          }),
-          { hoistTo: 'function' }
+            hoisted: false // Classes are not hoisted in JavaScript
+          })
         )
       }
     }
@@ -346,9 +345,8 @@ function hoistProgramDeclarations(programNode, scopeManager) {
         statement.id.name,
         createDeclarationInfo(statement.id, {
           kind: 'class',
-          hoisted: true
-        }),
-        { hoistTo: 'function' }
+          hoisted: false // Classes are not hoisted in JavaScript
+        })
       )
       continue
     }
@@ -364,9 +362,8 @@ function hoistProgramDeclarations(programNode, scopeManager) {
           decl.id.name,
           createDeclarationInfo(decl.id, {
             kind: 'class',
-            hoisted: true
-          }),
-          { hoistTo: 'function' }
+            hoisted: false // Classes are not hoisted in JavaScript
+          })
         )
       }
     }

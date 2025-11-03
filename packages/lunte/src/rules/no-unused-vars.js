@@ -12,10 +12,11 @@ export const noUnusedVars = {
     const definedSymbols = new Map()
     const usedSymbols = new Set()
 
-    function defineBinding(name, node) {
+    function defineBinding(name, node, hasRestSibling = false) {
       if (!name || !node) return
       definedSymbols.set(node, { name, node })
-      if (shouldIgnoreName(name)) {
+      // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
+      if (shouldIgnoreName(name) || hasRestSibling) {
         usedSymbols.add(name)
       }
     }
@@ -27,8 +28,8 @@ export const noUnusedVars = {
 
     return {
       VariableDeclarator(node) {
-        for (const { name, node: id } of extractPatternIdentifiers(node.id)) {
-          defineBinding(name, id)
+        for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(node.id)) {
+          defineBinding(name, id, hasRestSibling)
           if (
             node.parent &&
             node.parent.parent &&
@@ -50,8 +51,8 @@ export const noUnusedVars = {
           }
         }
         for (const param of node.params ?? []) {
-          for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id)
+          for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
+            defineBinding(name, id, hasRestSibling)
           }
         }
       },
@@ -73,15 +74,15 @@ export const noUnusedVars = {
           }
         }
         for (const param of node.params ?? []) {
-          for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id)
+          for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
+            defineBinding(name, id, hasRestSibling)
           }
         }
       },
       ArrowFunctionExpression(node) {
         for (const param of node.params ?? []) {
-          for (const { name, node: id } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id)
+          for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
+            defineBinding(name, id, hasRestSibling)
           }
         }
       },
@@ -99,6 +100,7 @@ export const noUnusedVars = {
           }
           if (node.declaration.type === 'VariableDeclaration') {
             for (const declarator of node.declaration.declarations) {
+              // No need to check hasRestSibling here since exported variables are used
               for (const { name } of extractPatternIdentifiers(declarator.id)) {
                 markUsed(name)
               }
@@ -139,34 +141,49 @@ export const noUnusedVars = {
   }
 }
 
-function extractPatternIdentifiers(pattern) {
+function extractPatternIdentifiers(pattern, options = {}) {
   const results = []
   if (!pattern) return results
 
   switch (pattern.type) {
     case 'Identifier':
-      results.push({ name: pattern.name, node: pattern })
+      results.push({
+        name: pattern.name,
+        node: pattern,
+        hasRestSibling: options.hasRestSibling || false
+      })
       break
     case 'RestElement':
-      results.push(...extractPatternIdentifiers(pattern.argument))
+      results.push(...extractPatternIdentifiers(pattern.argument, { ...options, isRest: true }))
       break
     case 'AssignmentPattern':
-      results.push(...extractPatternIdentifiers(pattern.left))
+      results.push(...extractPatternIdentifiers(pattern.left, options))
       break
     case 'ArrayPattern':
       for (const element of pattern.elements) {
-        results.push(...extractPatternIdentifiers(element))
+        results.push(...extractPatternIdentifiers(element, options))
       }
       break
-    case 'ObjectPattern':
+    case 'ObjectPattern': {
+      // Check if this object pattern has a rest element
+      const hasRest = pattern.properties.some((p) => p.type === 'RestElement')
+
       for (const prop of pattern.properties) {
         if (prop.type === 'RestElement') {
-          results.push(...extractPatternIdentifiers(prop.argument))
+          results.push(...extractPatternIdentifiers(prop.argument, { ...options, isRest: true }))
         } else {
-          results.push(...extractPatternIdentifiers(prop.value))
+          // Siblings of a rest element should be marked as having a rest sibling
+          // This implements ignoreRestSiblings behavior (StandardJS compatibility)
+          results.push(
+            ...extractPatternIdentifiers(prop.value, {
+              ...options,
+              hasRestSibling: hasRest && !options.isRest
+            })
+          )
         }
       }
       break
+    }
     default:
       break
   }
