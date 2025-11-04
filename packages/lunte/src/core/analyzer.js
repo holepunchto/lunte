@@ -105,7 +105,7 @@ function buildParseErrorDiagnostic({ error, filePath, source }) {
     message: error.message,
     severity: 'error',
     line: loc?.line ?? inferLineFromError(error, source),
-    column: loc?.column != null ? loc.column + 1 : undefined
+    column: loc?.column !== null && loc?.column !== undefined ? loc.column + 1 : undefined
   }
 }
 

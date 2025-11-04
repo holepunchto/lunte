@@ -9,7 +9,6 @@ export const preferConst = {
     defaultSeverity: Severity.error
   },
   create(context) {
-    const letVariables = new Map()
     const scopeStack = []
 
     function enterScope() {

@@ -80,7 +80,7 @@ function statementTerminates(node) {
         return false
       }
       return clauseTerminates(node.consequent) && clauseTerminates(node.alternate)
-    case 'TryStatement':
+    case 'TryStatement': {
       if (node.finalizer && clauseTerminates(node.finalizer)) {
         return true
       }
@@ -89,6 +89,7 @@ function statementTerminates(node) {
         return blockTerm
       }
       return blockTerm && clauseTerminates(node.handler.body)
+    }
     case 'SwitchStatement':
       return false
     default:
@@ -110,7 +111,7 @@ function hasFallthroughComment(context, currentCase, nextCase) {
   const rangeStart = getCaseEnd(currentCase)
   const rangeEnd = getCaseStart(nextCase)
 
-  if (rangeStart == null || rangeEnd == null || rangeEnd <= rangeStart) {
+  if (rangeStart === null || rangeStart === undefined || rangeEnd === null || rangeEnd === undefined || rangeEnd <= rangeStart) {
     return false
   }
 
@@ -121,6 +122,7 @@ function hasFallthroughComment(context, currentCase, nextCase) {
 
   FALLTHROUGH_PATTERN.lastIndex = 0
   let match
+  // lunte-disable-next-line no-cond-assign
   while ((match = FALLTHROUGH_PATTERN.exec(segment))) {
     if (FALLTHROUGH_HINT.test(match[0])) {
       return true

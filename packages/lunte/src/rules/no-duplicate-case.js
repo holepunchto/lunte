@@ -91,7 +91,7 @@ function evaluateStatic(node) {
           flags: node.regex.flags ?? ''
         }
       }
-      if (node.bigint != null) {
+      if (node.bigint !== null && node.bigint !== undefined) {
         try {
           return BigInt(node.bigint)
         } catch {
@@ -130,6 +130,7 @@ function evaluateStatic(node) {
           return UNKNOWN
       }
     }
+    // falls through
     case 'Identifier':
       if (node.name === 'undefined') {
         return undefined

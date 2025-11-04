@@ -47,7 +47,7 @@ export class RuleContext {
         ruleId: this.ruleId
       })
       const shouldSkipEnd =
-        !shouldSkipStart && endLoc.line != null
+        !shouldSkipStart && endLoc.line !== null && endLoc.line !== undefined
           ? ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
           : false
       if (shouldSkipStart || shouldSkipEnd) {
@@ -61,7 +61,7 @@ export class RuleContext {
       severity: severity ?? this.ruleSeverity ?? Severity.error,
       ruleId: this.ruleId,
       line,
-      column: startLoc.column != null ? startLoc.column + 1 : undefined
+      column: startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
     })
   }
 
