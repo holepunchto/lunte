@@ -131,3 +131,12 @@ test('allows unused function parameters by default', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('ignores rest siblings (ignoreRestSiblings)', async (t) => {
+  // Variables that are siblings of rest elements should be ignored (used for property omission)
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-ignore-rest-siblings-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})

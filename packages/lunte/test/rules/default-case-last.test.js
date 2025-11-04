@@ -11,41 +11,33 @@ function fixture(name) {
   return join(__dirname, '..', 'fixtures', name)
 }
 
-const RULE_ID = 'no-return-assign'
+const RULE_ID = 'default-case-last'
 const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
   name,
   severity: name === RULE_ID ? 'error' : 'off'
 }))
 
-test('flags assignment in return statements', async (t) => {
+test('flags default clause before other cases', async (t) => {
   const result = await analyze({
-    files: [fixture('no-return-assign-invalid.js')],
+    files: [fixture('default-case-last-invalid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 1)
-  t.is(result.diagnostics[0].ruleId, 'no-return-assign')
+  t.is(result.diagnostics[0].ruleId, RULE_ID)
+  t.is(result.diagnostics[0].message, 'Default clause should be the last case.')
 })
 
-test('allows parenthesised assignment in return', async (t) => {
+test('allows default clause at the end', async (t) => {
   const result = await analyze({
-    files: [fixture('no-return-assign-valid.js')],
+    files: [fixture('default-case-last-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 0)
 })
 
-test('flags assignment in arrow function implicit returns', async (t) => {
+test('allows switch statements without default', async (t) => {
   const result = await analyze({
-    files: [fixture('no-return-assign-arrow-invalid.js')],
-    ruleOverrides: BASE_OVERRIDES
-  })
-  t.is(result.diagnostics.length, 1)
-  t.is(result.diagnostics[0].ruleId, 'no-return-assign')
-})
-
-test('allows parenthesised assignment in arrow function implicit returns', async (t) => {
-  const result = await analyze({
-    files: [fixture('no-return-assign-arrow-valid.js')],
+    files: [fixture('default-case-last-no-default-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 0)
