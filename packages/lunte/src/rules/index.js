@@ -9,6 +9,8 @@ import { noMultiStr } from './no-multi-str.js'
 import { noEmpty } from './no-empty.js'
 import { noExtraBooleanCast } from './no-extra-boolean-cast.js'
 import { noConstAssign } from './no-const-assign.js'
+import { noDuplicateCase } from './no-duplicate-case.js'
+import { noFallthrough } from './no-fallthrough.js'
 import { eqeqeq } from './eqeqeq.js'
 import { noUnreachable } from './no-unreachable.js'
 import { noCondAssign } from './no-cond-assign.js'
@@ -19,6 +21,7 @@ import { curly } from './curly.js'
 import { constructorSuper } from './constructor-super.js'
 import { importNoDuplicates } from './import-no-duplicates.js'
 import { noRedeclare } from './no-redeclare.js'
+import { defaultCaseLast } from './default-case-last.js'
 
 export const builtInRules = new Map()
 
@@ -33,6 +36,8 @@ registerRule(noMultiStr)
 registerRule(noEmpty)
 registerRule(noExtraBooleanCast)
 registerRule(noConstAssign)
+registerRule(noDuplicateCase)
+registerRule(noFallthrough)
 registerRule(eqeqeq)
 registerRule(noUnreachable)
 registerRule(noCondAssign)
@@ -43,6 +48,7 @@ registerRule(curly)
 registerRule(constructorSuper)
 registerRule(importNoDuplicates)
 registerRule(noRedeclare)
+registerRule(defaultCaseLast)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {

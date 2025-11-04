@@ -3,9 +3,17 @@
 This document tracks how the current `lunte` core compares with the official [StandardJS rules](https://standardjs.com/rules).
 
 - Total StandardJS rules: 161
-- Fully supported: 53
-- Partially supported: 2
-- Not yet supported: 106
+- Fully supported: 57
+- Partially supported: 1
+- Not yet supported: 103
+
+To refresh these numbers quickly, run:
+
+```
+rg '^\\| .*\\| Full' -c docs/standardjs-rule-coverage.md
+rg '^\\| .*\\| Partial' -c docs/standardjs-rule-coverage.md
+rg '^\\| .*\\| None' -c docs/standardjs-rule-coverage.md
+```
 
 Status definitions:
 
@@ -13,7 +21,40 @@ Status definitions:
 - **Partial** – rule exists but deviates from StandardJS in notable ways.
 - **None** – rule is not implemented yet.
 
-Formatting-oriented rules marked **Full** but not backed by a native `lunte` rule are currently enforced by running `prettier --check` with [`prettier-config-holepunch`](https://github.com/holepunchto/prettier-config-holepunch/blob/main/index.js).
+Formatting-oriented rules marked **Full** but not backed by a native `lunte` rule are currently enforced by running `prettier --check` with [`prettier-config-holepunch`](https://github.com/holepunchto/prettier-config-holepunch/blob/main/index.js); see the list of Prettier-backed rules below.
+
+## Prettier-backed Full Rules
+
+These rules rely on Prettier for enforcement, so implementing native equivalents would remove that dependency:
+
+- `array-bracket-spacing`
+- `arrow-spacing`
+- `block-spacing`
+- `brace-style`
+- `comma-dangle`
+- `comma-spacing`
+- `comma-style`
+- `computed-property-spacing`
+- `dot-location`
+- `eol-last`
+- `func-call-spacing`
+- `indent`
+- `key-spacing`
+- `keyword-spacing`
+- `new-parens`
+- `no-mixed-spaces-and-tabs`
+- `no-multi-spaces`
+- `no-trailing-spaces`
+- `no-whitespace-before-property`
+- `object-curly-spacing`
+- `quotes`
+- `semi`
+- `semi-spacing`
+- `space-before-blocks`
+- `space-in-parens`
+- `space-infix-ops`
+- `space-unary-ops`
+- `template-curly-spacing`
 
 | Rule                              | ESLint docs                                                                                                | Status  | Notes                                                                                                           |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +73,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `computed-property-spacing`       | [link](https://eslint.org/docs/latest/rules/computed-property-spacing)                                     | Full    | Enforced by `prettier --check` with holepunch config.                                                           |
 | `constructor-super`               | [link](https://eslint.org/docs/latest/rules/constructor-super)                                             | Full    | Ensures derived classes call super() and checks this usage; parser also catches super() in non-derived classes. |
 | `curly`                           | [link](https://eslint.org/docs/latest/rules/curly)                                                         | Full    | Enforces curly braces for all control statements (if, else, while, do-while, for, for-in, for-of).              |
-| `default-case-last`               | [link](https://eslint.org/docs/latest/rules/default-case-last)                                             | None    | Not implemented yet.                                                                                            |
+| `default-case-last`               | [link](https://eslint.org/docs/latest/rules/default-case-last)                                             | Full    | Ensures `default` clauses only appear after all other `case` clauses.                                           |
 | `dot-location`                    | [link](https://eslint.org/docs/latest/rules/dot-location)                                                  | Full    | Enforced by `prettier --check` with holepunch config.                                                           |
 | `dot-notation`                    | [link](https://eslint.org/docs/latest/rules/dot-notation)                                                  | None    | Not implemented yet.                                                                                            |
 | `eol-last`                        | [link](https://eslint.org/docs/latest/rules/eol-last)                                                      | Full    | Enforced by `prettier --check` with holepunch config.                                                           |
@@ -61,7 +102,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-dupe-args`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-args)                                                  | Full    | Strict-mode parsing rejects duplicate parameters, matching StandardJS expectations.                             |
 | `no-dupe-class-members`           | [link](https://eslint.org/docs/latest/rules/no-dupe-class-members)                                         | None    | Not implemented yet.                                                                                            |
 | `no-dupe-keys`                    | [link](https://eslint.org/docs/latest/rules/no-dupe-keys)                                                  | Full    | Detects duplicate keys in object literals, including string and number literals.                                |
-| `no-duplicate-case`               | [link](https://eslint.org/docs/latest/rules/no-duplicate-case)                                             | None    | Not implemented yet.                                                                                            |
+| `no-duplicate-case`               | [link](https://eslint.org/docs/latest/rules/no-duplicate-case)                                             | Full    | Detects repeated case labels using constant evaluation to match StandardJS behaviour.                           |
 | `no-useless-backreference`        | [link](https://eslint.org/docs/latest/rules/no-useless-backreference)                                      | None    | Not implemented yet.                                                                                            |
 | `no-empty`                        | [link](https://eslint.org/docs/latest/rules/no-empty)                                                      | Full    | Flags empty control flow blocks (if, while, try); allows empty functions and catch blocks per StandardJS.       |
 | `no-empty-character-class`        | [link](https://eslint.org/docs/latest/rules/no-empty-character-class)                                      | None    | Not implemented yet.                                                                                            |
@@ -72,7 +113,7 @@ Formatting-oriented rules marked **Full** but not backed by a native `lunte` rul
 | `no-extra-bind`                   | [link](https://eslint.org/docs/latest/rules/no-extra-bind)                                                 | None    | Not implemented yet.                                                                                            |
 | `no-extra-boolean-cast`           | [link](https://eslint.org/docs/latest/rules/no-extra-boolean-cast)                                         | Partial | Does not yet catch redundant casts in boolean tests such as `if (Boolean(x))`.                                  |
 | `no-extra-parens`                 | [link](https://eslint.org/docs/latest/rules/no-extra-parens)                                               | None    | Not implemented yet.                                                                                            |
-| `no-fallthrough`                  | [link](https://eslint.org/docs/latest/rules/no-fallthrough)                                                | None    | Not implemented yet.                                                                                            |
+| `no-fallthrough`                  | [link](https://eslint.org/docs/latest/rules/no-fallthrough)                                                | Full    | Reports case blocks that flow into the next without a terminating statement or fallthrough comment.            |
 | `no-floating-decimal`             | [link](https://eslint.org/docs/latest/rules/no-floating-decimal)                                           | None    | Not implemented yet.                                                                                            |
 | `no-func-assign`                  | [link](https://eslint.org/docs/latest/rules/no-func-assign)                                                | None    | Not implemented yet.                                                                                            |
 | `no-global-assign`                | [link](https://eslint.org/docs/latest/rules/no-global-assign)                                              | None    | Not implemented yet.                                                                                            |
