@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.cjs",
+      "default": "./index.js"
+    },
+    "./nested": {
+      "bare": {
+        "import": "./bare.mjs",
+        "default": "./bare.js"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { basename } from 'node:path'
 
 import { parse } from './parser.js'
 import { resolveConfig } from '../config/resolve.js'
@@ -63,23 +64,55 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
     }
   }
 
-  try {
-    const directives = extractFileDirectives(source)
-    const globals = mergeGlobals(baseGlobals, directives)
-    const comments = []
-    const ast = parse(source, { sourceFile: filePath, onComment: comments })
-    const inlineIgnores = buildInlineIgnoreMatcher(comments)
-    const ruleDiagnostics = runRules({
-      ast,
-      filePath,
-      source,
-      ruleConfig,
-      globals,
-      inlineIgnores
-    })
-    diagnostics.push(...ruleDiagnostics)
-  } catch (error) {
-    diagnostics.push(buildParseErrorDiagnostic({ error, filePath, source }))
+  const filename = basename(filePath)
+  if (filename === 'package.json') {
+    try {
+      // Validate it's valid JSON
+      JSON.parse(source)
+
+      // Create a minimal AST
+      const ast = {
+        type: 'Program',
+        body: [],
+        sourceType: 'module'
+      }
+
+      const ruleDiagnostics = runRules({
+        ast,
+        filePath,
+        source,
+        ruleConfig,
+        globals: baseGlobals,
+        inlineIgnores: { shouldIgnore: () => false }
+      })
+      diagnostics.push(...ruleDiagnostics)
+    } catch (error) {
+      diagnostics.push({
+        filePath,
+        message: `Invalid JSON: ${error.message}`,
+        severity: 'error',
+        line: 1
+      })
+    }
+  } else {
+    try {
+      const directives = extractFileDirectives(source)
+      const globals = mergeGlobals(baseGlobals, directives)
+      const comments = []
+      const ast = parse(source, { sourceFile: filePath, onComment: comments })
+      const inlineIgnores = buildInlineIgnoreMatcher(comments)
+      const ruleDiagnostics = runRules({
+        ast,
+        filePath,
+        source,
+        ruleConfig,
+        globals,
+        inlineIgnores
+      })
+      diagnostics.push(...ruleDiagnostics)
+    } catch (error) {
+      diagnostics.push(buildParseErrorDiagnostic({ error, filePath, source }))
+    }
   }
 
   return { diagnostics }

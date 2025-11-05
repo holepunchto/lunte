@@ -1,0 +1,9 @@
+{
+  "name": "test",
+  "exports": {
+    ".": {
+      "default": "./index.js",
+      "import": "./index.mjs"
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { join, extname, resolve, relative, isAbsolute } from 'node:path'
 import { hasMagic, globToRegExp, toPosix } from './glob.js'
 
 const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs'])
+const LINTABLE_FILES = new Set(['package.json'])
 
 export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() } = {}) {
   const files = new Set()
@@ -76,7 +77,7 @@ async function collectDirectory(dir, { files, ignore }) {
 
     if (isDir) {
       await collectDirectory(fullPath, { files, ignore: dirIgnore })
-    } else if (entry.isFile() && isJavaScriptFile(fullPath)) {
+    } else if (entry.isFile() && isLintableFile(fullPath)) {
       files.add(fullPath)
     }
   }
@@ -134,7 +135,7 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
       continue
     }
 
-    if (isJavaScriptFile(fullPath)) {
+    if (isLintableFile(fullPath)) {
       files.add(fullPath)
     }
   }
@@ -143,6 +144,11 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
 function isJavaScriptFile(filePath) {
   const extension = extname(filePath).toLowerCase()
   return JS_EXTENSIONS.has(extension)
+}
+
+function isLintableFile(filePath) {
+  const fileName = filePath.split('/').pop().split('\\').pop()
+  return isJavaScriptFile(filePath) || LINTABLE_FILES.has(fileName)
 }
 
 function resolvePath(base, target) {
