@@ -1,10 +1,13 @@
+import process from 'process'
 import test from 'brittle'
-import { spawn } from 'node:child_process'
-import { once } from 'node:events'
-import { fileURLToPath, pathToFileURL } from 'node:url'
-import { dirname, join } from 'node:path'
-import { readFile, writeFile, mkdtemp, rm, mkdir } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { spawn } from 'child_process'
+import { once } from 'events'
+import { fileURLToPath, pathToFileURL } from 'url'
+import { dirname, join } from 'path'
+import { readFile, writeFile, rm, mkdir } from 'fs/promises'
+import { tmpdir } from 'os'
+
+import { mkdtemp } from './helpers/mkdtemp.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)

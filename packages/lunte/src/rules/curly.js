@@ -51,8 +51,8 @@ export const curly = {
             if (
               consequentLoc &&
               alternateLoc &&
-              node.consequent.end != null &&
-              alternate.start != null
+              node.consequent.end !== null &&
+              alternate.start !== null
             ) {
               const betweenText = context.source.slice(node.consequent.end, alternate.start)
               const elseMatch = betweenText.match(/\belse\b/)

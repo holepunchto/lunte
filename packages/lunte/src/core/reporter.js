@@ -1,3 +1,5 @@
+import process from 'process'
+
 import { Severity } from './constants.js'
 
 const colorSupport = Boolean(process.stdout?.isTTY)

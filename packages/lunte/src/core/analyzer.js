@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises'
-import { basename } from 'node:path'
+import { readFile } from 'fs/promises'
+import { basename } from 'path'
 
 import { parse } from './parser.js'
 import { resolveConfig } from '../config/resolve.js'

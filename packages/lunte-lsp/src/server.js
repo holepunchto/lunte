@@ -1,5 +1,7 @@
-import { fileURLToPath } from 'node:url'
-import { normalize } from 'node:path'
+import process from 'process'
+import { TextEncoder } from 'util'
+import { fileURLToPath } from 'url'
+import { normalize } from 'path'
 
 import { analyze } from 'lunte'
 import { Severity } from 'lunte/src/core/constants.js'
@@ -339,7 +341,7 @@ function createConnection(input, output) {
   }
 
   function handleMessage(message) {
-    if (message == null || typeof message !== 'object') {
+    if (message === null || message === undefined || typeof message !== 'object') {
       sendErrorResponse(null, ErrorCodes.InvalidRequest, 'Invalid message')
       return
     }

@@ -1,6 +1,6 @@
 import test from 'brittle'
-import { fileURLToPath } from 'node:url'
-import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'url'
+import { join, dirname } from 'path'
 
 import { analyze } from '../src/core/analyzer.js'
 
