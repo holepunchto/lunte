@@ -9,6 +9,7 @@ import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 
 export async function analyze({
+  source,
   files,
   ruleOverrides,
   envOverrides,
@@ -25,21 +26,29 @@ export async function analyze({
     disableHolepunchGlobals
   })
 
-  const sourceOverrides = normalizeSourceOverrides(sourceText)
-
-  for (const file of files) {
-    const result = await analyzeFile(file, {
+  if (source) {
+    const result = await analyzeSource(source, {
       ruleConfig,
-      baseGlobals,
-      sourceOverrides
+      baseGlobals
     })
     diagnostics.push(...result.diagnostics)
+  } else {
+    const sourceOverrides = normalizeSourceOverrides(sourceText)
 
-    if (typeof onFileComplete === 'function') {
-      onFileComplete({
-        filePath: file,
-        diagnostics: result.diagnostics
+    for (const file of files) {
+      const result = await analyzeFile(file, {
+        ruleConfig,
+        baseGlobals,
+        sourceOverrides
       })
+      diagnostics.push(...result.diagnostics)
+
+      if (typeof onFileComplete === 'function') {
+        onFileComplete({
+          filePath: file,
+          diagnostics: result.diagnostics
+        })
+      }
     }
   }
 
@@ -64,8 +73,13 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
     }
   }
 
-  const filename = basename(filePath)
-  if (filename === 'package.json') {
+  return analyzeSource(source, { filePath, ruleConfig, baseGlobals, sourceOverrides })
+}
+
+async function analyzeSource(source, { filePath, ruleConfig, baseGlobals, sourceOverrides }) {
+  const diagnostics = []
+
+  if (filePath && basename(filePath) === 'package.json') {
     try {
       // Validate it's valid JSON
       JSON.parse(source)
