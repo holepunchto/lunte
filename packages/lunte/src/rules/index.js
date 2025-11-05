@@ -22,6 +22,7 @@ import { constructorSuper } from './constructor-super.js'
 import { importNoDuplicates } from './import-no-duplicates.js'
 import { noRedeclare } from './no-redeclare.js'
 import { defaultCaseLast } from './default-case-last.js'
+import { packageJsonExportsOrder } from './package-json-exports-order.js'
 
 export const builtInRules = new Map()
 
@@ -49,6 +50,7 @@ registerRule(constructorSuper)
 registerRule(importNoDuplicates)
 registerRule(noRedeclare)
 registerRule(defaultCaseLast)
+registerRule(packageJsonExportsOrder)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
