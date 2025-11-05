@@ -27,7 +27,8 @@ export function formatConsoleReport({ diagnostics }) {
 }
 
 function formatDiagnosticLine(diag) {
-  const location = diag.line !== null && diag.line !== undefined ? `${diag.line}:${diag.column ?? 1}` : '?:?'
+  const location =
+    diag.line !== null && diag.line !== undefined ? `${diag.line}:${diag.column ?? 1}` : '?:?'
   const color = diag.severity === Severity.error ? COLORS.red : COLORS.yellow
   const label = diag.severity.toUpperCase()
   const ruleSuffix = diag.ruleId ? ` (${diag.ruleId})` : ''
