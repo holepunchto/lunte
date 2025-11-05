@@ -7,7 +7,10 @@
     "packages/vscode-lunte"
   ],
   "scripts": {
-    "test": "npm test --workspaces --if-present",
+    "lint": "packages/lunte/bin/lunte",
+    "test": "npm run test:node && npm run test:bare",
+    "test:node": "npm run test:node --workspaces --if-present",
+    "test:bare": "npm run test:bare --workspaces --if-present",
     "test:core": "npm test --workspace=lunte-core",
     "test:lsp": "npm test --workspace=lunte-lsp",
     "format": "prettier . --write"

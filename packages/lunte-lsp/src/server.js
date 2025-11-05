@@ -341,7 +341,7 @@ function createConnection(input, output) {
   }
 
   function handleMessage(message) {
-    if (message == null || typeof message !== 'object') {
+    if (message === null || message === undefined || typeof message !== 'object') {
       sendErrorResponse(null, ErrorCodes.InvalidRequest, 'Invalid message')
       return
     }
