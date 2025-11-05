@@ -46,6 +46,26 @@ test('flags multi-line else-if without braces on if part', async (t) => {
   t.ok(result.diagnostics[0].message.includes("Expected { after 'if' for multi-line statement"))
 })
 
+test('flags else with comment between keyword and body', async (t) => {
+  const result = await analyze({
+    files: [fixture('curly-else-comment-invalid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 1)
+  t.is(result.diagnostics[0].ruleId, 'curly')
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'else' for multi-line statement"))
+})
+
+test('flags else with multi-line body', async (t) => {
+  const result = await analyze({
+    files: [fixture('curly-else-multiline-body-invalid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 1)
+  t.is(result.diagnostics[0].ruleId, 'curly')
+  t.ok(result.diagnostics[0].message.includes("Expected { after 'else' for multi-line statement"))
+})
+
 test('flags multi-line while statement without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-while-invalid.js')],
@@ -107,6 +127,14 @@ test('allows single-line if statement without braces', async (t) => {
 test('allows single-line if-else without braces', async (t) => {
   const result = await analyze({
     files: [fixture('curly-if-else-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('allows single-line if-else without braces on separate lines', async (t) => {
+  const result = await analyze({
+    files: [fixture('curly-if-else-single-line-valid.js')],
     ruleOverrides: BASE_OVERRIDES
   })
   t.is(result.diagnostics.length, 0)
