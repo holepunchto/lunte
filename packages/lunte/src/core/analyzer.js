@@ -10,6 +10,8 @@ import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 import { applyFixes } from './fixes.js'
 
 export async function analyze({
+  source,
+  sourceFile,
   files,
   ruleOverrides,
   envOverrides,
@@ -33,27 +35,48 @@ export async function analyze({
   let fixedFiles = 0
   const fixedOutputs = new Map()
 
-  for (const file of files) {
-    const result = await analyzeFile(file, {
+  if (source !== undefined) {
+    const result = await analyzeSource(String(source), {
+      filePath: sourceFile,
       ruleConfig,
       baseGlobals,
-      sourceOverrides,
       fix,
-      write
+      write: false
     })
     diagnostics.push(...result.diagnostics)
+
     if (fix && result.fixes?.appliedEdits > 0) {
       fixedEdits += result.fixes.appliedEdits
       fixedDiagnostics += result.fixes.appliedDiagnostics
       fixedFiles += 1
-      fixedOutputs.set(file, result.fixes.output)
+      fixedOutputs.set(sourceFile ?? 'input', result.fixes.output)
     }
+  } else {
+    const normalizedSourceOverrides = normalizeSourceOverrides(sourceOverrides)
 
-    if (typeof onFileComplete === 'function') {
-      onFileComplete({
-        filePath: file,
-        diagnostics: result.diagnostics
+    for (const file of files) {
+      const result = await analyzeFile(file, {
+        ruleConfig,
+        baseGlobals,
+        sourceOverrides: normalizedSourceOverrides,
+        fix,
+        write
       })
+      diagnostics.push(...result.diagnostics)
+
+      if (fix && result.fixes?.appliedEdits > 0) {
+        fixedEdits += result.fixes.appliedEdits
+        fixedDiagnostics += result.fixes.appliedDiagnostics
+        fixedFiles += 1
+        fixedOutputs.set(file, result.fixes.output)
+      }
+
+      if (typeof onFileComplete === 'function') {
+        onFileComplete({
+          filePath: file,
+          diagnostics: result.diagnostics
+        })
+      }
     }
   }
 
@@ -64,7 +87,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
-    source = sourceOverrides.get(filePath)
+    source = String(sourceOverrides.get(filePath) ?? '')
   } else {
     try {
       source = await readFile(filePath, 'utf8')
@@ -78,8 +101,13 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
     }
   }
 
-  const filename = basename(filePath)
-  if (filename === 'package.json') {
+  return analyzeSource(source, { filePath, ruleConfig, baseGlobals, fix, write })
+}
+
+async function analyzeSource(source, { filePath, ruleConfig, baseGlobals, fix = false, write = true }) {
+  const diagnostics = []
+
+  if (filePath && basename(filePath) === 'package.json') {
     try {
       // Validate it's valid JSON
       JSON.parse(source)
@@ -144,7 +172,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
       })
 
       if (applied.appliedEdits > 0) {
-        if (write) {
+        if (write && filePath) {
           await writeFile(filePath, applied.output, 'utf8')
         }
 
@@ -168,6 +196,19 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
   }
 
   return { diagnostics }
+}
+
+function normalizeSourceOverrides(value) {
+  if (!value) {
+    return undefined
+  }
+  if (value instanceof Map) {
+    return value
+  }
+  if (typeof value === 'object') {
+    return new Map(Object.entries(value))
+  }
+  return undefined
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {

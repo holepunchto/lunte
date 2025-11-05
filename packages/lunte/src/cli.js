@@ -40,6 +40,7 @@ const parser = command(
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
   flag('--fix', 'Automatically apply available fixes.'),
+  flag('--stdin', 'Lint code from stdin'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -57,21 +58,29 @@ export async function run(argv = []) {
     return 0
   }
 
-  const files = Array.isArray(parser.rest) ? parser.rest : ['.']
-  if (files.length === 0) {
-    console.error('No input files specified.')
-    return 1
-  }
+  let source = ''
+  let sourceFile
+  let resolvedFiles
 
   const cwd = process.cwd()
-  const { config } = await loadConfig({ cwd })
-  const ignoreMatcher = await loadIgnore({ cwd })
-  const resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
-  if (resolvedFiles.length === 0) {
-    console.error('No matching source files found.')
-    return 1
+  const stdin = Boolean(parser.flags.stdin)
+  const files = Array.isArray(parser.rest) ? parser.rest : []
+
+  if (stdin) {
+    source = await readStdin()
+    sourceFile = files[0]
+  } else {
+    const targets = files.length === 0 ? ['.'] : files
+
+    const ignoreMatcher = await loadIgnore({ cwd })
+    resolvedFiles = await resolveFileTargets(targets, { ignore: ignoreMatcher })
+    if (resolvedFiles.length === 0) {
+      console.error('No matching source files found.')
+      return 1
+    }
   }
 
+  const { config } = await loadConfig({ cwd })
   const mergedEnv = safeMerge(config.env, parseList(parser.flags.env))
   const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
@@ -80,7 +89,7 @@ export async function run(argv = []) {
 
   const verbose = Boolean(parser.flags.verbose)
   const fix = Boolean(parser.flags.fix)
-  if (verbose) {
+  if (verbose && resolvedFiles) {
     console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
   }
 
@@ -90,6 +99,8 @@ export async function run(argv = []) {
   })
 
   const result = await analyze({
+    source,
+    sourceFile,
     files: resolvedFiles,
     ruleOverrides: mergedRuleOverrides,
     envOverrides: mergedEnv,
@@ -147,4 +158,18 @@ function mergeRuleOverrides(configRules = {}, cliOverrides = []) {
     merged.push({ name, severity })
   }
   return [...merged, ...cliOverrides]
+}
+
+async function readStdin() {
+  if (process.stdin.isTTY) return ''
+
+  return await new Promise((resolve, reject) => {
+    let text = ''
+    process.stdin.setEncoding('utf8')
+    process.stdin.on('data', chunk => {
+      text += chunk
+    })
+    process.stdin.on('end', () => resolve(text))
+    process.stdin.on('error', reject)
+  })
 }
