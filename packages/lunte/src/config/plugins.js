@@ -1,6 +1,7 @@
-import { resolve as resolvePath, isAbsolute } from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { createRequire } from 'node:module'
+import process from 'process'
+import { resolve as resolvePath, isAbsolute } from 'path'
+import { pathToFileURL } from 'url'
+import { createRequire } from 'module'
 
 import { registerRule } from '../rules/index.js'
 

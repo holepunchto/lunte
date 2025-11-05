@@ -1,9 +1,12 @@
+import process from 'process'
 import test from 'brittle'
-import { spawn } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
-import { mkdtemp, writeFile, mkdir } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { spawn } from 'child_process'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { writeFile, mkdir } from 'fs/promises'
+import { tmpdir } from 'os'
+
+import { mkdtemp } from './helpers/mkdtemp.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)
@@ -29,9 +32,15 @@ function runCli(args) {
     })
 
     child.on('error', reject)
-    child.on('close', (code) => {
+    let finished = false
+    const settle = (code) => {
+      if (finished) return
+      finished = true
       resolve({ code, stdout, stderr })
-    })
+    }
+
+    child.on('close', settle)
+    child.on('exit', settle)
   })
 }
 

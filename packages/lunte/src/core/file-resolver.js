@@ -1,5 +1,6 @@
-import { stat, readdir } from 'node:fs/promises'
-import { join, extname, resolve, relative, isAbsolute } from 'node:path'
+import process from 'process'
+import { stat, readdir } from 'fs/promises'
+import { join, extname, resolve, relative, isAbsolute } from 'path'
 
 import { hasMagic, globToRegExp, toPosix } from './glob.js'
 

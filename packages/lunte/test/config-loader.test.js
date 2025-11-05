@@ -1,8 +1,10 @@
 import test from 'brittle'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
-import { mkdtemp, writeFile, mkdir } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { writeFile, mkdir } from 'fs/promises'
+import { tmpdir } from 'os'
+
+import { mkdtemp } from './helpers/mkdtemp.js'
 
 import { loadConfig } from '../src/config/loader.js'
 

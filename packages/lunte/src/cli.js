@@ -1,3 +1,4 @@
+import process from 'process'
 import { command, flag, rest, bail } from 'paparam'
 
 import { analyze } from './core/analyzer.js'

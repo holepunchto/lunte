@@ -1,5 +1,6 @@
-import { readFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join, relative } from 'node:path'
+import process from 'process'
+import { readFile } from 'fs/promises'
+import { dirname, isAbsolute, join, relative } from 'path'
 
 import { globToRegExp, toPosix } from './glob.js'
 
