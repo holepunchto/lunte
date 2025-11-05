@@ -61,7 +61,8 @@ export class RuleContext {
       severity: severity ?? this.ruleSeverity ?? Severity.error,
       ruleId: this.ruleId,
       line,
-      column: startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
+      column:
+        startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
     })
   }
 

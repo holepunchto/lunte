@@ -99,8 +99,8 @@ export async function run(argv = []) {
           const color = hasError
             ? VERBOSE_COLORS.red
             : hasWarning
-              ? VERBOSE_COLORS.yellow
-              : VERBOSE_COLORS.green
+            ? VERBOSE_COLORS.yellow
+            : VERBOSE_COLORS.green
           const symbol = hasError ? '✕' : hasWarning ? '!' : '✓'
           const detail = hasError ? ' (errors)' : hasWarning ? ' (warnings)' : ''
           console.log(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)

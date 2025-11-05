@@ -2,7 +2,12 @@ import { Severity } from '../core/constants.js'
 
 const FALLTHROUGH_PATTERN = /\/\*(?:[^*]|\*+[^*/])*\*\/|\/\/[^\n]*/g
 const FALLTHROUGH_HINT = /falls?\s*-?\s*through/i
-const TERMINATING_STATEMENTS = new Set(['BreakStatement', 'ReturnStatement', 'ThrowStatement', 'ContinueStatement'])
+const TERMINATING_STATEMENTS = new Set([
+  'BreakStatement',
+  'ReturnStatement',
+  'ThrowStatement',
+  'ContinueStatement'
+])
 
 export const noFallthrough = {
   meta: {
@@ -111,7 +116,13 @@ function hasFallthroughComment(context, currentCase, nextCase) {
   const rangeStart = getCaseEnd(currentCase)
   const rangeEnd = getCaseStart(nextCase)
 
-  if (rangeStart === null || rangeStart === undefined || rangeEnd === null || rangeEnd === undefined || rangeEnd <= rangeStart) {
+  if (
+    rangeStart === null ||
+    rangeStart === undefined ||
+    rangeEnd === null ||
+    rangeEnd === undefined ||
+    rangeEnd <= rangeStart
+  ) {
     return false
   }
 

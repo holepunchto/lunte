@@ -38,15 +38,22 @@ export const curly = {
             // 1. The alternate body itself spans multiple lines
             // 2. The if has braces (BlockStatement) and else is on a different line (brace-style)
             // 3. The else keyword and its body are on different lines
-            const alternateIsMultiLine = alternateLoc && alternateLoc.start.line !== alternateLoc.end.line
-            const braceStyleViolation = node.consequent.type === 'BlockStatement' &&
+            const alternateIsMultiLine =
+              alternateLoc && alternateLoc.start.line !== alternateLoc.end.line
+            const braceStyleViolation =
+              node.consequent.type === 'BlockStatement' &&
               consequentLoc &&
               alternateLoc &&
               consequentLoc.end.line !== alternateLoc.start.line
 
             // Find the 'else' keyword position by searching source between consequent and alternate
             let elseOnDifferentLine = false
-            if (consequentLoc && alternateLoc && node.consequent.end != null && alternate.start != null) {
+            if (
+              consequentLoc &&
+              alternateLoc &&
+              node.consequent.end != null &&
+              alternate.start != null
+            ) {
               const betweenText = context.source.slice(node.consequent.end, alternate.start)
               const elseMatch = betweenText.match(/\belse\b/)
               if (elseMatch) {
