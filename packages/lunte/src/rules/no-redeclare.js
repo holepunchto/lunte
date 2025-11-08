@@ -23,9 +23,7 @@ export const noRedeclare = {
 
         // If there are multiple declarations, check if they're the kind we should report
         // (let/const duplicates are already caught as syntax errors by the parser)
-        const varDecls = declList.filter(
-          (decl) => decl.kind === 'var' || decl.kind === 'function'
-        )
+        const varDecls = declList.filter((decl) => decl.kind === 'var' || decl.kind === 'function')
 
         if (varDecls.length > 1) {
           // Deduplicate by node - functions can be added multiple times during hoisting

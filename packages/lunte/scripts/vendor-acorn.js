@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import { rm, mkdir, rename } from 'node:fs/promises'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { promisify } from 'node:util'
-import { execFile } from 'node:child_process'
+import process from 'process'
+import { rm, mkdir, rename } from 'fs/promises'
+import { join } from 'path'
+import { fileURLToPath } from 'url'
+import { promisify } from 'util'
+import { execFile } from 'child_process'
 
 const execFileAsync = promisify(execFile)
 const projectRoot = fileURLToPath(new URL('..', import.meta.url))

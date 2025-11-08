@@ -1,6 +1,7 @@
-import { access, readFile } from 'node:fs/promises'
-import { constants as FS_CONSTANTS } from 'node:fs'
-import { join, dirname, parse as parsePath } from 'node:path'
+import process from 'process'
+import { access, readFile } from 'fs/promises'
+import { constants as FS_CONSTANTS } from 'fs'
+import { join, dirname } from 'path'
 
 const CONFIG_BASENAMES = ['.lunterc', '.lunterc.json']
 
@@ -23,7 +24,6 @@ export async function loadConfig({ cwd = process.cwd() } = {}) {
 
 async function findConfigFile(startDir) {
   let dir = startDir
-  const { root } = parsePath(startDir)
 
   while (true) {
     for (const basename of CONFIG_BASENAMES) {
@@ -33,8 +33,9 @@ async function findConfigFile(startDir) {
       }
     }
 
-    if (dir === root) break
-    dir = dirname(dir)
+    const parent = dirname(dir)
+    if (parent === dir) break
+    dir = parent
   }
   return null
 }

@@ -1,5 +1,5 @@
 import { Severity } from '../core/constants.js'
-import { basename } from 'node:path'
+import { basename } from 'path'
 
 export const packageJsonExportsOrder = {
   meta: {

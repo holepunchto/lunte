@@ -28,5 +28,29 @@
   },
   "dependencies": {
     "lunte": "^1.0.2"
+  },
+  "imports": {
+    "path": {
+      "bare": "bare-path",
+      "default": "path"
+    },
+    "process": {
+      "bare": "bare-process",
+      "default": "process"
+    },
+    "url": {
+      "bare": "bare-url",
+      "default": "url"
+    },
+    "util": {
+      "bare": "bare-utils",
+      "default": "util"
+    }
+  },
+  "optionalDependencies": {
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.2.2",
+    "bare-url": "^2.3.2",
+    "bare-utils": "^1.5.1"
   }
 }

@@ -1,14 +1,16 @@
 {
   "name": "lunte",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Self-contained linter",
   "main": "./src/index.js",
   "bin": {
     "lunte": "./bin/lunte"
   },
   "scripts": {
-    "test": "brittle \"test/**/*.test.js\"",
-    "lint": "lunte .",
+    "test": "npm run test:node && npm run test:bare",
+    "test:node": "brittle-node \"test/**/*.test.js\"",
+    "test:bare": "brittle-bare \"test/**/*.test.js\"",
+    "lint": "bin/lunte .",
     "vendor:acorn": "node scripts/vendor-acorn.js",
     "format": "cd ../.. && npm run format"
   },
@@ -32,10 +34,63 @@
     "url": "https://github.com/holepunchto/lunte/issues"
   },
   "type": "module",
+  "imports": {
+    "child_process": {
+      "bare": "bare-subprocess",
+      "default": "child_process"
+    },
+    "events": {
+      "bare": "bare-events",
+      "default": "events"
+    },
+    "fs": {
+      "bare": "bare-fs",
+      "default": "fs"
+    },
+    "fs/*": {
+      "bare": "bare-fs/*",
+      "default": "fs/*"
+    },
+    "module": {
+      "bare": "bare-module",
+      "default": "module"
+    },
+    "os": {
+      "bare": "bare-os",
+      "default": "os"
+    },
+    "path": {
+      "bare": "bare-path",
+      "default": "path"
+    },
+    "process": {
+      "bare": "bare-process",
+      "default": "process"
+    },
+    "url": {
+      "bare": "bare-url",
+      "default": "url"
+    },
+    "util": {
+      "bare": "bare-utils",
+      "default": "util"
+    }
+  },
   "dependencies": {
     "paparam": "^1.8.6"
   },
   "devDependencies": {
     "brittle": "^3.19.0"
+  },
+  "optionalDependencies": {
+    "bare-events": "^2.8.1",
+    "bare-fs": "^4.5.0",
+    "bare-module": "^6.1.2",
+    "bare-os": "^3.6.2",
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.2.2",
+    "bare-subprocess": "^5.1.4",
+    "bare-url": "^2.3.2",
+    "bare-utils": "^1.5.1"
   }
 }
