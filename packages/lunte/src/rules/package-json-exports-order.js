@@ -9,6 +9,8 @@ export const packageJsonExportsOrder = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    if (!context.filePath) return {}
+
     const filename = basename(context.filePath)
 
     if (filename !== 'package.json') return {}

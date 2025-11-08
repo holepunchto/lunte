@@ -39,6 +39,7 @@ const parser = command(
   flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
+  flag('--stdin', 'Lint code from stdin'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -56,21 +57,34 @@ export async function run(argv = []) {
     return 0
   }
 
-  const files = Array.isArray(parser.rest) ? parser.rest : ['.']
-  if (files.length === 0) {
-    console.error('No input files specified.')
-    return 1
-  }
+  let source = ''
+  let resolvedFiles
 
   const cwd = process.cwd()
-  const { config } = await loadConfig({ cwd })
-  const ignoreMatcher = await loadIgnore({ cwd })
-  const resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
-  if (resolvedFiles.length === 0) {
-    console.error('No JavaScript files found.')
-    return 1
+  const stdin = Boolean(parser.flags.stdin)
+
+  if (stdin) {
+    source = await readStdin()
+    if (!source) {
+      console.error('Nothing in stdin')
+      return 1
+    }
+  } else {
+    const files = Array.isArray(parser.rest) ? parser.rest : ['.']
+    if (files.length === 0) {
+      console.error('No input files specified.')
+      return 1
+    }
+
+    const ignoreMatcher = await loadIgnore({ cwd })
+    resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
+    if (resolvedFiles.length === 0) {
+      console.error('No JavaScript files found.')
+      return 1
+    }
   }
 
+  const { config } = await loadConfig({ cwd })
   const mergedEnv = safeMerge(config.env, parseList(parser.flags.env))
   const mergedGlobals = safeMerge(config.globals, parseList(parser.flags.global))
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
@@ -78,7 +92,7 @@ export async function run(argv = []) {
   const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
 
   const verbose = Boolean(parser.flags.verbose)
-  if (verbose) {
+  if (verbose && resolvedFiles) {
     console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
   }
 
@@ -88,6 +102,7 @@ export async function run(argv = []) {
   })
 
   const result = await analyze({
+    source,
     files: resolvedFiles,
     ruleOverrides: mergedRuleOverrides,
     envOverrides: mergedEnv,
@@ -137,4 +152,18 @@ function mergeRuleOverrides(configRules = {}, cliOverrides = []) {
     merged.push({ name, severity })
   }
   return [...merged, ...cliOverrides]
+}
+
+async function readStdin() {
+  if (process.stdin.isTTY) return ''
+
+  return await new Promise((resolve, reject) => {
+    let text = ''
+    process.stdin.setEncoding('utf8')
+    process.stdin.on('data', chunk => {
+      text += chunk
+    })
+    process.stdin.on('end', () => resolve(text))
+    process.stdin.on('error', reject)
+  })
 }
