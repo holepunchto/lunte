@@ -23,6 +23,6 @@
 
 ### Immediate TODOs (Phase 3)
 
-1. **Declare namespaces / module re-openings** – dedupe diagnostics for runtime namespace re-openings (✅) and add fixtures ensuring `declare namespace Foo {}` stays ambient-only for both `no-undef` and `no-unused-vars`.
+1. **Declare namespaces / module re-openings** – dedupe diagnostics for runtime namespace re-openings (✅) and added `no-undef` fixtures covering ambient-only declarations + runtime merges. Next: ensure `.d.ts` ambient globals feed into scope manager without needing explicit runtime code.
 2. **Type-only `import =` aliases** – tests now confirm `import type Logger = require('node:fs')` is ignored by `no-unused-vars` (✅); still need broader coverage in `no-undef` once we expand ambient namespace handling.
 3. **TSX smoke test** – `.tsx` fixture wired into `typescript-parser.test.js` so we prove the parser path works (✅); next focus is adding JSX-focused rule fixtures (e.g. `no-undef` inside JSX expressions) to surface traversal gaps.

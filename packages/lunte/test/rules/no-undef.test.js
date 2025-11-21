@@ -10,6 +10,11 @@ function fixturePath(name) {
   return join(__dirname, '..', 'fixtures', name)
 }
 
+const TS_RUNTIME_OVERRIDES = [
+  { name: 'no-use-before-define', severity: 'off' },
+  { name: 'no-unused-vars', severity: 'off' }
+]
+
 test('reports use of undefined variable', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-invalid.js')],
@@ -109,4 +114,31 @@ test('flags missing declarations when enums/namespaces are referenced but undefi
     enableTypeScriptParser: true
   })
   t.ok(result.diagnostics.some((d) => d.message.includes('Status')), 'should report undefined enum usage')
+})
+
+test('treats declare namespaces as ambient-only', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-declare-namespace.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('Config')), 'declare namespace should not define runtime binding')
+})
+
+test('allows namespaces re-opened with runtime declarations', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-namespace-merge.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('flags runtime usage of type-only import equals aliases', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-import-equals-type-invalid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('Logger')), 'type-only import equals should not introduce runtime symbols')
 })
