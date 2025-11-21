@@ -149,3 +149,12 @@ test('ignores type-only imports in TypeScript files', async (t) => {
   })
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
+
+test('flags unused enums in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-invalid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.ruleId === 'no-unused-vars'), 'should report unused enum')
+})

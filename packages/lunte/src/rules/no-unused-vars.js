@@ -12,14 +12,14 @@ export const noUnusedVars = {
     const definedSymbols = new Map()
     const usedSymbols = new Set()
 
-    function defineBinding(name, node, hasRestSibling = false) {
-      if (!name || !node) return
-      definedSymbols.set(node, { name, node })
-      // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
-      if (shouldIgnoreName(name) || hasRestSibling) {
-        usedSymbols.add(name)
-      }
-    }
+function defineBinding(name, node, hasRestSibling = false) {
+  if (!name || !node) return
+  definedSymbols.set(node, { name, node })
+  // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
+  if (shouldIgnoreName(name) || hasRestSibling) {
+    usedSymbols.add(name)
+  }
+}
 
     function markUsed(name) {
       if (!name) return
@@ -88,10 +88,21 @@ export const noUnusedVars = {
       },
       Identifier(node) {
         const parent = context.getParent()
-        if (!isReferenceIdentifier(node, parent)) {
+        const ancestors = context.getAncestors()
+        if (!isReferenceIdentifier(node, parent, ancestors)) {
           return
         }
         markUsed(node.name)
+      },
+      TSEnumDeclaration(node) {
+        if (!node?.id || node.declare) {
+          return
+        }
+        defineBinding(node.id.name, node.id)
+        const parent = context.getParent()
+        if (isExportedDeclaration(node, parent)) {
+          markUsed(node.id.name)
+        }
       },
       ExportNamedDeclaration(node) {
         if (node.declaration) {
@@ -193,6 +204,17 @@ function extractPatternIdentifiers(pattern, options = {}) {
 
 function shouldIgnoreName(name) {
   return typeof name === 'string' && name.startsWith('_')
+}
+
+function isExportedDeclaration(node, parent) {
+  if (!parent) return false
+  if (parent.type === 'ExportNamedDeclaration' && parent.declaration === node) {
+    return true
+  }
+  if (parent.type === 'ExportDefaultDeclaration' && parent.declaration === node) {
+    return true
+  }
+  return false
 }
 
 function isCommonJsExported(functionNode, context) {

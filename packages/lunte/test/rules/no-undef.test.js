@@ -101,3 +101,12 @@ test('handles enums, namespaces, and import equals in TypeScript', async (t) => 
   })
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
+
+test('flags missing declarations when enums/namespaces are referenced but undefined', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-declarations-invalid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('Status')), 'should report undefined enum usage')
+})
