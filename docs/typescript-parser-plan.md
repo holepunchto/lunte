@@ -1,0 +1,26 @@
+# TypeScript Parser Plan
+
+## Phase 1 – Plumbing + Opt-In Flag ✅
+
+- [x] Add a `typescript` parser option to `.lunterc` and a matching `--typescript` CLI flag; thread it through `cli.js`, `analyze()`, and `parser.js`.
+- [x] Introduce a parser manager module that returns either vanilla Acorn or a TypeScript-capable parser based on file extension plus the new option; for now stub the TS path with a clear "not implemented" error so the flag is testable.
+- [x] Update documentation (`README.md`, `docs/vendor.md`) to mention the new config knob and note that TS parsing is behind an experimental flag until the spike lands.
+
+## Phase 2 – Spike: @sveltejs/acorn-typescript
+
+- [x] Install `@sveltejs/acorn-typescript` + `acorn@8.15.0`, extend the parser manager to lazy-load the plugin, and gate it behind the `typescript` flag + `.ts/.tsx/.cts/.mts/.d.ts` extensions.
+- [x] Added a `test/typescript-parser.test.js` smoke test plus `.ts` fixture and ran `npm run test --workspace=lunte` to confirm parsing succeeds.
+- [ ] Document findings from the spike: which rules break, any scope/AST quirks, and rough performance observations.
+  - Initial notes: parsing `.ts` now works, but type-only identifiers (e.g., inline object type keys) surface as `Identifier` nodes and trip `no-undef`; `.tsx` is untested; TypeScript mode currently relies on the npm `acorn` copy that ships alongside the plugin until we vendor it.
+
+## Phase 3 – Solidify Parser + Traversal Support
+
+- [ ] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
+- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc.
+- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes.
+
+## Phase 4 – Polish + Rollout
+
+- [ ] Extend user docs with setup guidance (supported extensions, lazy-loading behavior, optional dependency workflow).
+- [ ] Consider auto-enabling the TS parser when the project contains `.ts/.tsx` files, with an opt-out flag for JS-only repos.
+- [ ] Collect early-adopter feedback and line up future TS-aware rule ideas (e.g., `no-floating-promises` with type info).

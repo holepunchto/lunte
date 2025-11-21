@@ -15,7 +15,8 @@ export async function analyze({
   globalOverrides,
   sourceText,
   onFileComplete,
-  disableHolepunchGlobals = false
+  disableHolepunchGlobals = false,
+  enableTypeScriptParser = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -31,7 +32,8 @@ export async function analyze({
     const result = await analyzeFile(file, {
       ruleConfig,
       baseGlobals,
-      sourceOverrides
+      sourceOverrides,
+      enableTypeScriptParser
     })
     diagnostics.push(...result.diagnostics)
 
@@ -46,7 +48,10 @@ export async function analyze({
   return { diagnostics }
 }
 
-async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides }) {
+async function analyzeFile(
+  filePath,
+  { ruleConfig, baseGlobals, sourceOverrides, enableTypeScriptParser }
+) {
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
@@ -99,7 +104,12 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
       const directives = extractFileDirectives(source)
       const globals = mergeGlobals(baseGlobals, directives)
       const comments = []
-      const ast = parse(source, { sourceFile: filePath, onComment: comments })
+      const ast = parse(source, {
+        filePath,
+        enableTypeScriptParser,
+        sourceFile: filePath,
+        onComment: comments
+      })
       const inlineIgnores = buildInlineIgnoreMatcher(comments)
       const ruleDiagnostics = runRules({
         ast,

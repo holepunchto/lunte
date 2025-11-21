@@ -39,6 +39,7 @@ const parser = command(
   flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
+  flag('--typescript', 'Enable the experimental TypeScript parser.'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -76,6 +77,7 @@ export async function run(argv = []) {
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
   const mergedPlugins = safeMerge(config.plugins, parseList(parser.flags.plugin))
   const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
+  const enableTypeScriptParser = Boolean(config.typescript) || Boolean(parser.flags.typescript)
 
   const verbose = Boolean(parser.flags.verbose)
   if (verbose) {
@@ -93,6 +95,7 @@ export async function run(argv = []) {
     envOverrides: mergedEnv,
     globalOverrides: mergedGlobals,
     disableHolepunchGlobals,
+    enableTypeScriptParser,
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {
           const hasError = diagnostics.some((d) => d.severity === Severity.error)
@@ -100,8 +103,8 @@ export async function run(argv = []) {
           const color = hasError
             ? VERBOSE_COLORS.red
             : hasWarning
-            ? VERBOSE_COLORS.yellow
-            : VERBOSE_COLORS.green
+              ? VERBOSE_COLORS.yellow
+              : VERBOSE_COLORS.green
           const symbol = hasError ? '✕' : hasWarning ? '!' : '✓'
           const detail = hasError ? ' (errors)' : hasWarning ? ' (warnings)' : ''
           console.log(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)

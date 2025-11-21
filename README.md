@@ -42,7 +42,8 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
     "no-undef": "off",
     "pear/no-apples": "error"
   },
-  "disableHolepunchGlobals": true
+  "disableHolepunchGlobals": true,
+  "typescript": true
 }
 ```
 
@@ -56,6 +57,10 @@ Command-line overrides are available for ad-hoc runs:
 ```sh
 lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
+
+### TypeScript (experimental)
+
+Set `"typescript": true` in `.lunterc` or pass `--typescript` to the CLI to opt into the experimental TypeScript/TSX parser powered by `@sveltejs/acorn-typescript`. When enabled, files ending in `.ts`, `.tsx`, `.cts`, `.mts`, or `.d.ts` are parsed with the plugin (JSX included) while vanilla `.js` files continue to use the vendored Acorn build. The spike only proves parsing for now—rules still assume plain JavaScript, so type-only constructs may trigger `no-undef`/`no-unused-vars` until we finish the follow-up phases.
 
 ### Plugins
 

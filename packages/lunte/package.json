@@ -12,6 +12,7 @@
     "test:bare": "brittle-bare \"test/**/*.test.js\"",
     "lint": "bin/lunte .",
     "vendor:acorn": "node scripts/vendor-acorn.js",
+    "vendor:acorn-typescript": "node scripts/vendor-acorn-typescript.js",
     "format": "cd ../.. && npm run format"
   },
   "keywords": [
