@@ -18,11 +18,11 @@
 ## Phase 3 – Solidify Parser + Traversal Support
 
 - [x] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
-- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; `no-unused-vars` now tracks TypeScript enums + namespaces/import= aliases. Still pending: namespace re-opening semantics, `import =` type-only variants, TSX nodes.)*
-- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. *(We now have valid + invalid fixtures for enums plus namespace/import= coverage in both `no-undef` and `no-unused-vars`; next gaps are namespaces that only exist via `declare`, decorators, JSX.)*
+- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. _(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; `no-unused-vars` now tracks TypeScript enums + namespaces/import= aliases. Still pending: namespace re-opening semantics, `import =` type-only variants, TSX nodes.)_
+- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. _(We now have valid + invalid fixtures for enums plus namespace/import= coverage in both `no-undef` and `no-unused-vars`; next gaps are namespaces that only exist via `declare`, decorators, JSX.)_
 
-## Phase 4 – Polish + Rollout
+### Immediate TODOs (Phase 3)
 
-- [ ] Extend user docs with setup guidance (supported extensions, lazy-loading behavior, optional dependency workflow).
-- [ ] Consider auto-enabling the TS parser when the project contains `.ts/.tsx` files, with an opt-out flag for JS-only repos.
-- [ ] Collect early-adopter feedback and line up future TS-aware rule ideas (e.g., `no-floating-promises` with type info).
+1. **Declare namespaces / module re-openings** – dedupe diagnostics for runtime namespace re-openings (✅) and add fixtures ensuring `declare namespace Foo {}` stays ambient-only for both `no-undef` and `no-unused-vars`.
+2. **Type-only `import =` aliases** – tests now confirm `import type Logger = require('node:fs')` is ignored by `no-unused-vars` (✅); still need broader coverage in `no-undef` once we expand ambient namespace handling.
+3. **TSX smoke test** – `.tsx` fixture wired into `typescript-parser.test.js` so we prove the parser path works (✅); next focus is adding JSX-focused rule fixtures (e.g. `no-undef` inside JSX expressions) to surface traversal gaps.

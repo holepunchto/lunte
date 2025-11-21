@@ -183,3 +183,22 @@ test('flags unused namespaces and import equals in TypeScript files', async (t) 
     'should report unused import equals'
   )
 })
+
+test('deduplicates diagnostics for reopened TypeScript namespaces', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-namespace-reopen-invalid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  const namespaceDiagnostics = result.diagnostics.filter((d) => d.message.includes('Internal'))
+  t.is(namespaceDiagnostics.length, 1, 'should report namespace only once')
+})
+
+test('ignores type-only import equals in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-import-equals-type-valid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})

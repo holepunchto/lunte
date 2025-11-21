@@ -15,3 +15,12 @@ test('analyze TypeScript fixture when experimental parser enabled', async (t) =>
 
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
+
+test('analyze TSX fixture when experimental parser enabled', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('typescript', 'basic.tsx')],
+    enableTypeScriptParser: true
+  })
+
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})

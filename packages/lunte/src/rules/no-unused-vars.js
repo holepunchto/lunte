@@ -11,9 +11,17 @@ export const noUnusedVars = {
   create(context) {
     const definedSymbols = new Map()
     const usedSymbols = new Set()
+    const mergedBindingNames = new Set()
 
-function defineBinding(name, node, hasRestSibling = false) {
+function defineBinding(name, node, options = {}) {
+  const { hasRestSibling = false, mergeByName = false } = options
   if (!name || !node) return
+  if (mergeByName) {
+    if (mergedBindingNames.has(name)) {
+      return
+    }
+    mergedBindingNames.add(name)
+  }
   definedSymbols.set(node, { name, node })
   // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
   if (shouldIgnoreName(name) || hasRestSibling) {
@@ -29,7 +37,7 @@ function defineBinding(name, node, hasRestSibling = false) {
     return {
       VariableDeclarator(node) {
         for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(node.id)) {
-          defineBinding(name, id, hasRestSibling)
+          defineBinding(name, id, { hasRestSibling })
           if (
             node.parent &&
             node.parent.parent &&
@@ -52,7 +60,7 @@ function defineBinding(name, node, hasRestSibling = false) {
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
@@ -75,14 +83,14 @@ function defineBinding(name, node, hasRestSibling = false) {
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
       ArrowFunctionExpression(node) {
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
@@ -112,7 +120,7 @@ function defineBinding(name, node, hasRestSibling = false) {
         if (!name) {
           return
         }
-        defineBinding(name, node.id)
+        defineBinding(name, node.id, { mergeByName: true })
         const parent = context.getParent()
         if (isExportedDeclaration(node, parent)) {
           markUsed(name)
