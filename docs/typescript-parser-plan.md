@@ -18,7 +18,7 @@
 ## Phase 3 – Solidify Parser + Traversal Support
 
 - [x] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
-- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier filtering and type-only import handling have landed; scope tweaks for enums/namespaces and `import=` remain.)*
+- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; remaining work covers namespace scoping rules, `import =` type-only variants, and TSX nodes.)*
 - [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. *(First TS-facing rule test added for `no-undef`; need additional fixtures for enums, namespaces, JSX.)*
 
 ## Phase 4 – Polish + Rollout

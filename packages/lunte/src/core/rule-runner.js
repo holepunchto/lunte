@@ -262,6 +262,39 @@ function handleInScopeDeclarations(node, scopeManager) {
       })
     )
   }
+
+  if (node.type === 'TSImportEqualsDeclaration' && node.id && node.importKind !== 'type') {
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'import',
+        hoisted: true
+      })
+    )
+  }
+
+  if (node.type === 'TSEnumDeclaration' && node.id && !node.declare) {
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'ts-enum',
+        hoisted: false
+      })
+    )
+  }
+
+  if (node.type === 'TSModuleDeclaration' && !node.declare) {
+    const name = getTSModuleIdentifier(node.id)
+    if (name) {
+      scopeManager.declare(
+        name,
+        createDeclarationInfo(node.id, {
+          kind: 'ts-module',
+          hoisted: false
+        })
+      )
+    }
+  }
 }
 
 function hoistFunctionDeclarations(node, scopeManager) {
@@ -499,9 +532,22 @@ function isReferenceInContext(node, parent, ancestors) {
       return false
     case 'AssignmentPattern':
       return parent.left !== node
+    case 'TSEnumDeclaration':
+    case 'TSEnumMember':
+    case 'TSModuleDeclaration':
+    case 'TSImportEqualsDeclaration':
+      return false
     default:
       return true
   }
+}
+
+function getTSModuleIdentifier(id) {
+  if (!id) return null
+  if (id.type === 'Identifier') {
+    return id.name
+  }
+  return null
 }
 
 function extractPatternIdentifiers(pattern, containerEnd) {

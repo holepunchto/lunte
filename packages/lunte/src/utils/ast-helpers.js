@@ -68,6 +68,11 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
         return false
       }
       return true
+    case 'TSEnumMember':
+    case 'TSEnumDeclaration':
+    case 'TSModuleDeclaration':
+    case 'TSImportEqualsDeclaration':
+      return parent.id !== node
     default:
       return true
   }
