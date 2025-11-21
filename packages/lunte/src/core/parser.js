@@ -50,7 +50,7 @@ function isTypeScriptLike(filePath) {
   return isDeclarationFile(filePath)
 }
 
-function isDeclarationFile(filePath) {
+export function isDeclarationFile(filePath) {
   if (!filePath) {
     return false
   }

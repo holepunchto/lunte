@@ -142,3 +142,19 @@ test('flags runtime usage of type-only import equals aliases', async (t) => {
   })
   t.ok(result.diagnostics.some((d) => d.message.includes('Logger')), 'type-only import equals should not introduce runtime symbols')
 })
+
+test('respects ambient globals declared in .d.ts files', async (t) => {
+  const result = await analyze({
+    files: [
+      fixturePath('no-undef-typescript-ambient-script.d.ts'),
+      fixturePath('no-undef-typescript-ambient-module.d.ts'),
+      fixturePath('no-undef-typescript-ambient-consumer.ts')
+    ],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  const consumerDiagnostics = result.diagnostics.filter((d) =>
+    d.filePath.endsWith('no-undef-typescript-ambient-consumer.ts')
+  )
+  t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
+})
