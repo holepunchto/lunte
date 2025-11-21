@@ -83,3 +83,12 @@ test('allows modern ES2021+ and Node.js globals', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('ignores type-only identifiers in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-valid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})

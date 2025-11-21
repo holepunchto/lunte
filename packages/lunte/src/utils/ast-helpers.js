@@ -1,6 +1,10 @@
 export function isReferenceIdentifier(node, parent, ancestors = []) {
   if (!parent) return true
 
+  if (isTypeOnlyIdentifier(node, parent, ancestors)) {
+    return false
+  }
+
   const parentIndex = ancestors.length - 1
   const grandparent = parentIndex > 0 ? ancestors[parentIndex - 1] : null
 
@@ -67,4 +71,85 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
     default:
       return true
   }
+}
+
+const TS_TYPE_ONLY_PARENTS = new Set([
+  'TSTypeAliasDeclaration',
+  'TSInterfaceDeclaration',
+  'TSInterfaceBody',
+  'TSTypeAnnotation',
+  'TSTypeReference',
+  'TSQualifiedName',
+  'TSTypeLiteral',
+  'TSPropertySignature',
+  'TSMethodSignature',
+  'TSIndexSignature',
+  'TSCallSignatureDeclaration',
+  'TSConstructSignatureDeclaration',
+  'TSExpressionWithTypeArguments',
+  'TSArrayType',
+  'TSTupleType',
+  'TSOptionalType',
+  'TSRestType',
+  'TSUnionType',
+  'TSIntersectionType',
+  'TSTypeQuery',
+  'TSImportType',
+  'TSInferType',
+  'TSConditionalType',
+  'TSMappedType',
+  'TSParenthesizedType',
+  'TSLiteralType',
+  'TSTypeOperator',
+  'TSTypeParameter',
+  'TSTypeParameterDeclaration',
+  'TSTypeParameterInstantiation',
+  'TSFunctionType',
+  'TSConstructorType',
+  'TSDeclareFunction'
+])
+
+const TS_RUNTIME_WRAPPER_PARENTS = new Set([
+  'TSAsExpression',
+  'TSNonNullExpression',
+  'TSInstantiationExpression',
+  'TSExportAssignment'
+])
+
+function isTypeOnlyIdentifier(node, parent, ancestors = []) {
+  if (!parent || typeof parent.type !== 'string') {
+    return false
+  }
+
+  if (TS_RUNTIME_WRAPPER_PARENTS.has(parent.type)) {
+    return false
+  }
+
+  if (parent.type === 'TSExpressionWithTypeArguments') {
+    const firstNonTSAncestor = findFirstNonTSAncestor(ancestors)
+    if (firstNonTSAncestor && (firstNonTSAncestor.type === 'ClassDeclaration' || firstNonTSAncestor.type === 'ClassExpression')) {
+      return false
+    }
+    return true
+  }
+
+  if (parent.type === 'TSQualifiedName') {
+    return true
+  }
+
+  if (TS_TYPE_ONLY_PARENTS.has(parent.type)) {
+    return true
+  }
+
+  return false
+}
+
+function findFirstNonTSAncestor(ancestors = []) {
+  for (let i = ancestors.length - 1; i >= 0; i -= 1) {
+    const ancestor = ancestors[i]
+    if (ancestor && typeof ancestor.type === 'string' && !ancestor.type.startsWith('TS')) {
+      return ancestor
+    }
+  }
+  return null
 }

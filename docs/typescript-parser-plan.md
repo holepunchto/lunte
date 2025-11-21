@@ -6,18 +6,20 @@
 - [x] Introduce a parser manager module that returns either vanilla Acorn or a TypeScript-capable parser based on file extension plus the new option; for now stub the TS path with a clear "not implemented" error so the flag is testable.
 - [x] Update documentation (`README.md`, `docs/vendor.md`) to mention the new config knob and note that TS parsing is behind an experimental flag until the spike lands.
 
-## Phase 2 – Spike: @sveltejs/acorn-typescript
+## Phase 2 – Spike: @sveltejs/acorn-typescript ✅
 
 - [x] Install `@sveltejs/acorn-typescript` + `acorn@8.15.0`, extend the parser manager to lazy-load the plugin, and gate it behind the `typescript` flag + `.ts/.tsx/.cts/.mts/.d.ts` extensions.
 - [x] Added a `test/typescript-parser.test.js` smoke test plus `.ts` fixture and ran `npm run test --workspace=lunte` to confirm parsing succeeds.
-- [ ] Document findings from the spike: which rules break, any scope/AST quirks, and rough performance observations.
-  - Initial notes: parsing `.ts` now works, but type-only identifiers (e.g., inline object type keys) surface as `Identifier` nodes and trip `no-undef`; `.tsx` is untested; TypeScript mode currently relies on the npm `acorn` copy that ships alongside the plugin until we vendor it.
+- [x] Document findings from the spike: which rules break, any scope/AST quirks, and rough performance observations.
+  - Type-only identifiers (type aliases, interface members, generic params) originally surfaced as runtime references, so they tripped `no-undef` until we added TypeScript-specific filtering.
+  - `.tsx` parsing, enums/namespaces, and type-only imports/exports still need bespoke handling (currently they would either parse as plain JS or count toward `no-unused-vars`).
+  - Vendoring the plugin requires patching its Acorn import to the local `vendor/acorn` tree; the new `vendor:acorn-typescript` script automates that.
 
 ## Phase 3 – Solidify Parser + Traversal Support
 
-- [ ] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
-- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc.
-- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes.
+- [x] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
+- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier filtering has landed; scope tweaks for enums/namespaces/import-kind remain.)*
+- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. *(First TS-facing rule test added for `no-undef`; need additional fixtures for enums, namespaces, JSX.)*
 
 ## Phase 4 – Polish + Rollout
 
