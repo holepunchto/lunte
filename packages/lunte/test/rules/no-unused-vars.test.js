@@ -140,3 +140,12 @@ test('ignores rest siblings (ignoreRestSiblings)', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('ignores type-only imports in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-valid.ts')],
+    ruleOverrides: BASE_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})

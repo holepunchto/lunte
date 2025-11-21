@@ -236,7 +236,12 @@ function handleInScopeDeclarations(node, scopeManager) {
   }
 
   if (node.type === 'ImportDeclaration') {
+    const declarationKind = node.importKind === 'type' ? 'type' : 'value'
     for (const specifier of node.specifiers) {
+      const specifierKind = specifier.importKind ?? declarationKind
+      if (specifierKind === 'type') {
+        continue
+      }
       const local = specifier.local
       scopeManager.declare(
         local.name,
