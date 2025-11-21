@@ -104,6 +104,29 @@ function defineBinding(name, node, hasRestSibling = false) {
           markUsed(node.id.name)
         }
       },
+      TSModuleDeclaration(node) {
+        if (node.declare) {
+          return
+        }
+        const name = getTSModuleName(node.id)
+        if (!name) {
+          return
+        }
+        defineBinding(name, node.id)
+        const parent = context.getParent()
+        if (isExportedDeclaration(node, parent)) {
+          markUsed(name)
+        }
+      },
+      TSImportEqualsDeclaration(node) {
+        if (!node?.id || node.importKind === 'type') {
+          return
+        }
+        defineBinding(node.id.name, node.id)
+        if (node.isExport) {
+          markUsed(node.id.name)
+        }
+      },
       ExportNamedDeclaration(node) {
         if (node.declaration) {
           if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id) {
@@ -215,6 +238,17 @@ function isExportedDeclaration(node, parent) {
     return true
   }
   return false
+}
+
+function getTSModuleName(id) {
+  if (!id) return null
+  if (id.type === 'Identifier') {
+    return id.name
+  }
+  if (id.type === 'Literal' && typeof id.value === 'string') {
+    return id.value
+  }
+  return null
 }
 
 function isCommonJsExported(functionNode, context) {

@@ -18,8 +18,8 @@
 ## Phase 3 – Solidify Parser + Traversal Support
 
 - [x] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
-- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; `no-unused-vars` now tracks TypeScript enums. Still pending: namespace scoping rules, `import =` type-only variants, TSX nodes.)*
-- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. *(We now have valid + invalid fixtures for `no-undef` and `no-unused-vars` enums; next gaps are namespaces, decorators, JSX.)*
+- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. *(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; `no-unused-vars` now tracks TypeScript enums + namespaces/import= aliases. Still pending: namespace re-opening semantics, `import =` type-only variants, TSX nodes.)*
+- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. *(We now have valid + invalid fixtures for enums plus namespace/import= coverage in both `no-undef` and `no-unused-vars`; next gaps are namespaces that only exist via `declare`, decorators, JSX.)*
 
 ## Phase 4 – Polish + Rollout
 

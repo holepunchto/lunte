@@ -158,3 +158,28 @@ test('flags unused enums in TypeScript files', async (t) => {
   })
   t.ok(result.diagnostics.some((d) => d.ruleId === 'no-unused-vars'), 'should report unused enum')
 })
+
+test('handles namespaces and import equals in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-namespace-valid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('flags unused namespaces and import equals in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-namespace-invalid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(
+    result.diagnostics.some((d) => d.message.includes('Internal')),
+    'should report unused namespace'
+  )
+  t.ok(
+    result.diagnostics.some((d) => d.message.includes('Logger')),
+    'should report unused import equals'
+  )
+})
