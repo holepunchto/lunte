@@ -158,3 +158,21 @@ test('respects ambient globals declared in .d.ts files', async (t) => {
   )
   t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
 })
+
+test('treats decorator expressions as runtime references', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-decorators.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('flags undeclared decorators in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-decorators-invalid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('logCall')))
+})

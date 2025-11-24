@@ -202,3 +202,21 @@ test('ignores type-only import equals in TypeScript files', async (t) => {
   })
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
+
+test('counts decorator usages as references in TypeScript files', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-decorators.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('still reports unused decorator definitions', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-unused-vars-typescript-decorators-invalid.ts')],
+    ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('unused')))
+})
