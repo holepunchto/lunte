@@ -121,6 +121,14 @@ const TS_RUNTIME_WRAPPER_PARENTS = new Set([
   'TSExportAssignment'
 ])
 
+const TYPE_CONTEXT_SKIPPABLE = new Set([
+  'Identifier',
+  'RestElement',
+  'ObjectPattern',
+  'ArrayPattern',
+  'AssignmentPattern'
+])
+
 function isTypeOnlyIdentifier(node, parent, ancestors = []) {
   if (!parent || typeof parent.type !== 'string') {
     return false
@@ -144,6 +152,22 @@ function isTypeOnlyIdentifier(node, parent, ancestors = []) {
 
   if (TS_TYPE_ONLY_PARENTS.has(parent.type)) {
     return true
+  }
+
+  // Walk upwards: if we hit a TS node before we hit a "real" runtime node,
+  // treat this identifier as type-only. Skip harmless wrapper nodes.
+  for (let i = ancestors.length - 1; i >= 0; i -= 1) {
+    const ancestor = ancestors[i]
+    if (!ancestor || typeof ancestor.type !== 'string') continue
+    if (ancestor.type.startsWith('TS')) {
+      if (TS_RUNTIME_WRAPPER_PARENTS.has(ancestor.type)) {
+        return false
+      }
+      return true
+    }
+    if (!TYPE_CONTEXT_SKIPPABLE.has(ancestor.type)) {
+      return false
+    }
   }
 
   return false

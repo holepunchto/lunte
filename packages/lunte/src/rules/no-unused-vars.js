@@ -94,6 +94,17 @@ function defineBinding(name, node, options = {}) {
           }
         }
       },
+      JSXOpeningElement(node) {
+        const name = extractJSXIdentifier(node.name)
+        if (name) markUsed(name)
+      },
+      JSXClosingElement(node) {
+        const name = extractJSXIdentifier(node.name)
+        if (name) markUsed(name)
+      },
+      JSXIdentifier(node) {
+        markUsed(node.name)
+      },
       Identifier(node) {
         const parent = context.getParent()
         const ancestors = context.getAncestors()
@@ -231,6 +242,20 @@ function extractPatternIdentifiers(pattern, options = {}) {
   }
 
   return results
+}
+
+function extractJSXIdentifier(nameNode) {
+  if (!nameNode) return null
+  switch (nameNode.type) {
+    case 'JSXIdentifier':
+      return nameNode.name
+    case 'JSXMemberExpression':
+      return extractJSXIdentifier(nameNode.object)
+    case 'JSXNamespacedName':
+      return nameNode.namespace?.name ?? null
+    default:
+      return null
+  }
 }
 
 function shouldIgnoreName(name) {

@@ -158,6 +158,8 @@ export const ENV_GLOBALS = {
     'document',
     'navigator',
     'location',
+    'Audio',
+    'MediaSource',
     'HTMLElement',
     'SVGElement',
     'EventTarget',

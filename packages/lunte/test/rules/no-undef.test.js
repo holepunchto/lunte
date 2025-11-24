@@ -101,7 +101,10 @@ test('ignores type-only identifiers in TypeScript files', async (t) => {
 test('handles enums, namespaces, and import equals in TypeScript', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-declarations.ts')],
-    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    ruleOverrides: [
+      { name: 'no-use-before-define', severity: 'off' },
+      { name: 'no-unused-vars', severity: 'off' }
+    ],
     enableTypeScriptParser: true
   })
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
