@@ -66,9 +66,13 @@ export async function run(argv = []) {
   const cwd = process.cwd()
   const { config } = await loadConfig({ cwd })
   const ignoreMatcher = await loadIgnore({ cwd })
-  const resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
+  const enableTypeScriptParser = Boolean(config.typescript) || Boolean(parser.flags.typescript)
+  const resolvedFiles = await resolveFileTargets(files, {
+    ignore: ignoreMatcher,
+    includeTypeScript: enableTypeScriptParser
+  })
   if (resolvedFiles.length === 0) {
-    console.error('No JavaScript files found.')
+    console.error('No matching source files found.')
     return 1
   }
 
@@ -77,7 +81,6 @@ export async function run(argv = []) {
   const mergedRuleOverrides = mergeRuleOverrides(config.rules, parseRules(parser.flags.rule))
   const mergedPlugins = safeMerge(config.plugins, parseList(parser.flags.plugin))
   const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
-  const enableTypeScriptParser = Boolean(config.typescript) || Boolean(parser.flags.typescript)
 
   const verbose = Boolean(parser.flags.verbose)
   if (verbose) {

@@ -119,3 +119,30 @@ test('nested .lunteignore files only affect their subtree', async (t) => {
     'sibling directories without ignore should be scanned'
   )
 })
+
+test('resolveFileTargets includes TypeScript files when enabled', async (t) => {
+  const dir = await withTempDir(t, {
+    'src/app.ts': 'export const value = 1\n',
+    'src/view.tsx': 'export function View() { return <div /> }\n',
+    'src/only.js': 'export {}\n',
+    'types/global.d.ts': 'declare const foo: string\n'
+  })
+
+  const matcher = await loadIgnore({ cwd: dir })
+  const jsOnly = await resolveFileTargets(['.'], { cwd: dir, ignore: matcher })
+  t.ok(jsOnly.some((file) => file.endsWith('src/only.js')), 'should keep js file by default')
+  t.is(
+    jsOnly.some((file) => file.endsWith('src/app.ts')),
+    false,
+    'should skip ts files without flag'
+  )
+
+  const tsEnabled = await resolveFileTargets(['.'], {
+    cwd: dir,
+    ignore: matcher,
+    includeTypeScript: true
+  })
+  t.ok(tsEnabled.some((file) => file.endsWith('src/app.ts')), 'should include .ts when enabled')
+  t.ok(tsEnabled.some((file) => file.endsWith('src/view.tsx')), 'should include .tsx when enabled')
+  t.ok(tsEnabled.some((file) => file.endsWith('types/global.d.ts')), 'should include .d.ts when enabled')
+})

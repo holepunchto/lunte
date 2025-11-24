@@ -27,3 +27,14 @@
 2. **Type-only `import =` aliases** – tests now confirm `import type Logger = require('node:fs')` is ignored by `no-unused-vars` and flagged by `no-undef` when used at runtime (✅). Next: ensure namespace exports that re-export type-only aliases don't accidentally create runtime bindings.
 3. **TSX smoke test** – `.tsx` fixture wired into `typescript-parser.test.js` so we prove the parser path works (✅); next focus is adding JSX-focused rule fixtures (e.g. `no-undef` inside JSX expressions) to surface traversal gaps.
 4. **Decorators** – Added valid/invalid fixtures plus regression tests for `no-undef` and `no-unused-vars` to prove decorators behave like runtime references (✅). Pausing JSX-specific work per plan until we revisit Phase 3’s TSX tasks.
+
+## Parser Strategy Check-In
+
+The JS and TS parser paths still share the same manager (`src/core/parser.js`), but we intentionally keep them split behind the `--typescript` flag for now:
+
+- **Risk containment** – Defaulting to the TS parser for everyone would change AST node shapes (e.g., decorators, TS nodes on class members) even in `.js` files, so gating lets us harden traversal/rules first.
+- **Performance knobs** – Plain Acorn remains faster for JS-only projects; once the TS path proves stable we can revisit auto-detection or a unified default.
+- **Scoped vendoring** – `@sveltejs/acorn-typescript` is vendored and lazily loaded; a unified parser would force every run to pay that cost even when linting vanilla JS.
+- **Future convergence** – After we finish TSX traversal + ambient-global ingestion, we can reassess by running the entire JS suite through the TS parser to surface any regressions. If the delta is negligible we can collapse the code paths and retire the flag.
+
+So for Phase 3 we’ll keep both parser flavors but keep shrinking the diff (shared traversal, shared rule logic) so flipping the default later becomes a low-risk change.
