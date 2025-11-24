@@ -9,6 +9,11 @@ export const noUnusedVars = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    if (context.filePath && context.filePath.endsWith('.d.ts')) {
+      // Ambient declaration files only declare shapes; skip runtime unused checks.
+      return {}
+    }
+
     const definedSymbols = new Map()
     const usedSymbols = new Set()
     const mergedBindingNames = new Set()
