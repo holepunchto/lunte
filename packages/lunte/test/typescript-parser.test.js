@@ -36,58 +36,24 @@ function runCli(args, env = {}) {
   })
 }
 
-test('analyze TypeScript fixture when experimental parser enabled', async (t) => {
-  const result = await analyze({
-    files: [fixturePath('typescript', 'basic.ts')],
-    enableTypeScriptParser: true
-  })
-
+test('analyzes TypeScript fixture automatically', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'basic.ts')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
 
-test('analyze TSX fixture when experimental parser enabled', async (t) => {
-  const result = await analyze({
-    files: [fixturePath('typescript', 'basic.tsx')],
-    enableTypeScriptParser: true
-  })
-
+test('analyzes TSX fixture automatically', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'basic.tsx')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
 
-test('JS with type annotations fails without JS toggle', async (t) => {
-  const result = await analyze({
-    files: [fixturePath('typescript', 'typed-js.js')],
-    enableTypeScriptParser: true
-  })
-
+test('JS with type annotations still fails (parsed as JS)', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'typed-js.js')] })
   t.ok(result.diagnostics.length > 0, 'should report a parse error')
   t.ok(/unexpected/i.test(result.diagnostics[0].message))
 })
 
-test('JS with type annotations parses when JS toggle enabled', async (t) => {
-  const result = await analyze({
-    files: [fixturePath('typescript', 'typed-js.js')],
-    enableTypeScriptParser: true,
-    enableTypeScriptParserForJS: true
-  })
-
+test('JSX parses automatically with TS parser', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'typed-jsx.jsx')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
 
-test('JSX parses with TypeScript parser when JS toggle enabled', async (t) => {
-  const result = await analyze({
-    files: [fixturePath('typescript', 'typed-jsx.jsx')],
-    enableTypeScriptParser: true,
-    enableTypeScriptParserForJS: true
-  })
-
-  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
-})
-
-test('CLI env LUNTE_FORCE_TS_PARSER uses TypeScript parser for JS inputs', async (t) => {
-  const result = await runCli([fixturePath('typescript', 'typed-js.js')], { LUNTE_FORCE_TS_PARSER: '1' })
-
-  t.is(result.code, 0)
-  t.ok(/No issues/.test(result.stdout))
-  t.is(result.stderr, '')
-})

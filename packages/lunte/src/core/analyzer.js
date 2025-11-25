@@ -2,7 +2,7 @@ import process from 'process'
 import { readFile, readdir, stat } from 'fs/promises'
 import { basename, dirname, join } from 'path'
 
-import { parse, isDeclarationFile } from './parser.js'
+import { parse, isDeclarationFile, isTypeScriptLike, isJsxFile } from './parser.js'
 import { resolveConfig } from '../config/resolve.js'
 import { ENV_GLOBALS } from '../config/envs.js'
 import { extractFileDirectives } from './file-directives.js'
@@ -16,10 +16,7 @@ export async function analyze({
   globalOverrides,
   sourceText,
   onFileComplete,
-  disableHolepunchGlobals = false,
-  enableTypeScriptParser = false,
-  enableTypeScriptParserForJS = false,
-  enableDependencyAmbientGlobals = false
+  disableHolepunchGlobals = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -30,11 +27,9 @@ export async function analyze({
   })
 
   const sourceOverrides = normalizeSourceOverrides(sourceText)
-  const ambientGlobals = enableTypeScriptParser
-    ? await collectAmbientGlobals(files, {
-        sourceOverrides,
-        includeDependencies: enableDependencyAmbientGlobals
-      })
+  const needsTypeScript = files.some((file) => isTypeScriptLike(file) || isJsxFile(file))
+  const ambientGlobals = needsTypeScript
+    ? await collectAmbientGlobals(files, { sourceOverrides, includeDependencies: needsTypeScript })
     : new Set()
 
   for (const file of files) {
@@ -42,8 +37,6 @@ export async function analyze({
       ruleConfig,
       baseGlobals,
       sourceOverrides,
-      enableTypeScriptParser,
-      enableTypeScriptParserForJS,
       ambientGlobals
     })
     diagnostics.push(...result.diagnostics)
@@ -61,14 +54,7 @@ export async function analyze({
 
 async function analyzeFile(
   filePath,
-  {
-    ruleConfig,
-    baseGlobals,
-    sourceOverrides,
-    enableTypeScriptParser,
-    enableTypeScriptParserForJS,
-    ambientGlobals
-  }
+  { ruleConfig, baseGlobals, sourceOverrides, ambientGlobals }
 ) {
   const diagnostics = []
   let source
@@ -124,8 +110,6 @@ async function analyzeFile(
       const comments = []
       const ast = parse(source, {
         filePath,
-        enableTypeScriptParser,
-        forceTypeScriptParserForJS: enableTypeScriptParserForJS,
         sourceFile: filePath,
         onComment: comments
       })

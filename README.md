@@ -42,8 +42,7 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
   "no-undef": "off",
   "pear/no-apples": "error"
  },
- "disableHolepunchGlobals": true,
- "typescript": true
+ "disableHolepunchGlobals": true
 }
 ```
 

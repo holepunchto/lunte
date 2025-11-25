@@ -69,11 +69,5 @@ function normalizeConfig(config) {
   if (config?.disableHolepunchGlobals !== undefined) {
     result.disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
   }
-  if (config?.typescript !== undefined) {
-    result.typescript = Boolean(config.typescript)
-  }
-  if (config?.experimental__enableTSAmbientGlobals !== undefined) {
-    result.experimental__enableTSAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
-  }
   return result
 }

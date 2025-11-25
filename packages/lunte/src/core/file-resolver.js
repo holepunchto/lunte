@@ -4,15 +4,11 @@ import { join, extname, resolve, relative, isAbsolute } from 'path'
 
 import { hasMagic, globToRegExp, toPosix } from './glob.js'
 
-const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs'])
-const JSX_EXTENSIONS = new Set(['.jsx'])
-const TS_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.mts'])
+const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.jsx'])
+const TS_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.mts', '.d.ts', '.d.mts', '.d.cts'])
 const LINTABLE_FILES = new Set(['package.json'])
 
-export async function resolveFileTargets(
-  inputs,
-  { ignore, cwd = process.cwd(), includeTypeScript = false, includeJsx = false } = {}
-) {
+export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() } = {}) {
   const files = new Set()
   const ignoreMatcher = ignore ?? { ignores: () => false }
 
@@ -28,16 +24,12 @@ export async function resolveFileTargets(
         matcher: { regex, absolute: absolutePattern },
         files,
         ignore: ignoreMatcher,
-        cwd,
-        includeTypeScript,
-        includeJsx
+        cwd
       })
     } else {
       await collectPath(resolvePath(cwd, input), {
         files,
-        ignore: ignoreMatcher,
-        includeTypeScript,
-        includeJsx
+        ignore: ignoreMatcher
       })
     }
   }
@@ -45,7 +37,7 @@ export async function resolveFileTargets(
   return Array.from(files)
 }
 
-async function collectPath(resolved, { files, ignore, includeTypeScript, includeJsx }) {
+async function collectPath(resolved, { files, ignore }) {
   let info
   try {
     info = await stat(resolved)
@@ -64,7 +56,7 @@ async function collectPath(resolved, { files, ignore, includeTypeScript, include
 
   if (isDir) {
     const nextIgnore = await extendIgnore(ignore, resolved)
-    await collectDirectory(resolved, { files, ignore: nextIgnore, includeTypeScript, includeJsx })
+    await collectDirectory(resolved, { files, ignore: nextIgnore })
     return
   }
 
@@ -73,7 +65,7 @@ async function collectPath(resolved, { files, ignore, includeTypeScript, include
   }
 }
 
-async function collectDirectory(dir, { files, ignore, includeTypeScript, includeJsx }) {
+async function collectDirectory(dir, { files, ignore }) {
   if (shouldIgnore(ignore, dir, { isDir: true })) {
     return
   }
@@ -89,14 +81,14 @@ async function collectDirectory(dir, { files, ignore, includeTypeScript, include
     }
 
     if (isDir) {
-      await collectDirectory(fullPath, { files, ignore: dirIgnore, includeTypeScript, includeJsx })
-    } else if (entry.isFile() && isLintableFile(fullPath, includeTypeScript, includeJsx)) {
+      await collectDirectory(fullPath, { files, ignore: dirIgnore })
+    } else if (entry.isFile() && isLintableFile(fullPath)) {
       files.add(fullPath)
     }
   }
 }
 
-async function collectGlob({ baseDir, matcher, files, ignore, cwd, includeTypeScript, includeJsx }) {
+async function collectGlob({ baseDir, matcher, files, ignore, cwd }) {
   let info
   try {
     info = await stat(baseDir)
@@ -112,17 +104,17 @@ async function collectGlob({ baseDir, matcher, files, ignore, cwd, includeTypeSc
     if (
       !ignore.ignores?.(baseDir, { isDir: false }) &&
       matcher.regex.test(candidate) &&
-      isLintableFile(baseDir, includeTypeScript, includeJsx)
+      isLintableFile(baseDir)
     ) {
       files.add(baseDir)
     }
     return
   }
 
-  await walkGlob(baseDir, { matcher, files, ignore, cwd, includeTypeScript, includeJsx })
+  await walkGlob(baseDir, { matcher, files, ignore, cwd })
 }
 
-async function walkGlob(dir, { matcher, files, ignore, cwd, includeTypeScript, includeJsx }) {
+async function walkGlob(dir, { matcher, files, ignore, cwd }) {
   if (shouldIgnore(ignore, dir, { isDir: true })) {
     return
   }
@@ -139,7 +131,7 @@ async function walkGlob(dir, { matcher, files, ignore, cwd, includeTypeScript, i
     }
 
     if (isDir) {
-      await walkGlob(fullPath, { matcher, files, ignore: dirIgnore, cwd, includeTypeScript, includeJsx })
+      await walkGlob(fullPath, { matcher, files, ignore: dirIgnore, cwd })
       continue
     }
 
@@ -152,41 +144,23 @@ async function walkGlob(dir, { matcher, files, ignore, cwd, includeTypeScript, i
       continue
     }
 
-    if (isLintableFile(fullPath, includeTypeScript, includeJsx)) {
+    if (isLintableFile(fullPath)) {
       files.add(fullPath)
     }
   }
 }
 
-function isJavaScriptFile(filePath, includeJsx = false) {
-  const extension = extname(filePath).toLowerCase()
-  if (JS_EXTENSIONS.has(extension)) {
-    return true
-  }
-  if (includeJsx && JSX_EXTENSIONS.has(extension)) {
-    return true
-  }
-  return false
-}
-
-function isTypeScriptFile(filePath) {
-  const extension = extname(filePath).toLowerCase()
-  if (extension === '.ts' && filePath.toLowerCase().endsWith('.d.ts')) {
-    return true
-  }
-  return TS_EXTENSIONS.has(extension)
-}
-
-function isLintableFile(filePath, includeTypeScript, includeJsx) {
+function isLintableFile(filePath) {
   const fileName = filePath.split('/').pop().split('\\').pop()
   if (LINTABLE_FILES.has(fileName)) {
     return true
   }
-  if (isJavaScriptFile(filePath, includeJsx)) {
+  const extension = extname(filePath).toLowerCase()
+  if (JS_EXTENSIONS.has(extension)) {
     return true
   }
-  if (includeTypeScript) {
-    return isTypeScriptFile(filePath)
+  if (TS_EXTENSIONS.has(extension)) {
+    return true
   }
   return false
 }

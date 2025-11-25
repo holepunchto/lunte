@@ -32,9 +32,6 @@ let cachedRuleOverrides = []
 let cachedEnvOverrides = []
 let cachedGlobalOverrides = []
 let cachedPlugins = []
-let cachedEnableTypeScriptParser = false
-let cachedEnableTypeScriptParserForJS = false
-let cachedEnableDependencyAmbientGlobals = false
 let ignoreMatcher = createIgnoreMatcher()
 
 connection.onRequest('initialize', handleInitialize)
@@ -150,11 +147,6 @@ async function refreshWorkspaceState() {
       ? Object.entries(config.rules).map(([name, severity]) => ({ name, severity }))
       : []
     cachedPlugins = Array.isArray(config?.plugins) ? config.plugins : []
-
-    const forceTypeScriptParserForJS = parseEnvBoolean(process.env.LUNTE_FORCE_TS_PARSER)
-    cachedEnableTypeScriptParserForJS = forceTypeScriptParserForJS
-    cachedEnableTypeScriptParser = forceTypeScriptParserForJS || Boolean(config?.typescript)
-    cachedEnableDependencyAmbientGlobals = Boolean(config?.experimental__enableTSAmbientGlobals)
   } catch (error) {
     // Surfacing config failures via diagnostics would be noisy; log to stderr for now.
     log(`Failed to load config: ${error.message}`)
@@ -162,9 +154,6 @@ async function refreshWorkspaceState() {
     cachedGlobalOverrides = []
     cachedRuleOverrides = []
     cachedPlugins = []
-    cachedEnableTypeScriptParser = false
-    cachedEnableTypeScriptParserForJS = false
-    cachedEnableDependencyAmbientGlobals = false
   }
 
   await loadPlugins(cachedPlugins, {
@@ -197,10 +186,7 @@ async function validateDocument(uri) {
       ruleOverrides: cachedRuleOverrides,
       envOverrides: cachedEnvOverrides,
       globalOverrides: cachedGlobalOverrides,
-      sourceText: new Map([[doc.filePath, doc.text]]),
-      enableTypeScriptParser: cachedEnableTypeScriptParser,
-      enableTypeScriptParserForJS: cachedEnableTypeScriptParserForJS,
-      enableDependencyAmbientGlobals: cachedEnableDependencyAmbientGlobals
+      sourceText: new Map([[doc.filePath, doc.text]])
     })
 
     const lspDiagnostics = diagnostics.map((diagnostic) =>
@@ -224,12 +210,6 @@ function publishDiagnostics(uri, diagnostics) {
     uri,
     diagnostics
   })
-}
-
-function parseEnvBoolean(value) {
-  if (value === undefined) return false
-  const normalized = String(value).toLowerCase()
-  return normalized === '1' || normalized === 'true' || normalized === 'yes'
 }
 
 function convertToLspDiagnostic(diagnostic, sourceText) {
