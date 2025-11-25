@@ -354,11 +354,23 @@ async function collectAmbientFromPackage(pkgDir, target, processedFiles, { sourc
   }
 
   candidatePaths.add(join(pkgDir, 'index.d.ts'))
+  candidatePaths.add(join(pkgDir, 'index.d.mts'))
+  candidatePaths.add(join(pkgDir, 'index.d.cts'))
   candidatePaths.add(join(pkgDir, 'global.d.ts'))
+  candidatePaths.add(join(pkgDir, 'global.d.mts'))
+  candidatePaths.add(join(pkgDir, 'global.d.cts'))
   candidatePaths.add(join(pkgDir, 'globals.d.ts'))
+  candidatePaths.add(join(pkgDir, 'globals.d.mts'))
+  candidatePaths.add(join(pkgDir, 'globals.d.cts'))
   candidatePaths.add(join(pkgDir, 'types', 'index.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'index.d.mts'))
+  candidatePaths.add(join(pkgDir, 'types', 'index.d.cts'))
   candidatePaths.add(join(pkgDir, 'types', 'global.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'global.d.mts'))
+  candidatePaths.add(join(pkgDir, 'types', 'global.d.cts'))
   candidatePaths.add(join(pkgDir, 'types', 'globals.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'globals.d.mts'))
+  candidatePaths.add(join(pkgDir, 'types', 'globals.d.cts'))
 
   if (pkg.name && String(pkg.name).startsWith('@types/')) {
     candidatePaths.add(join(pkgDir, 'index.d.ts'))
@@ -395,7 +407,7 @@ async function collectAmbientFromDeclarationFile(filePath, target, processedFile
     return
   }
 
-  if (!filePath.toLowerCase().endsWith('.d.ts')) {
+  if (!isDeclarationFile(filePath)) {
     return
   }
 

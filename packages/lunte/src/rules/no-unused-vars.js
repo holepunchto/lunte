@@ -1,4 +1,5 @@
 import { Severity } from '../core/constants.js'
+import { isDeclarationFile } from '../core/parser.js'
 import { isReferenceIdentifier } from '../utils/ast-helpers.js'
 
 export const noUnusedVars = {
@@ -9,7 +10,7 @@ export const noUnusedVars = {
     defaultSeverity: Severity.error
   },
   create(context) {
-    if (context.filePath && context.filePath.endsWith('.d.ts')) {
+    if (isDeclarationFile(context.filePath)) {
       // Ambient declaration files only declare shapes; skip runtime unused checks.
       return {}
     }
@@ -106,9 +107,6 @@ function defineBinding(name, node, options = {}) {
       JSXClosingElement(node) {
         const name = extractJSXIdentifier(node.name)
         if (name) markUsed(name)
-      },
-      JSXIdentifier(node) {
-        markUsed(node.name)
       },
       Identifier(node) {
         const parent = context.getParent()
