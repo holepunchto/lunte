@@ -56,4 +56,3 @@ test('loadConfig normalises disableHolepunchGlobals flag', async (t) => {
   const { config } = await loadConfig({ cwd: dir })
   t.is(config.disableHolepunchGlobals, true)
 })
-

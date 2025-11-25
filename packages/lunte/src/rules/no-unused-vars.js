@@ -19,21 +19,21 @@ export const noUnusedVars = {
     const usedSymbols = new Set()
     const mergedBindingNames = new Set()
 
-function defineBinding(name, node, options = {}) {
-  const { hasRestSibling = false, mergeByName = false } = options
-  if (!name || !node) return
-  if (mergeByName) {
-    if (mergedBindingNames.has(name)) {
-      return
+    function defineBinding(name, node, options = {}) {
+      const { hasRestSibling = false, mergeByName = false } = options
+      if (!name || !node) return
+      if (mergeByName) {
+        if (mergedBindingNames.has(name)) {
+          return
+        }
+        mergedBindingNames.add(name)
+      }
+      definedSymbols.set(node, { name, node })
+      // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
+      if (shouldIgnoreName(name) || hasRestSibling) {
+        usedSymbols.add(name)
+      }
     }
-    mergedBindingNames.add(name)
-  }
-  definedSymbols.set(node, { name, node })
-  // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
-  if (shouldIgnoreName(name) || hasRestSibling) {
-    usedSymbols.add(name)
-  }
-}
 
     function markUsed(name) {
       if (!name) return

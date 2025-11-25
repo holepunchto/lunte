@@ -116,7 +116,10 @@ test('flags missing declarations when enums/namespaces are referenced but undefi
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
     enableTypeScriptParser: true
   })
-  t.ok(result.diagnostics.some((d) => d.message.includes('Status')), 'should report undefined enum usage')
+  t.ok(
+    result.diagnostics.some((d) => d.message.includes('Status')),
+    'should report undefined enum usage'
+  )
 })
 
 test('treats declare namespaces as ambient-only', async (t) => {
@@ -125,7 +128,10 @@ test('treats declare namespaces as ambient-only', async (t) => {
     ruleOverrides: TS_RUNTIME_OVERRIDES,
     enableTypeScriptParser: true
   })
-  t.ok(result.diagnostics.some((d) => d.message.includes('Config')), 'declare namespace should not define runtime binding')
+  t.ok(
+    result.diagnostics.some((d) => d.message.includes('Config')),
+    'declare namespace should not define runtime binding'
+  )
 })
 
 test('allows namespaces re-opened with runtime declarations', async (t) => {
@@ -143,7 +149,10 @@ test('flags runtime usage of type-only import equals aliases', async (t) => {
     ruleOverrides: TS_RUNTIME_OVERRIDES,
     enableTypeScriptParser: true
   })
-  t.ok(result.diagnostics.some((d) => d.message.includes('Logger')), 'type-only import equals should not introduce runtime symbols')
+  t.ok(
+    result.diagnostics.some((d) => d.message.includes('Logger')),
+    'type-only import equals should not introduce runtime symbols'
+  )
 })
 
 test('respects ambient globals declared in .d.ts files', async (t) => {
@@ -156,9 +165,7 @@ test('respects ambient globals declared in .d.ts files', async (t) => {
     ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
     enableTypeScriptParser: true
   })
-  const consumerDiagnostics = result.diagnostics.filter((d) =>
-    d.filePath.endsWith('consumer.ts')
-  )
+  const consumerDiagnostics = result.diagnostics.filter((d) => d.filePath.endsWith('consumer.ts'))
   t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
 })
 
@@ -170,9 +177,7 @@ test('pulls ambient globals from dependency declaration files', async (t) => {
     enableTypeScriptParser: true,
     enableDependencyAmbientGlobals: true
   })
-  const consumerDiagnostics = result.diagnostics.filter((d) =>
-    d.filePath.endsWith('consumer.ts')
-  )
+  const consumerDiagnostics = result.diagnostics.filter((d) => d.filePath.endsWith('consumer.ts'))
   t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
 })
 

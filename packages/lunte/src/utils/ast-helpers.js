@@ -140,7 +140,11 @@ function isTypeOnlyIdentifier(node, parent, ancestors = []) {
 
   if (parent.type === 'TSExpressionWithTypeArguments') {
     const firstNonTSAncestor = findFirstNonTSAncestor(ancestors)
-    if (firstNonTSAncestor && (firstNonTSAncestor.type === 'ClassDeclaration' || firstNonTSAncestor.type === 'ClassExpression')) {
+    if (
+      firstNonTSAncestor &&
+      (firstNonTSAncestor.type === 'ClassDeclaration' ||
+        firstNonTSAncestor.type === 'ClassExpression')
+    ) {
       return false
     }
     return true

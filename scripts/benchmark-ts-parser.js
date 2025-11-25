@@ -96,7 +96,12 @@ async function benchmarkProject(dir) {
 
   for (let i = 0; i < ITERATIONS; i += 1) {
     baseline.push(await runCommand('node', [lunteBin, '--typescript', '.'], { cwd: dir }))
-    forced.push(await runCommand('node', [lunteBin, '.'], { cwd: dir, env: { ...process.env, LUNTE_FORCE_TS_PARSER: '1' } }))
+    forced.push(
+      await runCommand('node', [lunteBin, '.'], {
+        cwd: dir,
+        env: { ...process.env, LUNTE_FORCE_TS_PARSER: '1' }
+      })
+    )
   }
 
   const average = (runs) => runs.reduce((sum, r) => sum + r.durationMs, 0) / runs.length

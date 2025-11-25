@@ -30,7 +30,10 @@ export async function analyze({
   const sourceOverrides = normalizeSourceOverrides(sourceText)
   const needsTypeScript = files.some((file) => isTypeScriptLike(file) || isJsxFile(file))
   const ambientGlobals = needsTypeScript
-    ? await collectAmbientGlobals(files, { sourceOverrides, includeDependencies: enableDependencyAmbientGlobals })
+    ? await collectAmbientGlobals(files, {
+        sourceOverrides,
+        includeDependencies: enableDependencyAmbientGlobals
+      })
     : new Set()
 
   for (const file of files) {
@@ -53,10 +56,7 @@ export async function analyze({
   return { diagnostics }
 }
 
-async function analyzeFile(
-  filePath,
-  { ruleConfig, baseGlobals, sourceOverrides, ambientGlobals }
-) {
+async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides, ambientGlobals }) {
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
@@ -246,7 +246,9 @@ async function collectDependencyAmbientGlobals(files, { sourceOverrides }) {
   const nodeModulesRoots = await findNodeModulesRoots(files)
 
   for (const nodeModulesDir of nodeModulesRoots) {
-    await collectAmbientFromNodeModulesDir(nodeModulesDir, ambient, processedFiles, { sourceOverrides })
+    await collectAmbientFromNodeModulesDir(nodeModulesDir, ambient, processedFiles, {
+      sourceOverrides
+    })
   }
 
   return ambient
@@ -281,7 +283,12 @@ async function findNodeModulesRoots(files) {
   return roots
 }
 
-async function collectAmbientFromNodeModulesDir(nodeModulesDir, target, processedFiles, { sourceOverrides }) {
+async function collectAmbientFromNodeModulesDir(
+  nodeModulesDir,
+  target,
+  processedFiles,
+  { sourceOverrides }
+) {
   let entries
   try {
     entries = await readdir(nodeModulesDir, { withFileTypes: true })
@@ -328,11 +335,7 @@ async function collectAmbientFromPackage(pkgDir, target, processedFiles, { sourc
 
   const candidatePaths = new Set()
   const typesEntry =
-    typeof pkg.types === 'string'
-      ? pkg.types
-      : typeof pkg.typings === 'string'
-        ? pkg.typings
-        : null
+    typeof pkg.types === 'string' ? pkg.types : typeof pkg.typings === 'string' ? pkg.typings : null
 
   if (typesEntry) {
     candidatePaths.add(join(pkgDir, typesEntry))
@@ -366,7 +369,12 @@ async function collectAmbientFromPackage(pkgDir, target, processedFiles, { sourc
   }
 }
 
-async function collectAmbientFromDeclarationFile(filePath, target, processedFiles, { sourceOverrides }) {
+async function collectAmbientFromDeclarationFile(
+  filePath,
+  target,
+  processedFiles,
+  { sourceOverrides }
+) {
   if (processedFiles.has(filePath)) {
     return
   }
@@ -384,7 +392,9 @@ async function collectAmbientFromDeclarationFile(filePath, target, processedFile
     try {
       const indexInfo = await stat(indexCandidate)
       if (indexInfo.isFile()) {
-        await collectAmbientFromDeclarationFile(indexCandidate, target, processedFiles, { sourceOverrides })
+        await collectAmbientFromDeclarationFile(indexCandidate, target, processedFiles, {
+          sourceOverrides
+        })
       }
     } catch (error) {
       // ignore

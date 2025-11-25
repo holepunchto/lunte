@@ -70,7 +70,9 @@ function normalizeConfig(config) {
     result.disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
   }
   if (config?.experimental__enableTSAmbientGlobals !== undefined) {
-    result.experimental__enableTSAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
+    result.experimental__enableTSAmbientGlobals = Boolean(
+      config.experimental__enableTSAmbientGlobals
+    )
   }
   return result
 }

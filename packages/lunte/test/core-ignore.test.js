@@ -120,7 +120,6 @@ test('nested .lunteignore files only affect their subtree', async (t) => {
   )
 })
 
-
 test('resolveFileTargets includes JS/TS/JSX/TSX by default', async (t) => {
   const dir = await withTempDir(t, {
     'src/app.ts': 'export const value = 1\n',
@@ -133,11 +132,28 @@ test('resolveFileTargets includes JS/TS/JSX/TSX by default', async (t) => {
 
   const matcher = await loadIgnore({ cwd: dir })
   const files = await resolveFileTargets(['.'], { cwd: dir, ignore: matcher })
-  t.ok(files.some((file) => file.endsWith('src/only.js')), 'includes js')
-  t.ok(files.some((file) => file.endsWith('src/app.ts')), 'includes ts')
-  t.ok(files.some((file) => file.endsWith('src/view.tsx')), 'includes tsx')
-  t.ok(files.some((file) => file.endsWith('src/component.jsx')), 'includes jsx')
-  t.ok(files.some((file) => file.endsWith('types/global.d.ts')), 'includes d.ts')
-  t.ok(files.some((file) => file.endsWith('types/global.d.mts')), 'includes d.mts')
+  t.ok(
+    files.some((file) => file.endsWith('src/only.js')),
+    'includes js'
+  )
+  t.ok(
+    files.some((file) => file.endsWith('src/app.ts')),
+    'includes ts'
+  )
+  t.ok(
+    files.some((file) => file.endsWith('src/view.tsx')),
+    'includes tsx'
+  )
+  t.ok(
+    files.some((file) => file.endsWith('src/component.jsx')),
+    'includes jsx'
+  )
+  t.ok(
+    files.some((file) => file.endsWith('types/global.d.ts')),
+    'includes d.ts'
+  )
+  t.ok(
+    files.some((file) => file.endsWith('types/global.d.mts')),
+    'includes d.mts'
+  )
 })
-

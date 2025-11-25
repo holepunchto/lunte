@@ -12,7 +12,6 @@ export const DEFAULT_OPTIONS = Object.freeze({
 })
 
 const SUPPORTED_TS_EXTENSIONS = new Set(['.ts', '.mts', '.cts', '.tsx'])
-const SUPPORTED_JS_EXTENSIONS = new Set(['.js', '.jsx', '.mjs', '.cjs'])
 const DTS_SUFFIXES = ['.d.ts', '.d.mts', '.d.cts']
 
 const typeScriptParserCache = new Map()

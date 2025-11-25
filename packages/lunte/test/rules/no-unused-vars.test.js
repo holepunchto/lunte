@@ -184,7 +184,10 @@ test('flags unused enums in TypeScript files', async (t) => {
     ruleOverrides: [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }],
     enableTypeScriptParser: true
   })
-  t.ok(result.diagnostics.some((d) => d.ruleId === 'no-unused-vars'), 'should report unused enum')
+  t.ok(
+    result.diagnostics.some((d) => d.ruleId === 'no-unused-vars'),
+    'should report unused enum'
+  )
 })
 
 test('handles namespaces and import equals in TypeScript files', async (t) => {
