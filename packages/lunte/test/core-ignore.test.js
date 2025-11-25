@@ -146,3 +146,21 @@ test('resolveFileTargets includes TypeScript files when enabled', async (t) => {
   t.ok(tsEnabled.some((file) => file.endsWith('src/view.tsx')), 'should include .tsx when enabled')
   t.ok(tsEnabled.some((file) => file.endsWith('types/global.d.ts')), 'should include .d.ts when enabled')
 })
+
+test('resolveFileTargets can include .jsx when explicitly enabled', async (t) => {
+  const dir = await withTempDir(t, {
+    'src/component.jsx': 'export default () => <div />\n',
+    'src/keep.js': 'export {}\n'
+  })
+
+  const matcher = await loadIgnore({ cwd: dir })
+  const defaultFiles = await resolveFileTargets(['.'], { cwd: dir, ignore: matcher })
+  t.is(defaultFiles.some((file) => file.endsWith('component.jsx')), false, 'jsx skipped by default')
+
+  const jsxEnabled = await resolveFileTargets(['.'], {
+    cwd: dir,
+    ignore: matcher,
+    includeJsx: true
+  })
+  t.ok(jsxEnabled.some((file) => file.endsWith('component.jsx')))
+})

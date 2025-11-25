@@ -40,6 +40,7 @@ const parser = command(
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
   flag('--typescript', 'Enable the experimental TypeScript parser.'),
+  flag('--force-ts-parser', 'Force the TypeScript parser for .js/.jsx (implies --typescript).'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -66,11 +67,14 @@ export async function run(argv = []) {
   const cwd = process.cwd()
   const { config } = await loadConfig({ cwd })
   const ignoreMatcher = await loadIgnore({ cwd })
-  const enableTypeScriptParser = Boolean(config.typescript) || Boolean(parser.flags.typescript)
+  const enableTypeScriptParserForJS = Boolean(config.forceTsParser) || Boolean(parser.flags.forceTsParser)
+  const enableTypeScriptParser =
+    enableTypeScriptParserForJS || Boolean(config.typescript) || Boolean(parser.flags.typescript)
   const enableDependencyAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
   const resolvedFiles = await resolveFileTargets(files, {
     ignore: ignoreMatcher,
-    includeTypeScript: enableTypeScriptParser
+    includeTypeScript: enableTypeScriptParser,
+    includeJsx: enableTypeScriptParserForJS
   })
   if (resolvedFiles.length === 0) {
     console.error('No matching source files found.')
@@ -100,6 +104,7 @@ export async function run(argv = []) {
     globalOverrides: mergedGlobals,
     disableHolepunchGlobals,
     enableTypeScriptParser,
+    enableTypeScriptParserForJS,
     enableDependencyAmbientGlobals,
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {

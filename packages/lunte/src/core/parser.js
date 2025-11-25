@@ -12,6 +12,7 @@ export const DEFAULT_OPTIONS = Object.freeze({
 })
 
 const SUPPORTED_TS_EXTENSIONS = new Set(['.ts', '.mts', '.cts', '.tsx'])
+const SUPPORTED_JS_EXTENSIONS = new Set(['.js', '.jsx', '.mjs', '.cjs'])
 const DTS_SUFFIXES = ['.d.ts', '.d.mts', '.d.cts']
 
 const typeScriptParserCache = new Map()
@@ -23,15 +24,22 @@ const parseWithAcornTypescript = (sourceText, options = {}, { dts = false, jsx =
   return runParser((code, opts) => parser.parse(code, opts), sourceText, options)
 }
 
-export function parse(sourceText, { filePath, enableTypeScriptParser = false, ...options } = {}) {
+export function parse(
+  sourceText,
+  { filePath, enableTypeScriptParser = false, forceTypeScriptParserForJS = false, ...options } = {}
+) {
   if (typeof sourceText !== 'string') {
     throw new TypeError('Parser input must be a string.')
   }
 
-  if (enableTypeScriptParser && isTypeScriptLike(filePath)) {
+  const shouldUseTypeScriptParser =
+    enableTypeScriptParser &&
+    (isTypeScriptLike(filePath) || (forceTypeScriptParserForJS && isJavaScriptLike(filePath)))
+
+  if (shouldUseTypeScriptParser) {
     return parseWithAcornTypescript(sourceText, options, {
       dts: isDeclarationFile(filePath),
-      jsx: isTsxFile(filePath)
+      jsx: isTsxFile(filePath) || isJsxFile(filePath)
     })
   }
 
@@ -48,6 +56,15 @@ function isTypeScriptLike(filePath) {
     return true
   }
   return isDeclarationFile(filePath)
+}
+
+function isJavaScriptLike(filePath) {
+  if (!filePath) {
+    return false
+  }
+
+  const extension = extname(filePath).toLowerCase()
+  return SUPPORTED_JS_EXTENSIONS.has(extension)
 }
 
 export function isDeclarationFile(filePath) {
@@ -79,6 +96,13 @@ function isTsxFile(filePath) {
     return false
   }
   return filePath.toLowerCase().endsWith('.tsx')
+}
+
+function isJsxFile(filePath) {
+  if (!filePath) {
+    return false
+  }
+  return filePath.toLowerCase().endsWith('.jsx')
 }
 
 function runParser(parserFn, sourceText, options = {}) {

@@ -25,7 +25,9 @@
 ### Immediate TODOs (Phase 3)
 
 1. **Ambient globals from dependencies** – experimental opt-in (`experimental__enableTSAmbientGlobals`) scans dependency `.d.ts` entry points/global files; keep watching for gaps/false-positives before enabling by default.
-2. **TS parser default toggle** – next up: create an opt-in switch that forces the TS parser for `.js`/`.jsx`, run the full JS+TS test suites + a sample real project with that toggle on, and capture breakages/perf deltas before considering default/auto-detect.
+2. **TS parser default toggle** – ✅ added `"forceTsParser"` / `--force-ts-parser` to force the TS parser for `.js` and pull `.jsx` into CLI glob expansion (implies `--typescript`).
+   - JS+TS suites with the toggle: `npm test --workspace=lunte` (pass).
+   - Sample project (packages/lunte) with the toggle: `node bin/lunte --force-ts-parser src test` (pass; real 0.26s vs 0.19s baseline, +0.07s/≈37%).
 3. **Ignore inheritance for build outputs** – ensure root-level `.lunteignore` patterns reliably suppress generated bundles without depending on cwd.
 
 ## Parser Strategy Check-In

@@ -18,6 +18,7 @@ export async function analyze({
   onFileComplete,
   disableHolepunchGlobals = false,
   enableTypeScriptParser = false,
+  enableTypeScriptParserForJS = false,
   enableDependencyAmbientGlobals = false
 }) {
   const diagnostics = []
@@ -42,6 +43,7 @@ export async function analyze({
       baseGlobals,
       sourceOverrides,
       enableTypeScriptParser,
+      enableTypeScriptParserForJS,
       ambientGlobals
     })
     diagnostics.push(...result.diagnostics)
@@ -59,7 +61,14 @@ export async function analyze({
 
 async function analyzeFile(
   filePath,
-  { ruleConfig, baseGlobals, sourceOverrides, enableTypeScriptParser, ambientGlobals }
+  {
+    ruleConfig,
+    baseGlobals,
+    sourceOverrides,
+    enableTypeScriptParser,
+    enableTypeScriptParserForJS,
+    ambientGlobals
+  }
 ) {
   const diagnostics = []
   let source
@@ -116,6 +125,7 @@ async function analyzeFile(
       const ast = parse(source, {
         filePath,
         enableTypeScriptParser,
+        forceTypeScriptParserForJS: enableTypeScriptParserForJS,
         sourceFile: filePath,
         onComment: comments
       })
