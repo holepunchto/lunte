@@ -12,11 +12,12 @@ const fixturePath = (...parts) => join(__dirname, 'fixtures', ...parts)
 
 const formatDiagnostics = (diagnostics) => diagnostics.map((d) => d.message).join('\n')
 
-function runCli(args) {
+function runCli(args, env = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['bin/lunte', ...args], {
       cwd: projectRoot,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, ...env }
     })
 
     let stdout = ''
@@ -83,8 +84,8 @@ test('JSX parses with TypeScript parser when JS toggle enabled', async (t) => {
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
 
-test('CLI --force-ts-parser uses TypeScript parser for JS inputs', async (t) => {
-  const result = await runCli(['--force-ts-parser', fixturePath('typescript', 'typed-js.js')])
+test('CLI env LUNTE_FORCE_TS_PARSER uses TypeScript parser for JS inputs', async (t) => {
+  const result = await runCli([fixturePath('typescript', 'typed-js.js')], { LUNTE_FORCE_TS_PARSER: '1' })
 
   t.is(result.code, 0)
   t.ok(/No issues/.test(result.stdout))

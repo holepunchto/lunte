@@ -13,7 +13,8 @@
     "test:bare": "npm run test:bare --workspaces --if-present",
     "test:core": "npm test --workspace=lunte-core",
     "test:lsp": "npm test --workspace=lunte-lsp",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "benchmark:ts-parser": "node scripts/benchmark-ts-parser.js"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

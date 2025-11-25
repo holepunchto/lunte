@@ -34,16 +34,16 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 
 ```json
 {
-  "env": ["node"],
-  "globals": ["MY_APP"],
-  "plugins": ["lunte-plugin-pear"],
-  "rules": {
-    "no-unused-vars": "warn",
-    "no-undef": "off",
-    "pear/no-apples": "error"
-  },
-  "disableHolepunchGlobals": true,
-  "typescript": true
+ "env": ["node"],
+ "globals": ["MY_APP"],
+ "plugins": ["lunte-plugin-pear"],
+ "rules": {
+  "no-unused-vars": "warn",
+  "no-undef": "off",
+  "pear/no-apples": "error"
+ },
+ "disableHolepunchGlobals": true,
+ "typescript": true
 }
 ```
 
@@ -60,9 +60,9 @@ lunte --env browser --global Pear --rule no-unused-vars=off src/
 
 ### TypeScript (experimental)
 
-Set `"typescript": true` in `.lunterc` or pass `--typescript` to the CLI to opt into the experimental TypeScript/TSX parser powered by `@sveltejs/acorn-typescript`. When enabled, files ending in `.ts`, `.tsx`, `.cts`, `.mts`, or `.d.ts` are parsed with the plugin (JSX included). By default `.js`/`.mjs`/`.cjs` continue to use the vendored Acorn build for speed and stability—flip `"forceTsParser": true` in `.lunterc` (or pass `--force-ts-parser`, which implies `--typescript`) to force the TS parser for `.js` and pull `.jsx` into CLI glob expansion. The spike only proves parsing for now—rules still assume plain JavaScript, so type-only constructs may trigger `no-undef`/`no-unused-vars` until we finish the follow-up phases.
+Set `"typescript": true` in `.lunterc` or pass `--typescript` to the CLI to opt into the experimental TypeScript/TSX parser powered by `@sveltejs/acorn-typescript`. When enabled, files ending in `.ts`, `.tsx`, `.cts`, `.mts`, or `.d.ts` are parsed with the plugin (JSX included). By default `.js`/`.mjs`/`.cjs` continue to use the vendored Acorn build for speed and stability. The spike only proves parsing for now—rules still assume plain JavaScript, so type-only constructs may trigger `no-undef`/`no-unused-vars` until we finish the follow-up phases.
 
-With the flag on, you can opt into experimental dependency ambient-global scanning via `"experimental__enableTSAmbientGlobals": true` in `.lunterc`. That pass walks installed declaration entry points (package `types`/`typings`, plus common `global*.d.ts` files in `node_modules`) and registers ambient globals so framework globals (e.g., Jest/Vitest) resolve without extra config. Left off by default.
+With the TypeScript parser enabled, you can opt into experimental dependency ambient-global scanning via `"experimental__enableTSAmbientGlobals": true` in `.lunterc`. That pass walks installed declaration entry points (package `types`/`typings`, plus common `global*.d.ts` files in `node_modules`) and registers ambient globals so framework globals (e.g., Jest/Vitest) resolve without extra config. Left off by default.
 
 ### Plugins
 
@@ -70,10 +70,10 @@ Load third-party rule packs by listing module IDs under `plugins`. Each plugin s
 
 ```json
 {
-  "plugins": ["./rules/lunte-plugin-pear.js", "lunte-plugin-pear"],
-  "rules": {
-    "pear/no-apples": "error"
-  }
+ "plugins": ["./rules/lunte-plugin-pear.js", "lunte-plugin-pear"],
+ "rules": {
+  "pear/no-apples": "error"
+ }
 }
 ```
 
@@ -114,12 +114,12 @@ local lspconfig = require('lspconfig')
 local configs = require('lspconfig.configs')
 
 configs.lunte = configs.lunte or {
-  default_config = {
-    cmd = { 'npx', 'lunte-lsp' },
-    filetypes = { 'javascript' },
-    root_dir = lspconfig.util.find_git_ancestor,
-    single_file_support = true,
-  },
+ default_config = {
+  cmd = { 'npx', 'lunte-lsp' },
+  filetypes = { 'javascript' },
+  root_dir = lspconfig.util.find_git_ancestor,
+  single_file_support = true,
+ },
 }
 
 lspconfig.lunte.setup({})

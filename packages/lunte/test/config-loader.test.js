@@ -57,10 +57,3 @@ test('loadConfig normalises disableHolepunchGlobals flag', async (t) => {
   t.is(config.disableHolepunchGlobals, true)
 })
 
-test('loadConfig normalises forceTsParser flag', async (t) => {
-  const dir = await createTempDir('ts-force')
-  await writeFile(join(dir, '.lunterc'), JSON.stringify({ forceTsParser: true }))
-
-  const { config } = await loadConfig({ cwd: dir })
-  t.is(config.forceTsParser, true)
-})

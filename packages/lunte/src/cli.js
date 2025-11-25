@@ -40,7 +40,6 @@ const parser = command(
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
   flag('--typescript', 'Enable the experimental TypeScript parser.'),
-  flag('--force-ts-parser', 'Force the TypeScript parser for .js/.jsx (implies --typescript).'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -67,7 +66,7 @@ export async function run(argv = []) {
   const cwd = process.cwd()
   const { config } = await loadConfig({ cwd })
   const ignoreMatcher = await loadIgnore({ cwd })
-  const enableTypeScriptParserForJS = Boolean(config.forceTsParser) || Boolean(parser.flags.forceTsParser)
+  const enableTypeScriptParserForJS = parseEnvBoolean(process.env.LUNTE_FORCE_TS_PARSER)
   const enableTypeScriptParser =
     enableTypeScriptParserForJS || Boolean(config.typescript) || Boolean(parser.flags.typescript)
   const enableDependencyAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
@@ -139,6 +138,12 @@ const parseRules = (values) =>
     .map((value) => (typeof value === 'string' ? value.split('=').map((part) => part.trim()) : []))
     .filter(([name, severity]) => name && severity)
     .map(([name, severity]) => ({ name, severity }))
+
+function parseEnvBoolean(value) {
+  if (value === undefined) return false
+  const normalized = String(value).toLowerCase()
+  return normalized === '1' || normalized === 'true' || normalized === 'yes'
+}
 
 function safeMerge(one = [], two = []) {
   return [...one, ...two]
