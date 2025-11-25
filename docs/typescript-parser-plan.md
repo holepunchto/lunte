@@ -25,7 +25,7 @@
 ### Immediate TODOs (Phase 3)
 
 1. **Ambient globals from dependencies** – experimental opt-in (`experimental__enableTSAmbientGlobals`) scans dependency `.d.ts` entry points/global files; keep watching for gaps/false-positives before enabling by default.
-2. **TS parser default toggle** – rerun full JS+TS suites under the TS parser to judge flipping the default or adding auto-detect.
+2. **TS parser default toggle** – next up: create an opt-in switch that forces the TS parser for `.js`/`.jsx`, run the full JS+TS test suites + a sample real project with that toggle on, and capture breakages/perf deltas before considering default/auto-detect.
 3. **Ignore inheritance for build outputs** – ensure root-level `.lunteignore` patterns reliably suppress generated bundles without depending on cwd.
 
 ## Parser Strategy Check-In
