@@ -11,6 +11,11 @@ export const noUndef = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    if (context.filePath && context.filePath.endsWith('.d.ts')) {
+      // Ambient declaration files don't produce runtime bindings; skip undef checks.
+      return {}
+    }
+
     const pendingReferences = []
 
     return {
