@@ -14,10 +14,8 @@ npm install --save-dev lunte
 
 ## Usage
 
-Lint `**/*.{mjs,cjs,js}`:
-
 ```sh
-lunte .
+$ lunte [optional: dir or glob]
 ```
 
 Globs are supported:
@@ -34,15 +32,14 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 
 ```json
 {
- "env": ["node"],
- "globals": ["MY_APP"],
- "plugins": ["lunte-plugin-pear"],
- "rules": {
-  "no-unused-vars": "warn",
-  "no-undef": "off",
-  "pear/no-apples": "error"
- },
- "disableHolepunchGlobals": true
+  "env": ["node"],
+  "globals": ["MY_APP"],
+  "plugins": ["lunte-plugin-pear"],
+  "rules": {
+    "no-undef": "off",
+    "pear/no-apples": "error"
+  },
+  "disableHolepunchGlobals": true
 }
 ```
 
@@ -57,11 +54,19 @@ Command-line overrides are available for ad-hoc runs:
 lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
 
-### TypeScript (experimental)
+### TypeScript
 
-Set `"typescript": true` in `.lunterc` or pass `--typescript` to the CLI to opt into the experimental TypeScript/TSX parser powered by `@sveltejs/acorn-typescript`. When enabled, files ending in `.ts`, `.tsx`, `.cts`, `.mts`, or `.d.ts` are parsed with the plugin (JSX included). By default `.js`/`.mjs`/`.cjs` continue to use the vendored Acorn build for speed and stability. The spike only proves parsing for now—rules still assume plain JavaScript, so type-only constructs may trigger `no-undef`/`no-unused-vars` until we finish the follow-up phases.
+- Experimental parser is bundled via vendored `@sveltejs/acorn-typescript` (tracks TS 5.7); no extra install needed.
+- Files ending `.ts`, `.tsx`, `.mts`, `.cts`, `.d.ts` (and `.jsx` when present) automatically switch to the TS parser. Plain `.js` with type annotations still error—rename to `.ts`/`.tsx`.
+- Type-aware handling currently exists for `no-undef` and `no-unused-vars` (covers enums, namespaces, `import =`, decorators, and ignores type-only imports); other rules run without type checking.
+- `.d.ts` files are parsed to harvest ambient globals but skip runtime-only checks, so declaration files do not emit unused/undef noise.
+- Ambient globals declared in your checked-in `.d.ts` files are applied automatically; opt in to scanning dependency declarations (e.g. `@types/*`) by adding `experimental__enableTSAmbientGlobals` to your `.lunterc`:
 
-With the TypeScript parser enabled, you can opt into experimental dependency ambient-global scanning via `"experimental__enableTSAmbientGlobals": true` in `.lunterc`. That pass walks installed declaration entry points (package `types`/`typings`, plus common `global*.d.ts` files in `node_modules`) and registers ambient globals so framework globals (e.g., Jest/Vitest) resolve without extra config. Left off by default.
+```json
+{
+  "experimental__enableTSAmbientGlobals": true
+}
+```
 
 ### Plugins
 
@@ -69,10 +74,10 @@ Load third-party rule packs by listing module IDs under `plugins`. Each plugin s
 
 ```json
 {
- "plugins": ["./rules/lunte-plugin-pear.js", "lunte-plugin-pear"],
- "rules": {
-  "pear/no-apples": "error"
- }
+  "plugins": ["./rules/lunte-plugin-pear.js", "lunte-plugin-pear"],
+  "rules": {
+    "pear/no-apples": "error"
+  }
 }
 ```
 
