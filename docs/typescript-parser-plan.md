@@ -11,22 +11,22 @@
 - [x] Install `@sveltejs/acorn-typescript` + `acorn@8.15.0`, extend the parser manager to lazy-load the plugin, and gate it behind the `typescript` flag + `.ts/.tsx/.cts/.mts/.d.ts` extensions.
 - [x] Added a `test/typescript-parser.test.js` smoke test plus `.ts` fixture and ran `npm run test --workspace=lunte` to confirm parsing succeeds.
 - [x] Document findings from the spike: which rules break, any scope/AST quirks, and rough performance observations.
-  - Type-only identifiers (type aliases, interface members, generic params) originally surfaced as runtime references, so they tripped `no-undef` until we added TypeScript-specific filtering.
-  - `.tsx` parsing, enums/namespaces, and type-only imports/exports still need bespoke handling (currently they would either parse as plain JS or count toward `no-unused-vars`).
-  - Vendoring the plugin requires patching its Acorn import to the local `vendor/acorn` tree; the new `vendor:acorn-typescript` script automates that.
+  - Type-only identifiers originally surfaced as runtime references, so they tripped `no-undef` until we added TypeScript-specific filtering.
+  - `.tsx` parsing, enums/namespaces, and type-only imports/exports needed bespoke handling (now largely covered).
+  - Vendoring the plugin requires patching its Acorn import to the local `vendor/acorn` tree; the `vendor:acorn-typescript` script automates that.
 
 ## Phase 3 – Solidify Parser + Traversal Support
 
 - [x] Replace the temporary stub messaging with real behavior and remove the "experimental" caveat once the spike issues are addressed.
-- [ ] Expand traversal (`iterateChildren`) and identifier helpers (`isReferenceIdentifier`, scope manager) so type-only constructs no longer trip `no-undef`, `no-unused-vars`, etc. _(Type-only identifier/import filtering plus enum/namespace/import-equals coverage have landed; `no-unused-vars` now tracks TypeScript enums + namespaces/import= aliases. Still pending: TSX node traversal plus smarter scope handling for ambient-only namespaces pulled from node_modules.)_
-- [ ] Add regression tests for enums, interfaces, decorators, TSX components, and namespaces; fix rules until the suite passes in both JS and TS modes. _(We now have valid + invalid fixtures for enums, namespace/import= flows, decorator usage, ambient `.d.ts` globals, and TSX parsing; remaining gaps are JSX expression references and node_modules ambient scenarios.)_
+- [x] Expand traversal/scope helpers so type-only constructs don’t trip `no-undef`/`no-unused-vars` (type-only identifier filtering; enums, namespaces, import= handled; `.d.ts` skipped in both rules).
+- [x] Add regression tests for enums, namespaces/import=, decorators, TSX parsing, ambient `.d.ts` globals, and JSX component usage.
+- [x] Remaining gap: ambient globals from `node_modules` declaration files aren’t auto-loaded yet; experimental dependency scan now exists but is opt-in via `experimental__enableTSAmbientGlobals`.
 
 ### Immediate TODOs (Phase 3)
 
-1. **Declare namespaces / module re-openings** – dedupe diagnostics for runtime namespace re-openings (✅) plus new `no-undef` fixtures for ambient-only declarations + runtime merges. `.d.ts` files now seed the shared globals set (collector in `analyzer.js`), so runtime code can rely on declaration files instead of stub JS. Future follow-up: consider also ingesting ambient globals from node_modules automatically.
-2. **Type-only `import =` aliases** – tests now confirm `import type Logger = require('node:fs')` is ignored by `no-unused-vars` and flagged by `no-undef` when used at runtime (✅). Next: ensure namespace exports that re-export type-only aliases don't accidentally create runtime bindings.
-3. **TSX smoke test** – `.tsx` fixture wired into `typescript-parser.test.js` so we prove the parser path works (✅); next focus is adding JSX-focused rule fixtures (e.g. `no-undef` inside JSX expressions) to surface traversal gaps.
-4. **Decorators** – Added valid/invalid fixtures plus regression tests for `no-undef` and `no-unused-vars` to prove decorators behave like runtime references (✅). Pausing JSX-specific work per plan until we revisit Phase 3’s TSX tasks.
+1. **Ambient globals from dependencies** – experimental opt-in (`experimental__enableTSAmbientGlobals`) scans dependency `.d.ts` entry points/global files; keep watching for gaps/false-positives before enabling by default.
+2. **TS parser default toggle** – rerun full JS+TS suites under the TS parser to judge flipping the default or adding auto-detect.
+3. **Ignore inheritance for build outputs** – ensure root-level `.lunteignore` patterns reliably suppress generated bundles without depending on cwd.
 
 ## Parser Strategy Check-In
 
@@ -35,6 +35,4 @@ The JS and TS parser paths still share the same manager (`src/core/parser.js`), 
 - **Risk containment** – Defaulting to the TS parser for everyone would change AST node shapes (e.g., decorators, TS nodes on class members) even in `.js` files, so gating lets us harden traversal/rules first.
 - **Performance knobs** – Plain Acorn remains faster for JS-only projects; once the TS path proves stable we can revisit auto-detection or a unified default.
 - **Scoped vendoring** – `@sveltejs/acorn-typescript` is vendored and lazily loaded; a unified parser would force every run to pay that cost even when linting vanilla JS.
-- **Future convergence** – After we finish TSX traversal + ambient-global ingestion, we can reassess by running the entire JS suite through the TS parser to surface any regressions. If the delta is negligible we can collapse the code paths and retire the flag.
-
-So for Phase 3 we’ll keep both parser flavors but keep shrinking the diff (shared traversal, shared rule logic) so flipping the default later becomes a low-risk change.
+- **Future convergence** – After we finish ambient-global ingestion and validate ignores, we can rerun the full suite under the TS parser to consider making it the default.

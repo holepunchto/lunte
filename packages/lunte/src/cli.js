@@ -67,6 +67,7 @@ export async function run(argv = []) {
   const { config } = await loadConfig({ cwd })
   const ignoreMatcher = await loadIgnore({ cwd })
   const enableTypeScriptParser = Boolean(config.typescript) || Boolean(parser.flags.typescript)
+  const enableDependencyAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
   const resolvedFiles = await resolveFileTargets(files, {
     ignore: ignoreMatcher,
     includeTypeScript: enableTypeScriptParser
@@ -99,6 +100,7 @@ export async function run(argv = []) {
     globalOverrides: mergedGlobals,
     disableHolepunchGlobals,
     enableTypeScriptParser,
+    enableDependencyAmbientGlobals,
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {
           const hasError = diagnostics.some((d) => d.severity === Severity.error)

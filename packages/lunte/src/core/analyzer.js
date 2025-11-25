@@ -1,5 +1,6 @@
-import { readFile } from 'fs/promises'
-import { basename } from 'path'
+import process from 'process'
+import { readFile, readdir, stat } from 'fs/promises'
+import { basename, dirname, join } from 'path'
 
 import { parse, isDeclarationFile } from './parser.js'
 import { resolveConfig } from '../config/resolve.js'
@@ -16,7 +17,8 @@ export async function analyze({
   sourceText,
   onFileComplete,
   disableHolepunchGlobals = false,
-  enableTypeScriptParser = false
+  enableTypeScriptParser = false,
+  enableDependencyAmbientGlobals = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -28,7 +30,10 @@ export async function analyze({
 
   const sourceOverrides = normalizeSourceOverrides(sourceText)
   const ambientGlobals = enableTypeScriptParser
-    ? await collectAmbientGlobals(files, { sourceOverrides })
+    ? await collectAmbientGlobals(files, {
+        sourceOverrides,
+        includeDependencies: enableDependencyAmbientGlobals
+      })
     : new Set()
 
   for (const file of files) {
@@ -197,8 +202,22 @@ function mergeGlobals(baseGlobals, directives, ambientGlobals) {
   return globals
 }
 
-async function collectAmbientGlobals(files, { sourceOverrides }) {
+async function collectAmbientGlobals(files, { sourceOverrides, includeDependencies = false }) {
   const ambient = new Set()
+
+  await collectAmbientFromDeclarationFiles(files, ambient, { sourceOverrides })
+
+  if (includeDependencies) {
+    const dependencyGlobals = await collectDependencyAmbientGlobals(files, { sourceOverrides })
+    for (const name of dependencyGlobals) {
+      ambient.add(name)
+    }
+  }
+
+  return ambient
+}
+
+async function collectAmbientFromDeclarationFiles(files, target, { sourceOverrides }) {
   for (const filePath of files) {
     if (!isDeclarationFile(filePath)) continue
 
@@ -219,12 +238,178 @@ async function collectAmbientGlobals(files, { sourceOverrides }) {
         enableTypeScriptParser: true,
         sourceFile: filePath
       })
-      collectAmbientFromAst(ast, ambient)
+      collectAmbientFromAst(ast, target)
     } catch (error) {
       // Ignore parse errors here; the main analysis pass will report them.
     }
   }
+}
+
+async function collectDependencyAmbientGlobals(files, { sourceOverrides }) {
+  const ambient = new Set()
+  const processedFiles = new Set()
+  const nodeModulesRoots = await findNodeModulesRoots(files)
+
+  for (const nodeModulesDir of nodeModulesRoots) {
+    await collectAmbientFromNodeModulesDir(nodeModulesDir, ambient, processedFiles, { sourceOverrides })
+  }
+
   return ambient
+}
+
+async function findNodeModulesRoots(files) {
+  const roots = new Set()
+  const startingPoints = new Set()
+  for (const file of files) {
+    startingPoints.add(dirname(file))
+  }
+  startingPoints.add(process.cwd())
+
+  for (const start of startingPoints) {
+    let dir = start
+    while (true) {
+      const candidate = join(dir, 'node_modules')
+      try {
+        const stats = await stat(candidate)
+        if (stats.isDirectory()) {
+          roots.add(candidate)
+        }
+      } catch (error) {
+        // ignore
+      }
+      const parent = dirname(dir)
+      if (parent === dir) break
+      dir = parent
+    }
+  }
+
+  return roots
+}
+
+async function collectAmbientFromNodeModulesDir(nodeModulesDir, target, processedFiles, { sourceOverrides }) {
+  let entries
+  try {
+    entries = await readdir(nodeModulesDir, { withFileTypes: true })
+  } catch (error) {
+    return
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+    if (entry.name.startsWith('.')) continue
+
+    if (entry.name.startsWith('@')) {
+      const scopeDir = join(nodeModulesDir, entry.name)
+      let scopedEntries
+      try {
+        scopedEntries = await readdir(scopeDir, { withFileTypes: true })
+      } catch (error) {
+        continue
+      }
+
+      for (const scopedEntry of scopedEntries) {
+        if (!scopedEntry.isDirectory()) continue
+        await collectAmbientFromPackage(join(scopeDir, scopedEntry.name), target, processedFiles, {
+          sourceOverrides
+        })
+      }
+      continue
+    }
+
+    await collectAmbientFromPackage(join(nodeModulesDir, entry.name), target, processedFiles, {
+      sourceOverrides
+    })
+  }
+}
+
+async function collectAmbientFromPackage(pkgDir, target, processedFiles, { sourceOverrides }) {
+  const pkgJsonPath = join(pkgDir, 'package.json')
+  let pkg
+  try {
+    pkg = JSON.parse(await readFile(pkgJsonPath, 'utf8'))
+  } catch (error) {
+    return
+  }
+
+  const candidatePaths = new Set()
+  const typesEntry =
+    typeof pkg.types === 'string'
+      ? pkg.types
+      : typeof pkg.typings === 'string'
+        ? pkg.typings
+        : null
+
+  if (typesEntry) {
+    candidatePaths.add(join(pkgDir, typesEntry))
+  }
+
+  candidatePaths.add(join(pkgDir, 'index.d.ts'))
+  candidatePaths.add(join(pkgDir, 'global.d.ts'))
+  candidatePaths.add(join(pkgDir, 'globals.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'index.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'global.d.ts'))
+  candidatePaths.add(join(pkgDir, 'types', 'globals.d.ts'))
+
+  if (pkg.name && String(pkg.name).startsWith('@types/')) {
+    candidatePaths.add(join(pkgDir, 'index.d.ts'))
+  }
+
+  for (const candidate of candidatePaths) {
+    await collectAmbientFromDeclarationFile(candidate, target, processedFiles, { sourceOverrides })
+  }
+}
+
+async function collectAmbientFromDeclarationFile(filePath, target, processedFiles, { sourceOverrides }) {
+  if (processedFiles.has(filePath)) {
+    return
+  }
+  processedFiles.add(filePath)
+
+  let fileInfo
+  try {
+    fileInfo = await stat(filePath)
+  } catch (error) {
+    return
+  }
+
+  if (fileInfo.isDirectory()) {
+    const indexCandidate = join(filePath, 'index.d.ts')
+    try {
+      const indexInfo = await stat(indexCandidate)
+      if (indexInfo.isFile()) {
+        await collectAmbientFromDeclarationFile(indexCandidate, target, processedFiles, { sourceOverrides })
+      }
+    } catch (error) {
+      // ignore
+    }
+    return
+  }
+
+  if (!filePath.toLowerCase().endsWith('.d.ts')) {
+    return
+  }
+
+  let source
+  if (sourceOverrides?.has(filePath)) {
+    source = String(sourceOverrides.get(filePath) ?? '')
+  } else {
+    try {
+      source = await readFile(filePath, 'utf8')
+    } catch (error) {
+      return
+    }
+  }
+
+  try {
+    const ast = parse(source, {
+      filePath,
+      enableTypeScriptParser: true,
+      sourceFile: filePath
+    })
+    collectAmbientFromAst(ast, target)
+  } catch (error) {
+    // Skip parse errors; these files can still be linted directly if needed.
+  }
 }
 
 function collectAmbientFromAst(ast, target) {

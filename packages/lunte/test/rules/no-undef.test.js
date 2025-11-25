@@ -157,7 +157,21 @@ test('respects ambient globals declared in .d.ts files', async (t) => {
     enableTypeScriptParser: true
   })
   const consumerDiagnostics = result.diagnostics.filter((d) =>
-    d.filePath.endsWith('no-undef-typescript-ambient-consumer.ts')
+    d.filePath.endsWith('consumer.ts')
+  )
+  t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
+})
+
+test('pulls ambient globals from dependency declaration files', async (t) => {
+  const base = fixturePath('typescript-ambient-deps')
+  const result = await analyze({
+    files: [join(base, 'src/consumer.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true,
+    enableDependencyAmbientGlobals: true
+  })
+  const consumerDiagnostics = result.diagnostics.filter((d) =>
+    d.filePath.endsWith('consumer.ts')
   )
   t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
 })

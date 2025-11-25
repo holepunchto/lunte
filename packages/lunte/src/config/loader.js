@@ -72,5 +72,8 @@ function normalizeConfig(config) {
   if (config?.typescript !== undefined) {
     result.typescript = Boolean(config.typescript)
   }
+  if (config?.experimental__enableTSAmbientGlobals !== undefined) {
+    result.experimental__enableTSAmbientGlobals = Boolean(config.experimental__enableTSAmbientGlobals)
+  }
   return result
 }

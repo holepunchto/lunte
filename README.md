@@ -62,6 +62,8 @@ lunte --env browser --global Pear --rule no-unused-vars=off src/
 
 Set `"typescript": true` in `.lunterc` or pass `--typescript` to the CLI to opt into the experimental TypeScript/TSX parser powered by `@sveltejs/acorn-typescript`. When enabled, files ending in `.ts`, `.tsx`, `.cts`, `.mts`, or `.d.ts` are parsed with the plugin (JSX included) while vanilla `.js` files continue to use the vendored Acorn build, and the CLI will automatically include those extensions when expanding directories/globs. The spike only proves parsing for now—rules still assume plain JavaScript, so type-only constructs may trigger `no-undef`/`no-unused-vars` until we finish the follow-up phases.
 
+With the flag on, you can opt into experimental dependency ambient-global scanning via `"experimental__enableTSAmbientGlobals": true` in `.lunterc`. That pass walks installed declaration entry points (package `types`/`typings`, plus common `global*.d.ts` files in `node_modules`) and registers ambient globals so framework globals (e.g., Jest/Vitest) resolve without extra config. Left off by default.
+
 ### Plugins
 
 Load third-party rule packs by listing module IDs under `plugins`. Each plugin should export a `rules` array (or object) of rule definitions with unique `meta.name` values. Lunte will call `registerRule` for you:
