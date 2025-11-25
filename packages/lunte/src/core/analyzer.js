@@ -16,7 +16,8 @@ export async function analyze({
   globalOverrides,
   sourceText,
   onFileComplete,
-  disableHolepunchGlobals = false
+  disableHolepunchGlobals = false,
+  enableDependencyAmbientGlobals = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -29,7 +30,7 @@ export async function analyze({
   const sourceOverrides = normalizeSourceOverrides(sourceText)
   const needsTypeScript = files.some((file) => isTypeScriptLike(file) || isJsxFile(file))
   const ambientGlobals = needsTypeScript
-    ? await collectAmbientGlobals(files, { sourceOverrides, includeDependencies: needsTypeScript })
+    ? await collectAmbientGlobals(files, { sourceOverrides, includeDependencies: enableDependencyAmbientGlobals })
     : new Set()
 
   for (const file of files) {
