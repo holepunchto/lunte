@@ -19,15 +19,16 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
   severity: name === RULE_ID ? 'error' : 'off'
 }))
 
-async function analyzeSnippet(source) {
+async function analyzeSnippet(source, { ext = 'js', enableTypeScriptParser = false } = {}) {
   const filePath = join(
     __dirname,
-    `__virtual__/${RULE_ID.replace('/', '-')}-${(virtualId += 1)}.js`
+    `__virtual__/${RULE_ID.replace('/', '-')}-${(virtualId += 1)}.${ext}`
   )
   return analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,
-    sourceText: new Map([[filePath, source]])
+    sourceText: new Map([[filePath, source]]),
+    enableTypeScriptParser
   })
 }
 
@@ -134,4 +135,23 @@ console.log(foo, bar)
 `)
   t.is(result.diagnostics.length, 1)
   t.is(result.diagnostics[0].ruleId, 'import/no-duplicates')
+})
+
+test('allows separate type and value imports from the same module', async (t) => {
+  const result = await analyzeSnippet(
+    `
+import type { FC } from 'react'
+import React, { useState } from 'react'
+
+const Button: FC<{ label: string }> = ({ label }) => {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{label}</button>
+}
+
+export default Button
+`,
+    { ext: 'tsx', enableTypeScriptParser: true }
+  )
+
+  t.is(result.diagnostics.length, 0)
 })

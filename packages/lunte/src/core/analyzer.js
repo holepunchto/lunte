@@ -99,7 +99,11 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
       const directives = extractFileDirectives(source)
       const globals = mergeGlobals(baseGlobals, directives)
       const comments = []
-      const ast = parse(source, { sourceFile: filePath, onComment: comments })
+      const ast = parse(source, {
+        filePath,
+        sourceFile: filePath,
+        onComment: comments
+      })
       const inlineIgnores = buildInlineIgnoreMatcher(comments)
       const ruleDiagnostics = runRules({
         ast,

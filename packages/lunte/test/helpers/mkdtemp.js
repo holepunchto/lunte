@@ -3,7 +3,8 @@ import * as fsPromises from 'fs/promises'
 const MAX_ATTEMPTS = 10
 const DEFAULT_MODE = 0o700
 
-const nativeMkdtemp = typeof fsPromises.mkdtemp === 'function' ? fsPromises.mkdtemp.bind(fsPromises) : null
+const nativeMkdtemp =
+  typeof fsPromises.mkdtemp === 'function' ? fsPromises.mkdtemp.bind(fsPromises) : null
 
 function randomSuffix() {
   return Math.random().toString(36).slice(2, 8).padEnd(6, '0')

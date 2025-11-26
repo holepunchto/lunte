@@ -1,4 +1,5 @@
 import { Severity } from '../core/constants.js'
+import { isDeclarationFile } from '../core/parser.js'
 import { isReferenceIdentifier } from '../utils/ast-helpers.js'
 
 const ALWAYS_ALLOWED = new Set(['undefined', 'NaN', 'Infinity', 'arguments'])
@@ -11,6 +12,11 @@ export const noUndef = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    if (isDeclarationFile(context.filePath)) {
+      // Ambient declaration files don't produce runtime bindings; skip undef checks.
+      return {}
+    }
+
     const pendingReferences = []
 
     return {

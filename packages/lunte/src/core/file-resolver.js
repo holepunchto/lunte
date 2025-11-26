@@ -4,7 +4,8 @@ import { join, extname, resolve, relative, isAbsolute } from 'path'
 
 import { hasMagic, globToRegExp, toPosix } from './glob.js'
 
-const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs'])
+const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.jsx'])
+const TS_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.mts', '.d.ts', '.d.mts', '.d.cts'])
 const LINTABLE_FILES = new Set(['package.json'])
 
 export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() } = {}) {
@@ -26,7 +27,10 @@ export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() }
         cwd
       })
     } else {
-      await collectPath(resolvePath(cwd, input), { files, ignore: ignoreMatcher })
+      await collectPath(resolvePath(cwd, input), {
+        files,
+        ignore: ignoreMatcher
+      })
     }
   }
 
@@ -97,7 +101,11 @@ async function collectGlob({ baseDir, matcher, files, ignore, cwd }) {
 
   if (!info.isDirectory()) {
     const candidate = matcher.absolute ? toPosix(baseDir) : toPosix(relative(cwd, baseDir))
-    if (!ignore.ignores?.(baseDir, { isDir: false }) && matcher.regex.test(candidate)) {
+    if (
+      !ignore.ignores?.(baseDir, { isDir: false }) &&
+      matcher.regex.test(candidate) &&
+      isLintableFile(baseDir)
+    ) {
       files.add(baseDir)
     }
     return
@@ -142,14 +150,19 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
   }
 }
 
-function isJavaScriptFile(filePath) {
-  const extension = extname(filePath).toLowerCase()
-  return JS_EXTENSIONS.has(extension)
-}
-
 function isLintableFile(filePath) {
   const fileName = filePath.split('/').pop().split('\\').pop()
-  return isJavaScriptFile(filePath) || LINTABLE_FILES.has(fileName)
+  if (LINTABLE_FILES.has(fileName)) {
+    return true
+  }
+  const extension = extname(filePath).toLowerCase()
+  if (JS_EXTENSIONS.has(extension)) {
+    return true
+  }
+  if (TS_EXTENSIONS.has(extension)) {
+    return true
+  }
+  return false
 }
 
 function resolvePath(base, target) {

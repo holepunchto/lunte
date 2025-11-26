@@ -236,7 +236,12 @@ function handleInScopeDeclarations(node, scopeManager) {
   }
 
   if (node.type === 'ImportDeclaration') {
+    const declarationKind = node.importKind === 'type' ? 'type' : 'value'
     for (const specifier of node.specifiers) {
+      const specifierKind = specifier.importKind ?? declarationKind
+      if (specifierKind === 'type') {
+        continue
+      }
       const local = specifier.local
       scopeManager.declare(
         local.name,
@@ -256,6 +261,39 @@ function handleInScopeDeclarations(node, scopeManager) {
         hoisted: false
       })
     )
+  }
+
+  if (node.type === 'TSImportEqualsDeclaration' && node.id && node.importKind !== 'type') {
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'import',
+        hoisted: true
+      })
+    )
+  }
+
+  if (node.type === 'TSEnumDeclaration' && node.id && !node.declare) {
+    scopeManager.declare(
+      node.id.name,
+      createDeclarationInfo(node.id, {
+        kind: 'ts-enum',
+        hoisted: false
+      })
+    )
+  }
+
+  if (node.type === 'TSModuleDeclaration' && !node.declare) {
+    const name = getTSModuleIdentifier(node.id)
+    if (name) {
+      scopeManager.declare(
+        name,
+        createDeclarationInfo(node.id, {
+          kind: 'ts-module',
+          hoisted: false
+        })
+      )
+    }
   }
 }
 
@@ -494,9 +532,22 @@ function isReferenceInContext(node, parent, ancestors) {
       return false
     case 'AssignmentPattern':
       return parent.left !== node
+    case 'TSEnumDeclaration':
+    case 'TSEnumMember':
+    case 'TSModuleDeclaration':
+    case 'TSImportEqualsDeclaration':
+      return false
     default:
       return true
   }
+}
+
+function getTSModuleIdentifier(id) {
+  if (!id) return null
+  if (id.type === 'Identifier') {
+    return id.name
+  }
+  return null
 }
 
 function extractPatternIdentifiers(pattern, containerEnd) {

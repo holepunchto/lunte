@@ -1,4 +1,5 @@
 import { Severity } from '../core/constants.js'
+import { isDeclarationFile } from '../core/parser.js'
 import { isReferenceIdentifier } from '../utils/ast-helpers.js'
 
 export const noUnusedVars = {
@@ -9,11 +10,24 @@ export const noUnusedVars = {
     defaultSeverity: Severity.error
   },
   create(context) {
+    if (isDeclarationFile(context.filePath)) {
+      // Ambient declaration files only declare shapes; skip runtime unused checks.
+      return {}
+    }
+
     const definedSymbols = new Map()
     const usedSymbols = new Set()
+    const mergedBindingNames = new Set()
 
-    function defineBinding(name, node, hasRestSibling = false) {
+    function defineBinding(name, node, options = {}) {
+      const { hasRestSibling = false, mergeByName = false } = options
       if (!name || !node) return
+      if (mergeByName) {
+        if (mergedBindingNames.has(name)) {
+          return
+        }
+        mergedBindingNames.add(name)
+      }
       definedSymbols.set(node, { name, node })
       // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
       if (shouldIgnoreName(name) || hasRestSibling) {
@@ -29,7 +43,7 @@ export const noUnusedVars = {
     return {
       VariableDeclarator(node) {
         for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(node.id)) {
-          defineBinding(name, id, hasRestSibling)
+          defineBinding(name, id, { hasRestSibling })
           if (
             node.parent &&
             node.parent.parent &&
@@ -52,7 +66,7 @@ export const noUnusedVars = {
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
@@ -75,23 +89,65 @@ export const noUnusedVars = {
         }
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
       ArrowFunctionExpression(node) {
         for (const param of node.params ?? []) {
           for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(param)) {
-            defineBinding(name, id, hasRestSibling)
+            defineBinding(name, id, { hasRestSibling })
           }
         }
       },
+      JSXOpeningElement(node) {
+        const name = extractJSXIdentifier(node.name)
+        if (name) markUsed(name)
+      },
+      JSXClosingElement(node) {
+        const name = extractJSXIdentifier(node.name)
+        if (name) markUsed(name)
+      },
       Identifier(node) {
         const parent = context.getParent()
-        if (!isReferenceIdentifier(node, parent)) {
+        const ancestors = context.getAncestors()
+        if (!isReferenceIdentifier(node, parent, ancestors)) {
           return
         }
         markUsed(node.name)
+      },
+      TSEnumDeclaration(node) {
+        if (!node?.id || node.declare) {
+          return
+        }
+        defineBinding(node.id.name, node.id)
+        const parent = context.getParent()
+        if (isExportedDeclaration(node, parent)) {
+          markUsed(node.id.name)
+        }
+      },
+      TSModuleDeclaration(node) {
+        if (node.declare) {
+          return
+        }
+        const name = getTSModuleName(node.id)
+        if (!name) {
+          return
+        }
+        defineBinding(name, node.id, { mergeByName: true })
+        const parent = context.getParent()
+        if (isExportedDeclaration(node, parent)) {
+          markUsed(name)
+        }
+      },
+      TSImportEqualsDeclaration(node) {
+        if (!node?.id || node.importKind === 'type') {
+          return
+        }
+        defineBinding(node.id.name, node.id)
+        if (node.isExport) {
+          markUsed(node.id.name)
+        }
       },
       ExportNamedDeclaration(node) {
         if (node.declaration) {
@@ -191,8 +247,44 @@ function extractPatternIdentifiers(pattern, options = {}) {
   return results
 }
 
+function extractJSXIdentifier(nameNode) {
+  if (!nameNode) return null
+  switch (nameNode.type) {
+    case 'JSXIdentifier':
+      return nameNode.name
+    case 'JSXMemberExpression':
+      return extractJSXIdentifier(nameNode.object)
+    case 'JSXNamespacedName':
+      return nameNode.namespace?.name ?? null
+    default:
+      return null
+  }
+}
+
 function shouldIgnoreName(name) {
   return typeof name === 'string' && name.startsWith('_')
+}
+
+function isExportedDeclaration(node, parent) {
+  if (!parent) return false
+  if (parent.type === 'ExportNamedDeclaration' && parent.declaration === node) {
+    return true
+  }
+  if (parent.type === 'ExportDefaultDeclaration' && parent.declaration === node) {
+    return true
+  }
+  return false
+}
+
+function getTSModuleName(id) {
+  if (!id) return null
+  if (id.type === 'Identifier') {
+    return id.name
+  }
+  if (id.type === 'Literal' && typeof id.value === 'string') {
+    return id.value
+  }
+  return null
 }
 
 function isCommonJsExported(functionNode, context) {

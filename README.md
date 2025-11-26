@@ -14,10 +14,8 @@ npm install --save-dev lunte
 
 ## Usage
 
-Lint `**/*.{mjs,cjs,js}`:
-
 ```sh
-lunte .
+$ lunte [optional: dir or glob]
 ```
 
 Globs are supported:
@@ -38,7 +36,6 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
   "globals": ["MY_APP"],
   "plugins": ["lunte-plugin-pear"],
   "rules": {
-    "no-unused-vars": "warn",
     "no-undef": "off",
     "pear/no-apples": "error"
   },
@@ -56,6 +53,12 @@ Command-line overrides are available for ad-hoc runs:
 ```sh
 lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
+
+### TypeScript
+
+- Experimental parser is bundled via vendored `@sveltejs/acorn-typescript` (tracks TS 5.7); no extra install needed.
+- Files ending `.ts`, `.tsx`, `.mts`, `.cts`, `.d.ts` (and `.jsx` when present) automatically switch to the TS parser. Plain `.js` with type annotations still error—rename to `.ts`/`.tsx`.
+- Type-aware handling currently exists for `no-undef` and `no-unused-vars` (covers enums, namespaces, `import =`, decorators, and ignores type-only imports); other rules run without type checking.
 
 ### Plugins
 
@@ -107,12 +110,12 @@ local lspconfig = require('lspconfig')
 local configs = require('lspconfig.configs')
 
 configs.lunte = configs.lunte or {
-  default_config = {
-    cmd = { 'npx', 'lunte-lsp' },
-    filetypes = { 'javascript' },
-    root_dir = lspconfig.util.find_git_ancestor,
-    single_file_support = true,
-  },
+ default_config = {
+  cmd = { 'npx', 'lunte-lsp' },
+  filetypes = { 'javascript' },
+  root_dir = lspconfig.util.find_git_ancestor,
+  single_file_support = true,
+ },
 }
 
 lspconfig.lunte.setup({})

@@ -67,7 +67,7 @@ export async function run(argv = []) {
   const ignoreMatcher = await loadIgnore({ cwd })
   const resolvedFiles = await resolveFileTargets(files, { ignore: ignoreMatcher })
   if (resolvedFiles.length === 0) {
-    console.error('No JavaScript files found.')
+    console.error('No matching source files found.')
     return 1
   }
 
@@ -100,8 +100,8 @@ export async function run(argv = []) {
           const color = hasError
             ? VERBOSE_COLORS.red
             : hasWarning
-            ? VERBOSE_COLORS.yellow
-            : VERBOSE_COLORS.green
+              ? VERBOSE_COLORS.yellow
+              : VERBOSE_COLORS.green
           const symbol = hasError ? '✕' : hasWarning ? '!' : '✓'
           const detail = hasError ? ' (errors)' : hasWarning ? ' (warnings)' : ''
           console.log(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)
