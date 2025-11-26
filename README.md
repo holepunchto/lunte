@@ -59,14 +59,6 @@ lunte --env browser --global Pear --rule no-unused-vars=off src/
 - Experimental parser is bundled via vendored `@sveltejs/acorn-typescript` (tracks TS 5.7); no extra install needed.
 - Files ending `.ts`, `.tsx`, `.mts`, `.cts`, `.d.ts` (and `.jsx` when present) automatically switch to the TS parser. Plain `.js` with type annotations still error—rename to `.ts`/`.tsx`.
 - Type-aware handling currently exists for `no-undef` and `no-unused-vars` (covers enums, namespaces, `import =`, decorators, and ignores type-only imports); other rules run without type checking.
-- `.d.ts` files are parsed to harvest ambient globals but skip runtime-only checks, so declaration files do not emit unused/undef noise.
-- Ambient globals declared in your checked-in `.d.ts` files are applied automatically; opt in to scanning dependency declarations (e.g. `@types/*`) by adding `experimental__enableTSAmbientGlobals` to your `.lunterc`:
-
-```json
-{
-  "experimental__enableTSAmbientGlobals": true
-}
-```
 
 ### Plugins
 

@@ -155,32 +155,6 @@ test('flags runtime usage of type-only import equals aliases', async (t) => {
   )
 })
 
-test('respects ambient globals declared in .d.ts files', async (t) => {
-  const result = await analyze({
-    files: [
-      fixturePath('no-undef-typescript-ambient-script.d.ts'),
-      fixturePath('no-undef-typescript-ambient-module.d.ts'),
-      fixturePath('no-undef-typescript-ambient-consumer.ts')
-    ],
-    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
-    enableTypeScriptParser: true
-  })
-  const consumerDiagnostics = result.diagnostics.filter((d) => d.filePath.endsWith('consumer.ts'))
-  t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
-})
-
-test('pulls ambient globals from dependency declaration files', async (t) => {
-  const base = fixturePath('typescript-ambient-deps')
-  const result = await analyze({
-    files: [join(base, 'src/consumer.ts')],
-    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
-    enableTypeScriptParser: true,
-    enableDependencyAmbientGlobals: true
-  })
-  const consumerDiagnostics = result.diagnostics.filter((d) => d.filePath.endsWith('consumer.ts'))
-  t.is(consumerDiagnostics.length, 0, consumerDiagnostics.map((d) => d.message).join('\n'))
-})
-
 test('treats decorator expressions as runtime references', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-decorators.ts')],

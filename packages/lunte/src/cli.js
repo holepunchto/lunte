@@ -93,7 +93,6 @@ export async function run(argv = []) {
     envOverrides: mergedEnv,
     globalOverrides: mergedGlobals,
     disableHolepunchGlobals,
-    enableDependencyAmbientGlobals: Boolean(config.experimental__enableTSAmbientGlobals),
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {
           const hasError = diagnostics.some((d) => d.severity === Severity.error)
