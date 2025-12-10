@@ -44,13 +44,11 @@ export async function analyze({
       write
     })
     diagnostics.push(...result.diagnostics)
-    if (fix && result.fixes?.appliedEdits) {
+    if (fix && result.fixes?.appliedEdits > 0) {
       fixedEdits += result.fixes.appliedEdits
       fixedDiagnostics += result.fixes.appliedDiagnostics
-      fixedFiles += result.fixes.appliedEdits > 0 ? 1 : 0
-      if (result.fixes.output !== undefined) {
-        fixedOutputs.set(file, result.fixes.output)
-      }
+      fixedFiles += 1
+      fixedOutputs.set(file, result.fixes.output)
     }
 
     if (typeof onFileComplete === 'function') {
@@ -147,7 +145,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
         diagnostics: initialDiagnostics
       })
 
-      if (applied.appliedEdits > 0 && applied.output !== source) {
+      if (applied.appliedEdits > 0) {
         if (write) {
           await writeFile(filePath, applied.output, 'utf8')
         }

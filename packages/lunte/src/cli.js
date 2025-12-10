@@ -114,7 +114,9 @@ export async function run(argv = []) {
   if (fix && result.fixedEdits) {
     const fileLabel = result.fixedFiles === 1 ? 'file' : 'files'
     const editLabel = result.fixedEdits === 1 ? 'edit' : 'edits'
-    console.log(`Applied ${result.fixedEdits} ${editLabel} across ${result.fixedFiles} ${fileLabel}.`)
+    console.log(
+      `Applied ${result.fixedEdits} ${editLabel} across ${result.fixedFiles} ${fileLabel}.`
+    )
   }
   console.log(formatConsoleReport(result))
 
