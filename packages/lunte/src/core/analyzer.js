@@ -17,7 +17,8 @@ export async function analyze({
   sourceText,
   onFileComplete,
   disableHolepunchGlobals = false,
-  fix = false
+  fix = false,
+  write = true
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -32,19 +33,24 @@ export async function analyze({
   let fixedEdits = 0
   let fixedDiagnostics = 0
   let fixedFiles = 0
+  const fixedOutputs = new Map()
 
   for (const file of files) {
     const result = await analyzeFile(file, {
       ruleConfig,
       baseGlobals,
       sourceOverrides,
-      fix
+      fix,
+      write
     })
     diagnostics.push(...result.diagnostics)
     if (fix && result.fixes?.appliedEdits) {
       fixedEdits += result.fixes.appliedEdits
       fixedDiagnostics += result.fixes.appliedDiagnostics
       fixedFiles += result.fixes.appliedEdits > 0 ? 1 : 0
+      if (result.fixes.output !== undefined) {
+        fixedOutputs.set(file, result.fixes.output)
+      }
     }
 
     if (typeof onFileComplete === 'function') {
@@ -55,10 +61,10 @@ export async function analyze({
     }
   }
 
-  return { diagnostics, fixedEdits, fixedDiagnostics, fixedFiles }
+  return { diagnostics, fixedEdits, fixedDiagnostics, fixedFiles, fixedOutputs }
 }
 
-async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides, fix }) {
+async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides, fix, write }) {
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
@@ -142,7 +148,9 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
       })
 
       if (applied.appliedEdits > 0 && applied.output !== source) {
-        await writeFile(filePath, applied.output, 'utf8')
+        if (write) {
+          await writeFile(filePath, applied.output, 'utf8')
+        }
 
         const afterFixDiagnostics = run(applied.output)
         diagnostics.push(...afterFixDiagnostics)
@@ -151,7 +159,8 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
           diagnostics,
           fixes: {
             appliedEdits: applied.appliedEdits,
-            appliedDiagnostics: applied.appliedDiagnostics
+            appliedDiagnostics: applied.appliedDiagnostics,
+            output: applied.output
           }
         }
       }
