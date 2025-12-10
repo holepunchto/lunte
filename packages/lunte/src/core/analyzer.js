@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import { basename } from 'path'
 
 import { parse } from './parser.js'
@@ -7,6 +7,7 @@ import { ENV_GLOBALS } from '../config/envs.js'
 import { extractFileDirectives } from './file-directives.js'
 import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
+import { applyFixes } from './fixes.js'
 
 export async function analyze({
   files,
@@ -15,7 +16,8 @@ export async function analyze({
   globalOverrides,
   sourceText,
   onFileComplete,
-  disableHolepunchGlobals = false
+  disableHolepunchGlobals = false,
+  fix = false
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -27,13 +29,23 @@ export async function analyze({
 
   const sourceOverrides = normalizeSourceOverrides(sourceText)
 
+  let fixedEdits = 0
+  let fixedDiagnostics = 0
+  let fixedFiles = 0
+
   for (const file of files) {
     const result = await analyzeFile(file, {
       ruleConfig,
       baseGlobals,
-      sourceOverrides
+      sourceOverrides,
+      fix
     })
     diagnostics.push(...result.diagnostics)
+    if (fix && result.fixes?.appliedEdits) {
+      fixedEdits += result.fixes.appliedEdits
+      fixedDiagnostics += result.fixes.appliedDiagnostics
+      fixedFiles += result.fixes.appliedEdits > 0 ? 1 : 0
+    }
 
     if (typeof onFileComplete === 'function') {
       onFileComplete({
@@ -43,10 +55,10 @@ export async function analyze({
     }
   }
 
-  return { diagnostics }
+  return { diagnostics, fixedEdits, fixedDiagnostics, fixedFiles }
 }
 
-async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides }) {
+async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides, fix }) {
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
@@ -86,6 +98,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
         inlineIgnores: { shouldIgnore: () => false }
       })
       diagnostics.push(...ruleDiagnostics)
+      return { diagnostics }
     } catch (error) {
       diagnostics.push({
         filePath,
@@ -96,24 +109,54 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
     }
   } else {
     try {
-      const directives = extractFileDirectives(source)
-      const globals = mergeGlobals(baseGlobals, directives)
-      const comments = []
-      const ast = parse(source, {
-        filePath,
-        sourceFile: filePath,
-        onComment: comments
-      })
-      const inlineIgnores = buildInlineIgnoreMatcher(comments)
-      const ruleDiagnostics = runRules({
-        ast,
-        filePath,
+      const run = (currentSource) => {
+        const directives = extractFileDirectives(currentSource)
+        const globals = mergeGlobals(baseGlobals, directives)
+        const comments = []
+        const ast = parse(currentSource, {
+          filePath,
+          sourceFile: filePath,
+          onComment: comments
+        })
+        const inlineIgnores = buildInlineIgnoreMatcher(comments)
+        return runRules({
+          ast,
+          filePath,
+          source: currentSource,
+          ruleConfig,
+          globals,
+          inlineIgnores
+        })
+      }
+
+      const initialDiagnostics = run(source)
+
+      if (!fix) {
+        diagnostics.push(...initialDiagnostics)
+        return { diagnostics }
+      }
+
+      const applied = applyFixes({
         source,
-        ruleConfig,
-        globals,
-        inlineIgnores
+        diagnostics: initialDiagnostics
       })
-      diagnostics.push(...ruleDiagnostics)
+
+      if (applied.appliedEdits > 0 && applied.output !== source) {
+        await writeFile(filePath, applied.output, 'utf8')
+
+        const afterFixDiagnostics = run(applied.output)
+        diagnostics.push(...afterFixDiagnostics)
+
+        return {
+          diagnostics,
+          fixes: {
+            appliedEdits: applied.appliedEdits,
+            appliedDiagnostics: applied.appliedDiagnostics
+          }
+        }
+      }
+
+      diagnostics.push(...initialDiagnostics)
     } catch (error) {
       diagnostics.push(buildParseErrorDiagnostic({ error, filePath, source }))
     }

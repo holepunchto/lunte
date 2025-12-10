@@ -1,4 +1,5 @@
 import { Severity } from './constants.js'
+import { normalizeFix } from './fixes.js'
 
 const DEFAULT_IGNORE_MATCHER = {
   shouldIgnore() {
@@ -34,7 +35,7 @@ export class RuleContext {
     this._ancestors = ancestors ?? []
   }
 
-  report({ node, message, severity }) {
+  report({ node, message, severity, fix }) {
     const target = node ?? this._currentNode
     const startLoc = target?.loc?.start ?? {}
     const endLoc = target?.loc?.end ?? startLoc
@@ -55,7 +56,7 @@ export class RuleContext {
       }
     }
 
-    this.diagnostics.push({
+    const diagnostic = {
       filePath: this.filePath,
       message,
       severity: severity ?? this.ruleSeverity ?? Severity.error,
@@ -63,7 +64,14 @@ export class RuleContext {
       line,
       column:
         startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
-    })
+    }
+
+    const normalizedFix = normalizeFix(fix)
+    if (normalizedFix) {
+      diagnostic.fix = normalizedFix
+    }
+
+    this.diagnostics.push(diagnostic)
   }
 
   getAncestors() {

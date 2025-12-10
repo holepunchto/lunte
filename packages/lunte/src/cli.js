@@ -39,6 +39,7 @@ const parser = command(
   flag('--env [names]', 'Enable predefined environment globals (comma separated).').multiple(),
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
+  flag('--fix', 'Automatically apply available fixes.'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
 )
@@ -78,6 +79,7 @@ export async function run(argv = []) {
   const disableHolepunchGlobals = Boolean(config.disableHolepunchGlobals)
 
   const verbose = Boolean(parser.flags.verbose)
+  const fix = Boolean(parser.flags.fix)
   if (verbose) {
     console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
   }
@@ -93,6 +95,7 @@ export async function run(argv = []) {
     envOverrides: mergedEnv,
     globalOverrides: mergedGlobals,
     disableHolepunchGlobals,
+    fix,
     onFileComplete: verbose
       ? ({ filePath, diagnostics }) => {
           const hasError = diagnostics.some((d) => d.severity === Severity.error)
@@ -108,6 +111,11 @@ export async function run(argv = []) {
         }
       : undefined
   })
+  if (fix && result.fixedEdits) {
+    const fileLabel = result.fixedFiles === 1 ? 'file' : 'files'
+    const editLabel = result.fixedEdits === 1 ? 'edit' : 'edits'
+    console.log(`Applied ${result.fixedEdits} ${editLabel} across ${result.fixedFiles} ${fileLabel}.`)
+  }
   console.log(formatConsoleReport(result))
 
   const hasErrors = result.diagnostics.some((d) => d.severity === Severity.error)
