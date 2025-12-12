@@ -1,20 +1,9 @@
 export function normalizeFix(fix) {
-  if (!fix || !Array.isArray(fix)) return undefined
-  const edits = fix.map(normalizeFixEdit).filter(Boolean)
-  return edits.length ? edits : undefined
-}
-
-function normalizeFixEdit(edit) {
-  if (!edit || !Array.isArray(edit.range) || edit.range.length !== 2) return null
-
-  const [start, end] = edit.range
-  if (typeof start !== 'number' || typeof end !== 'number') return null
-  if (start < 0 || end < start) return null
-
-  return {
-    range: [start, end],
-    text: typeof edit.text === 'string' ? edit.text : ''
-  }
+  if (!fix) return undefined
+  return fix.map((edit) => ({
+    range: edit.range,
+    text: edit.text ?? ''
+  }))
 }
 
 export function applyFixes({ source, diagnostics }) {
@@ -24,7 +13,6 @@ export function applyFixes({ source, diagnostics }) {
     const diagnostic = diagnostics[i]
     if (!diagnostic.fix) continue
     for (const edit of diagnostic.fix) {
-      if (edit.range[1] > source.length) continue
       edits.push({ range: edit.range, text: edit.text, diagnosticIndex: i })
     }
   }

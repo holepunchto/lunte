@@ -41,29 +41,20 @@ export class RuleContext {
     const endLoc = target?.loc?.end ?? startLoc
     const line = startLoc.line
 
-    const ignoreMatcher = this.ignoreMatcher
-    if (ignoreMatcher) {
-      const shouldSkipStart = ignoreMatcher.shouldIgnore({
-        line,
-        ruleId: this.ruleId
-      })
-      const shouldSkipEnd =
-        !shouldSkipStart && endLoc.line !== null && endLoc.line !== undefined
-          ? ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
-          : false
-      if (shouldSkipStart || shouldSkipEnd) {
-        return
-      }
+    if (
+      this.ignoreMatcher.shouldIgnore({ line, ruleId: this.ruleId }) ||
+      this.ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
+    ) {
+      return
     }
 
     const diagnostic = {
       filePath: this.filePath,
       message,
-      severity: severity ?? this.ruleSeverity ?? Severity.error,
+      severity: severity ?? this.ruleSeverity,
       ruleId: this.ruleId,
       line,
-      column:
-        startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
+      column: startLoc.column !== undefined ? startLoc.column + 1 : undefined
     }
 
     const normalizedFix = normalizeFix(fix)

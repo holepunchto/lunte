@@ -66,7 +66,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
-    source = String(sourceOverrides.get(filePath) ?? '')
+    source = sourceOverrides.get(filePath)
   } else {
     try {
       source = await readFile(filePath, 'utf8')
@@ -173,16 +173,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
 }
 
 function normalizeSourceOverrides(value) {
-  if (!value) {
-    return undefined
-  }
-  if (value instanceof Map) {
-    return value
-  }
-  if (typeof value === 'object') {
-    return new Map(Object.entries(value))
-  }
-  return undefined
+  return value instanceof Map ? value : undefined
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {
@@ -192,7 +183,7 @@ function buildParseErrorDiagnostic({ error, filePath, source }) {
     message: error.message,
     severity: 'error',
     line: loc?.line ?? inferLineFromError(error, source),
-    column: loc?.column !== null && loc?.column !== undefined ? loc.column + 1 : undefined
+    column: loc?.column !== undefined ? loc.column + 1 : undefined
   }
 }
 

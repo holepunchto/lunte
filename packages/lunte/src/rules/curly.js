@@ -101,15 +101,6 @@ export const curly = {
 }
 
 function buildIfFix({ node, body, source }) {
-  if (
-    typeof node?.start !== 'number' ||
-    typeof body?.start !== 'number' ||
-    typeof body?.end !== 'number' ||
-    typeof source !== 'string'
-  ) {
-    return undefined
-  }
-
   const newlineIndex = source.lastIndexOf('\n', body.start)
   const ifLineStart = source.lastIndexOf('\n', node.start)
 
