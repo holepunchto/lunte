@@ -75,7 +75,7 @@ test('reports JSON parse errors', async (t) => {
   const result = await analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,
-    sourceText: new Map([[filePath, source]])
+    sourceOverrides: new Map([[filePath, source]])
   })
   t.is(result.diagnostics.length, 1)
   t.ok(result.diagnostics[0].message.includes('Invalid JSON'))
@@ -94,7 +94,7 @@ test('only runs on files named package.json', async (t) => {
   const result = await analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,
-    sourceText: new Map([[filePath, source]])
+    sourceOverrides: new Map([[filePath, source]])
   })
   // Should get parse error because it tries to parse as JS, not JSON
   t.is(result.diagnostics.length, 1)

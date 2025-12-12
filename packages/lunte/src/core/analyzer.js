@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import { basename } from 'path'
 
 import { parse } from './parser.js'
@@ -7,15 +7,18 @@ import { ENV_GLOBALS } from '../config/envs.js'
 import { extractFileDirectives } from './file-directives.js'
 import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
+import { applyFixes } from './fixes.js'
 
 export async function analyze({
   files,
   ruleOverrides,
   envOverrides,
   globalOverrides,
-  sourceText,
+  sourceOverrides,
   onFileComplete,
-  disableHolepunchGlobals = false
+  disableHolepunchGlobals = false,
+  fix = false,
+  write = true
 }) {
   const diagnostics = []
   const { ruleConfig, globals: baseGlobals } = resolveConfig({
@@ -25,15 +28,26 @@ export async function analyze({
     disableHolepunchGlobals
   })
 
-  const sourceOverrides = normalizeSourceOverrides(sourceText)
+  let fixedEdits = 0
+  let fixedDiagnostics = 0
+  let fixedFiles = 0
+  const fixedOutputs = new Map()
 
   for (const file of files) {
     const result = await analyzeFile(file, {
       ruleConfig,
       baseGlobals,
-      sourceOverrides
+      sourceOverrides,
+      fix,
+      write
     })
     diagnostics.push(...result.diagnostics)
+    if (fix && result.fixes?.appliedEdits > 0) {
+      fixedEdits += result.fixes.appliedEdits
+      fixedDiagnostics += result.fixes.appliedDiagnostics
+      fixedFiles += 1
+      fixedOutputs.set(file, result.fixes.output)
+    }
 
     if (typeof onFileComplete === 'function') {
       onFileComplete({
@@ -43,14 +57,14 @@ export async function analyze({
     }
   }
 
-  return { diagnostics }
+  return { diagnostics, fixedEdits, fixedDiagnostics, fixedFiles, fixedOutputs }
 }
 
-async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides }) {
+async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides, fix, write }) {
   const diagnostics = []
   let source
   if (sourceOverrides?.has(filePath)) {
-    source = String(sourceOverrides.get(filePath) ?? '')
+    source = sourceOverrides.get(filePath)
   } else {
     try {
       source = await readFile(filePath, 'utf8')
@@ -86,6 +100,7 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
         inlineIgnores: { shouldIgnore: () => false }
       })
       diagnostics.push(...ruleDiagnostics)
+      return { diagnostics }
     } catch (error) {
       diagnostics.push({
         filePath,
@@ -96,43 +111,63 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides 
     }
   } else {
     try {
-      const directives = extractFileDirectives(source)
-      const globals = mergeGlobals(baseGlobals, directives)
-      const comments = []
-      const ast = parse(source, {
-        filePath,
-        sourceFile: filePath,
-        onComment: comments
-      })
-      const inlineIgnores = buildInlineIgnoreMatcher(comments)
-      const ruleDiagnostics = runRules({
-        ast,
-        filePath,
+      const run = (currentSource) => {
+        const directives = extractFileDirectives(currentSource)
+        const globals = mergeGlobals(baseGlobals, directives)
+        const comments = []
+        const ast = parse(currentSource, {
+          filePath,
+          sourceFile: filePath,
+          onComment: comments
+        })
+        const inlineIgnores = buildInlineIgnoreMatcher(comments)
+        return runRules({
+          ast,
+          filePath,
+          source: currentSource,
+          ruleConfig,
+          globals,
+          inlineIgnores
+        })
+      }
+
+      const initialDiagnostics = run(source)
+
+      if (!fix) {
+        diagnostics.push(...initialDiagnostics)
+        return { diagnostics }
+      }
+
+      const applied = applyFixes({
         source,
-        ruleConfig,
-        globals,
-        inlineIgnores
+        diagnostics: initialDiagnostics
       })
-      diagnostics.push(...ruleDiagnostics)
+
+      if (applied.appliedEdits > 0) {
+        if (write) {
+          await writeFile(filePath, applied.output, 'utf8')
+        }
+
+        const afterFixDiagnostics = run(applied.output)
+        diagnostics.push(...afterFixDiagnostics)
+
+        return {
+          diagnostics,
+          fixes: {
+            appliedEdits: applied.appliedEdits,
+            appliedDiagnostics: applied.appliedDiagnostics,
+            output: applied.output
+          }
+        }
+      }
+
+      diagnostics.push(...initialDiagnostics)
     } catch (error) {
       diagnostics.push(buildParseErrorDiagnostic({ error, filePath, source }))
     }
   }
 
   return { diagnostics }
-}
-
-function normalizeSourceOverrides(value) {
-  if (!value) {
-    return undefined
-  }
-  if (value instanceof Map) {
-    return value
-  }
-  if (typeof value === 'object') {
-    return new Map(Object.entries(value))
-  }
-  return undefined
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {
@@ -142,7 +177,7 @@ function buildParseErrorDiagnostic({ error, filePath, source }) {
     message: error.message,
     severity: 'error',
     line: loc?.line ?? inferLineFromError(error, source),
-    column: loc?.column !== null && loc?.column !== undefined ? loc.column + 1 : undefined
+    column: loc?.column !== undefined ? loc.column + 1 : undefined
   }
 }
 

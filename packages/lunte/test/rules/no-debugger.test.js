@@ -24,7 +24,7 @@ async function analyzeSnippet(source) {
   return analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,
-    sourceText: new Map([[filePath, source]])
+    sourceOverrides: new Map([[filePath, source]])
   })
 }
 

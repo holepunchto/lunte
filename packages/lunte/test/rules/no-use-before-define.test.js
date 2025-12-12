@@ -16,7 +16,7 @@ async function analyzeSnippet(source) {
   const filePath = join(__dirname, `__virtual__/nufd-${(virtualId += 1)}.js`)
   return analyze({
     files: [filePath],
-    sourceText: new Map([[filePath, source]]),
+    sourceOverrides: new Map([[filePath, source]]),
     ruleOverrides: [{ name: 'no-undef', severity: 'off' }]
   })
 }

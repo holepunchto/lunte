@@ -17,9 +17,12 @@ export const curly = {
         const nodeLoc = node.loc
         const bodyLoc = body.loc
         if (nodeLoc && bodyLoc && nodeLoc.start.line !== bodyLoc.start.line) {
+          const fix =
+            keyword === 'if' ? buildIfFix({ node, body, source: context.source }) : undefined
           context.report({
             node: body,
-            message: `Expected { after '${keyword}' for multi-line statement.`
+            message: `Expected { after '${keyword}' for multi-line statement.`,
+            fix
           })
         }
       }
@@ -95,4 +98,21 @@ export const curly = {
       }
     }
   }
+}
+
+function buildIfFix({ node, body, source }) {
+  const newlineIndex = source.lastIndexOf('\n', body.start)
+  const ifLineStart = source.lastIndexOf('\n', node.start)
+
+  const ifIndent =
+    ifLineStart === -1
+      ? ''
+      : (source.slice(ifLineStart + 1, node.start).match(/^[ \t]*/) || [''])[0]
+
+  const openInsertPos = newlineIndex >= 0 ? newlineIndex : body.start
+
+  return [
+    { range: [openInsertPos, openInsertPos], text: ' {' },
+    { range: [body.end, body.end], text: `\n${ifIndent}}` }
+  ]
 }

@@ -1,11 +1,5 @@
 import { Severity } from './constants.js'
 
-const DEFAULT_IGNORE_MATCHER = {
-  shouldIgnore() {
-    return false
-  }
-}
-
 export class RuleContext {
   constructor({
     filePath,
@@ -25,45 +19,42 @@ export class RuleContext {
     this._currentNode = null
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
-    this.globals = globals ?? new Set()
-    this.ignoreMatcher = ignoreMatcher ?? DEFAULT_IGNORE_MATCHER
+    this.globals = globals
+    this.ignoreMatcher = ignoreMatcher
   }
 
   setTraversalState({ node, ancestors }) {
-    this._currentNode = node ?? null
-    this._ancestors = ancestors ?? []
+    this._currentNode = node
+    this._ancestors = ancestors
   }
 
-  report({ node, message, severity }) {
+  report({ node, message, severity, fix }) {
     const target = node ?? this._currentNode
     const startLoc = target?.loc?.start ?? {}
     const endLoc = target?.loc?.end ?? startLoc
     const line = startLoc.line
 
-    const ignoreMatcher = this.ignoreMatcher
-    if (ignoreMatcher) {
-      const shouldSkipStart = ignoreMatcher.shouldIgnore({
-        line,
-        ruleId: this.ruleId
-      })
-      const shouldSkipEnd =
-        !shouldSkipStart && endLoc.line !== null && endLoc.line !== undefined
-          ? ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
-          : false
-      if (shouldSkipStart || shouldSkipEnd) {
-        return
-      }
+    if (
+      this.ignoreMatcher.shouldIgnore({ line, ruleId: this.ruleId }) ||
+      this.ignoreMatcher.shouldIgnore({ line: endLoc.line, ruleId: this.ruleId })
+    ) {
+      return
     }
 
-    this.diagnostics.push({
+    const diagnostic = {
       filePath: this.filePath,
       message,
-      severity: severity ?? this.ruleSeverity ?? Severity.error,
+      severity: severity ?? this.ruleSeverity,
       ruleId: this.ruleId,
       line,
-      column:
-        startLoc.column !== null && startLoc.column !== undefined ? startLoc.column + 1 : undefined
-    })
+      column: startLoc.column !== undefined ? startLoc.column + 1 : undefined
+    }
+
+    if (fix) {
+      diagnostic.fix = fix
+    }
+
+    this.diagnostics.push(diagnostic)
   }
 
   getAncestors() {

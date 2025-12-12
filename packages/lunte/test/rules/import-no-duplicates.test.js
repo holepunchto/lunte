@@ -27,7 +27,7 @@ async function analyzeSnippet(source, { ext = 'js', enableTypeScriptParser = fal
   return analyze({
     files: [filePath],
     ruleOverrides: BASE_OVERRIDES,
-    sourceText: new Map([[filePath, source]]),
+    sourceOverrides: new Map([[filePath, source]]),
     enableTypeScriptParser
   })
 }
