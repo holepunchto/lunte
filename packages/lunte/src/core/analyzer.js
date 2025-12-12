@@ -14,7 +14,7 @@ export async function analyze({
   ruleOverrides,
   envOverrides,
   globalOverrides,
-  sourceText,
+  sourceOverrides,
   onFileComplete,
   disableHolepunchGlobals = false,
   fix = false,
@@ -27,8 +27,6 @@ export async function analyze({
     globals: globalOverrides,
     disableHolepunchGlobals
   })
-
-  const sourceOverrides = normalizeSourceOverrides(sourceText)
 
   let fixedEdits = 0
   let fixedDiagnostics = 0
@@ -170,10 +168,6 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
   }
 
   return { diagnostics }
-}
-
-function normalizeSourceOverrides(value) {
-  return value instanceof Map ? value : undefined
 }
 
 function buildParseErrorDiagnostic({ error, filePath, source }) {

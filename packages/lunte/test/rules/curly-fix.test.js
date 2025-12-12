@@ -25,7 +25,7 @@ test('applies fix for multi-line if without braces', async (t) => {
     ruleOverrides: ONLY_CURLY,
     fix: true,
     write: false,
-    sourceText: new Map([[file, source]])
+    sourceOverrides: new Map([[file, source]])
   })
 
   t.is(result.fixedEdits, 2)
@@ -46,7 +46,7 @@ test('does not change already valid single-line if', async (t) => {
     ruleOverrides: ONLY_CURLY,
     fix: true,
     write: false,
-    sourceText: new Map([[file, source]])
+    sourceOverrides: new Map([[file, source]])
   })
 
   t.is(result.fixedEdits, 0)
@@ -63,7 +63,7 @@ test('leaves else violation unfixed and still reported', async (t) => {
     ruleOverrides: ONLY_CURLY,
     fix: true,
     write: false,
-    sourceText: new Map([[file, source]])
+    sourceOverrides: new Map([[file, source]])
   })
 
   t.is(result.fixedEdits, 0)

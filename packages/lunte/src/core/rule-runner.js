@@ -40,7 +40,7 @@ export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgn
       globals,
       ignoreMatcher
     })
-    const listeners = normalizeListeners(rule.create(context) ?? {})
+    const listeners = normalizeListeners(rule.create(context))
     return { context, listeners }
   })
 

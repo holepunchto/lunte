@@ -1,11 +1,3 @@
-export function normalizeFix(fix) {
-  if (!fix) return undefined
-  return fix.map((edit) => ({
-    range: edit.range,
-    text: edit.text ?? ''
-  }))
-}
-
 export function applyFixes({ source, diagnostics }) {
   const edits = []
 

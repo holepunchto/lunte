@@ -1,11 +1,4 @@
 import { Severity } from './constants.js'
-import { normalizeFix } from './fixes.js'
-
-const DEFAULT_IGNORE_MATCHER = {
-  shouldIgnore() {
-    return false
-  }
-}
 
 export class RuleContext {
   constructor({
@@ -26,13 +19,13 @@ export class RuleContext {
     this._currentNode = null
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
-    this.globals = globals ?? new Set()
-    this.ignoreMatcher = ignoreMatcher ?? DEFAULT_IGNORE_MATCHER
+    this.globals = globals
+    this.ignoreMatcher = ignoreMatcher
   }
 
   setTraversalState({ node, ancestors }) {
-    this._currentNode = node ?? null
-    this._ancestors = ancestors ?? []
+    this._currentNode = node
+    this._ancestors = ancestors
   }
 
   report({ node, message, severity, fix }) {
@@ -57,9 +50,8 @@ export class RuleContext {
       column: startLoc.column !== undefined ? startLoc.column + 1 : undefined
     }
 
-    const normalizedFix = normalizeFix(fix)
-    if (normalizedFix) {
-      diagnostic.fix = normalizedFix
+    if (fix) {
+      diagnostic.fix = fix
     }
 
     this.diagnostics.push(diagnostic)
