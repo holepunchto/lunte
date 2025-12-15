@@ -135,11 +135,29 @@ code --extensionDevelopmentPath="${PWD}"
 
 By default the extension runs `npx lunte-lsp`. Adjust `lunte.lsp.command` / `lunte.lsp.args` in VS Code settings to point at another binary (for example a globally installed `lunte-lsp`).
 
-### Attribution
+### Helix
+
+The `lunte-lsp` can be used with Helix by updating your `~/.config/helix/languages.toml`
+
+```toml
+[language-server]
+lunte = { command = "lunte-lsp", args = [ ]}
+
+[[ language ]]
+name = "javascript"
+formatter = { command = "prettier", args = ["--parser", "typescript"] }
+language-servers = [{ name = "typescript-language-server", except-features = [ "format", "diagnostics" ] }, "lunte"]
+auto-format = true
+```
+
+By using the default language server, as well as Lunte, you will get any features missing from Lunte covered for the `typescript-language-server`.
+The above config disabled `diagnostics` (handled by Lunte) and `format` (handled by Prettier) in `typescript-language-server`.
+
+## Attribution
 
 Lunte comes bundled with [Acorn](https://github.com/acornjs/acorn) (MIT).
 
-### License
+## License
 
 Apache-2.0
 
