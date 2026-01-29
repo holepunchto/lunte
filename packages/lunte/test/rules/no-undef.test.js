@@ -89,6 +89,14 @@ test('allows modern ES2021+ and Node.js globals', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('ignores import attributes in module imports', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-import-attributes-valid.js')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }]
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
 test('ignores type-only identifiers in TypeScript files', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-valid.ts')],

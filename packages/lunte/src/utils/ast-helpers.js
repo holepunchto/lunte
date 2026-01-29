@@ -21,6 +21,8 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
     case 'ImportDefaultSpecifier':
     case 'ImportNamespaceSpecifier':
       return false
+    case 'ImportAttribute':
+      return false
     case 'MetaProperty':
       return false
     case 'ExportSpecifier':
