@@ -17,8 +17,7 @@ export const curly = {
         const nodeLoc = node.loc
         const bodyLoc = body.loc
         if (nodeLoc && bodyLoc && nodeLoc.start.line !== bodyLoc.start.line) {
-          const fix =
-            keyword === 'if' ? buildIfFix({ node, body, source: context.source }) : undefined
+          const fix = buildStatementFix({ node, body, source: context.source })
           context.report({
             node: body,
             message: `Expected { after '${keyword}' for multi-line statement.`,
@@ -49,28 +48,30 @@ export const curly = {
               alternateLoc &&
               consequentLoc.end.line !== alternateLoc.start.line
 
-            // Find the 'else' keyword position by searching source between consequent and alternate
-            let elseOnDifferentLine = false
-            if (
-              consequentLoc &&
-              alternateLoc &&
-              node.consequent.end !== null &&
-              alternate.start !== null
-            ) {
-              const betweenText = context.source.slice(node.consequent.end, alternate.start)
-              const elseMatch = betweenText.match(/\belse\b/)
-              if (elseMatch) {
-                // Calculate which line the else keyword is on
-                const beforeElse = context.source.slice(0, node.consequent.end + elseMatch.index)
-                const elseKeywordLine = (beforeElse.match(/\n/g) || []).length + 1
-                elseOnDifferentLine = elseKeywordLine !== alternateLoc.start.line
-              }
-            }
+            const elseInfo = findElseInfo({
+              node,
+              alternate,
+              source: context.source
+            })
+            const elseOnDifferentLine =
+              elseInfo && alternateLoc
+                ? elseInfo.elseKeywordLine !== alternateLoc.start.line
+                : false
 
             if (alternateIsMultiLine || braceStyleViolation || elseOnDifferentLine) {
+              const fix = elseInfo
+                ? buildElseFix({
+                    elseStart: elseInfo.elseStart,
+                    elseEnd: elseInfo.elseEnd,
+                    elseKeywordLine: elseInfo.elseKeywordLine,
+                    body: alternate,
+                    source: context.source
+                  })
+                : undefined
               context.report({
                 node: alternate,
-                message: `Expected { after 'else' for multi-line statement.`
+                message: `Expected { after 'else' for multi-line statement.`,
+                fix
               })
             }
           }
@@ -100,19 +101,66 @@ export const curly = {
   }
 }
 
-function buildIfFix({ node, body, source }) {
-  const newlineIndex = source.lastIndexOf('\n', body.start)
-  const ifLineStart = source.lastIndexOf('\n', node.start)
+function buildStatementFix({ node, body, source }) {
+  if (!node || node.start === null || body.start === null || body.end === null) {
+    return undefined
+  }
 
-  const ifIndent =
-    ifLineStart === -1
+  const newlineIndex = source.lastIndexOf('\n', body.start)
+  const statementLineStart = source.lastIndexOf('\n', node.start)
+
+  const statementIndent =
+    statementLineStart === -1
       ? ''
-      : (source.slice(ifLineStart + 1, node.start).match(/^[ \t]*/) || [''])[0]
+      : (source.slice(statementLineStart + 1, node.start).match(/^[ \t]*/) || [''])[0]
 
   const openInsertPos = newlineIndex >= 0 ? newlineIndex : body.start
 
   return [
     { range: [openInsertPos, openInsertPos], text: ' {' },
-    { range: [body.end, body.end], text: `\n${ifIndent}}` }
+    { range: [body.end, body.end], text: `\n${statementIndent}}` }
+  ]
+}
+
+function findElseInfo({ node, alternate, source }) {
+  if (!node || !alternate || node.consequent.end === null || alternate.start === null) {
+    return null
+  }
+
+  const betweenText = source.slice(node.consequent.end, alternate.start)
+  const elseMatch = betweenText.match(/\belse\b/)
+  if (!elseMatch) return null
+
+  const elseStart = node.consequent.end + elseMatch.index
+  const elseEnd = elseStart + elseMatch[0].length
+
+  const beforeElse = source.slice(0, elseStart)
+  const elseKeywordLine = (beforeElse.match(/\n/g) || []).length + 1
+
+  return { elseStart, elseEnd, elseKeywordLine }
+}
+
+function buildElseFix({ elseStart, elseEnd, elseKeywordLine, body, source }) {
+  if (elseStart === null || elseEnd === null || body.start === null || body.end === null) {
+    return undefined
+  }
+
+  const elseLineStart = source.lastIndexOf('\n', elseStart)
+  const elseIndent =
+    elseLineStart === -1
+      ? ''
+      : (source.slice(elseLineStart + 1, elseStart).match(/^[ \t]*/) || [''])[0]
+
+  const bodyLoc = body.loc
+  const closeInline =
+    bodyLoc &&
+    elseKeywordLine &&
+    bodyLoc.start.line === bodyLoc.end.line &&
+    bodyLoc.start.line === elseKeywordLine
+  const closeText = closeInline ? ' }' : `\n${elseIndent}}`
+
+  return [
+    { range: [elseEnd, elseEnd], text: ' {' },
+    { range: [body.end, body.end], text: closeText }
   ]
 }

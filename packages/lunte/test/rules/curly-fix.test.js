@@ -54,9 +54,10 @@ test('does not change already valid single-line if', async (t) => {
   t.is(result.fixedOutputs.get(file), undefined, 'no output when nothing changed')
 })
 
-test('leaves else violation unfixed and still reported', async (t) => {
+test('applies fix for multi-line else without braces', async (t) => {
   const file = '/virtual/curly-else-invalid.js'
   const source = await readFile(fixtures('curly-else-invalid.js'), 'utf8')
+  const expected = await readFile(fixtures('curly-else-invalid.fixed.js'), 'utf8')
 
   const result = await analyze({
     files: [file],
@@ -66,9 +67,33 @@ test('leaves else violation unfixed and still reported', async (t) => {
     sourceOverrides: new Map([[file, source]])
   })
 
-  t.is(result.fixedEdits, 0)
-  t.is(result.fixedDiagnostics, 0)
-  t.is(result.fixedFiles, 0)
-  t.is(result.diagnostics.length, 1, 'still reports unfixed else diagnostic')
-  t.is(result.fixedOutputs.get(file), undefined, 'output should be untouched')
+  t.is(result.fixedEdits, 2)
+  t.is(result.fixedDiagnostics, 1)
+  t.is(result.fixedFiles, 1)
+  t.is(result.diagnostics.length, 0, 'should clear diagnostics after fixing')
+
+  const output = result.fixedOutputs.get(file)
+  t.is(output, expected)
+})
+
+test('applies fix for multi-line for-of without braces', async (t) => {
+  const file = '/virtual/curly-for-of-invalid.js'
+  const source = await readFile(fixtures('curly-for-of-invalid.js'), 'utf8')
+  const expected = await readFile(fixtures('curly-for-of-invalid.fixed.js'), 'utf8')
+
+  const result = await analyze({
+    files: [file],
+    ruleOverrides: ONLY_CURLY,
+    fix: true,
+    write: false,
+    sourceOverrides: new Map([[file, source]])
+  })
+
+  t.is(result.fixedEdits, 2)
+  t.is(result.fixedDiagnostics, 1)
+  t.is(result.fixedFiles, 1)
+  t.is(result.diagnostics.length, 0, 'should clear diagnostics after fixing')
+
+  const output = result.fixedOutputs.get(file)
+  t.is(output, expected)
 })
