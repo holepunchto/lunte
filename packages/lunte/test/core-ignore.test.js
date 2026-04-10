@@ -1,11 +1,10 @@
 import test from 'brittle'
-import { writeFile, rm, mkdir } from 'fs/promises'
+import { mkdtemp, writeFile, rm, mkdir } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join, dirname, relative } from 'path'
 
 import { loadIgnore } from '../src/core/ignore.js'
 import { resolveFileTargets } from '../src/core/file-resolver.js'
-import { mkdtemp } from './helpers/mkdtemp.js'
 
 async function withTempDir(t, entries) {
   const dir = await mkdtemp(join(tmpdir(), 'lunte-ignore-'))
