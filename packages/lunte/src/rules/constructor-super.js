@@ -6,7 +6,8 @@ export const constructorSuper = {
     description:
       'Require super() calls in constructors of derived classes and disallow super() in non-derived classes.',
     recommended: true,
-    defaultSeverity: Severity.error
+    defaultSeverity: Severity.error,
+    applicableToTypeDefinitions: false
   },
   create(context) {
     const classStack = []

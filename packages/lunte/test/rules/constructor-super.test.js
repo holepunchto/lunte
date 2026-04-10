@@ -94,3 +94,11 @@ test('allows class expression with proper super() usage', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('ignores type definition file', async (t) => {
+  const result = await analyze({
+    files: [fixture('constructor-super-ignore-type-definition-file.d.ts')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+  t.is(result.diagnostics.length, 0)
+})

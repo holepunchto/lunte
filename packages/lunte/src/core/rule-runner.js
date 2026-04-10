@@ -16,11 +16,17 @@ export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgn
 
   const ignoreMatcher = inlineIgnores ?? DEFAULT_IGNORE_MATCHER
 
+  const isTypeDefinition = filePath.endsWith('.d.ts')
+
   for (const [name, rule] of builtInRules.entries()) {
     const config = effectiveConfig.get(name) ?? {
-      severity: rule.meta?.defaultSeverity ?? Severity.error
+      severity: rule.meta?.defaultSeverity ?? Severity.error,
+      applicableToTypeDefinitions: rule.meta?.applicableToTypeDefinitions ?? true
     }
     if (!config || config.severity === Severity.off) {
+      continue
+    }
+    if (config && config.applicableToTypeDefinitions === false && isTypeDefinition) {
       continue
     }
     activeRules.push({ name, rule, config })
