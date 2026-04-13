@@ -1,11 +1,10 @@
 import test from 'brittle'
-import { writeFile } from 'fs/promises'
+import { mkdtemp, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
 import { loadPlugins } from '../src/config/plugins.js'
 import { builtInRules } from '../src/rules/index.js'
-import { mkdtemp } from './helpers/mkdtemp.js'
 
 const RULE_NAME = 'pear/no-apples'
 

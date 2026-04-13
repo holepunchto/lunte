@@ -4,10 +4,8 @@ import { spawn } from 'child_process'
 import { once } from 'events'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { dirname, join } from 'path'
-import { readFile, writeFile, rm, mkdir } from 'fs/promises'
+import { mkdtemp, readFile, writeFile, rm, mkdir } from 'fs/promises'
 import { tmpdir } from 'os'
-
-import { mkdtemp } from './helpers/mkdtemp.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)

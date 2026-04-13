@@ -3,10 +3,8 @@ import test from 'brittle'
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { writeFile, mkdir } from 'fs/promises'
+import { mkdtemp, writeFile, mkdir } from 'fs/promises'
 import { tmpdir } from 'os'
-
-import { mkdtemp } from './helpers/mkdtemp.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)
