@@ -58,7 +58,7 @@ export async function run(argv = []) {
     return 0
   }
 
-  let source = ''
+  let source
   let sourceFile
   let resolvedFiles
 

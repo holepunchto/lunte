@@ -13,11 +13,11 @@ async function createTempDir(prefix) {
   return mkdtemp(join(tmpdir(), `lunte-cli-${prefix}-`))
 }
 
-function runCli(args) {
+function runCli(args, { input } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['bin/lunte', ...args], {
       cwd: projectRoot,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe']
     })
 
     let stdout = ''
@@ -39,6 +39,8 @@ function runCli(args) {
 
     child.on('close', settle)
     child.on('exit', settle)
+
+    child.stdin.end(input)
   })
 }
 
@@ -150,5 +152,34 @@ test('CLI verbose flag marks errors per file', async (t) => {
   t.ok(result.stdout.includes('Analyzing 1 file'))
   t.ok(result.stdout.includes('✕'), 'should mark error with a cross')
   t.ok(result.stdout.includes(file))
+  t.is(result.stderr, '')
+})
+
+test('CLI stdin preserves filename-based package.json rules', async (t) => {
+  const source = `{
+  "exports": {
+    ".": {
+      "default": "./index.js",
+      "import": "./index.mjs"
+    }
+  }
+}
+`
+
+  const result = await runCli(['--stdin', 'package.json'], { input: source })
+
+  t.is(result.code, 1)
+  t.ok(
+    result.stdout.includes('(package-json/exports-order)'),
+    'stdout should report the package.json exports order rule'
+  )
+  t.is(result.stderr, '')
+})
+
+test('CLI accepts empty stdin as empty input', async (t) => {
+  const result = await runCli(['--stdin'], { input: '' })
+
+  t.is(result.code, 0)
+  t.ok(/No issues/.test(result.stdout), 'stdout should report no issues for empty input')
   t.is(result.stderr, '')
 })
