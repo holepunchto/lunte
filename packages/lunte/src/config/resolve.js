@@ -63,7 +63,7 @@ export function resolveRuleConfig(overrides = []) {
     if (!normalized) {
       continue
     }
-    config.set(name, { ...config.get(name), severity: normalized })
+    config.set(name, { severity: normalized })
   }
 
   return config
