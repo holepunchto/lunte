@@ -166,7 +166,7 @@ async function readStdin() {
   return await new Promise((resolve, reject) => {
     let text = ''
     process.stdin.setEncoding('utf8')
-    process.stdin.on('data', chunk => {
+    process.stdin.on('data', (chunk) => {
       text += chunk
     })
     process.stdin.on('end', () => resolve(text))

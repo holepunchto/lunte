@@ -104,7 +104,10 @@ async function analyzeFile(filePath, { ruleConfig, baseGlobals, sourceOverrides,
   return analyzeSource(source, { filePath, ruleConfig, baseGlobals, fix, write })
 }
 
-async function analyzeSource(source, { filePath, ruleConfig, baseGlobals, fix = false, write = true }) {
+async function analyzeSource(
+  source,
+  { filePath, ruleConfig, baseGlobals, fix = false, write = true }
+) {
   const diagnostics = []
 
   if (filePath && basename(filePath) === 'package.json') {
