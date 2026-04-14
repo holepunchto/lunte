@@ -34,3 +34,26 @@ test('formats error diagnostics with summaries', (t) => {
   t.ok(clean.includes('file.js:2:3  WARNING'))
   t.ok(clean.includes('1 error, 1 warning'))
 })
+
+test('formats error diagnostics with summaries and no filePath', (t) => {
+  const output = formatConsoleReport({
+    diagnostics: [
+      {
+        line: 1,
+        column: 2,
+        severity: 'error',
+        message: 'Oops'
+      },
+      {
+        line: 2,
+        column: 3,
+        severity: 'warning',
+        message: 'Look out'
+      }
+    ]
+  })
+  const clean = stripAnsi(output)
+  t.ok(clean.includes('input:1:2  ERROR'))
+  t.ok(clean.includes('input:2:3  WARNING'))
+  t.ok(clean.includes('1 error, 1 warning'))
+})
