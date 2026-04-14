@@ -1,7 +1,7 @@
 import test from 'brittle'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
-import { readFileSync } from 'node:fs'
+import { readFileSync } from 'fs'
 
 import { analyze } from '../src/core/analyzer.js'
 
