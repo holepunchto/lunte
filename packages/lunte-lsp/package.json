@@ -27,7 +27,7 @@
     "url": "https://github.com/holepunchto/lunte/issues"
   },
   "dependencies": {
-    "lunte": "^1.6.0"
+    "lunte": "^1.7.0"
   },
   "imports": {
     "path": {
