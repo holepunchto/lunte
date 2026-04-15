@@ -15,7 +15,7 @@ export const requireAwait = {
     }
 
     function exitScope(node) {
-      if (node.async && !scope.hasAwait) {
+      if (node.async && !node.generator && !scope.hasAwait) {
         const name = node.id ? node.id.name : 'Anonymous'
 
         context.report({ node, message: `${name} function has no 'await' expression.` })

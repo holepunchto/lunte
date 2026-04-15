@@ -37,6 +37,15 @@ test('flags async arrow function without await', async (t) => {
   t.is(result.diagnostics[0].ruleId, 'require-await')
 })
 
+test('allows async generators without await', async (t) => {
+  const result = await analyze({
+    files: [fixture('require-await-async-generator-valid.js')],
+    ruleOverrides: BASE_OVERRIDES
+  })
+
+  t.is(result.diagnostics.length, 0)
+})
+
 test('allows valid cases', async (t) => {
   const result = await analyze({
     files: [fixture('require-await-valid-cases.js')],
