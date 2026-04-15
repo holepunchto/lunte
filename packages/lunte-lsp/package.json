@@ -1,11 +1,11 @@
 {
   "name": "lunte-lsp",
-  "version": "0.2.2",
+  "version": "1.7.0",
   "description": "Language Server Protocol wrapper for Lunte",
   "type": "module",
   "main": "./src/server.js",
   "bin": {
-    "lunte-lsp": "./bin/lunte-lsp"
+    "lunte-lsp": "bin/lunte-lsp"
   },
   "license": "Apache-2.0",
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
@@ -19,7 +19,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/holepunchto/lunte.git",
+    "url": "git+https://github.com/holepunchto/lunte.git",
     "directory": "packages/lunte-lsp"
   },
   "homepage": "https://github.com/holepunchto/lunte#readme",

@@ -4,7 +4,7 @@
   "description": "Self-contained linter for Pear/Bare projects",
   "main": "./src/index.js",
   "bin": {
-    "lunte": "./bin/lunte"
+    "lunte": "bin/lunte"
   },
   "scripts": {
     "test": "npm run test:node && npm run test:bare",
@@ -27,7 +27,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/holepunchto/lunte.git",
+    "url": "git+https://github.com/holepunchto/lunte.git",
     "directory": "packages/lunte"
   },
   "homepage": "https://github.com/holepunchto/lunte#readme",
