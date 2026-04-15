@@ -28,7 +28,8 @@ test('builtInRules exposes expected rule names', (t) => {
     'import/no-duplicates',
     'no-redeclare',
     'default-case-last',
-    'package-json/exports-order'
+    'package-json/exports-order',
+    'require-await'
   ]
 
   t.alike(Array.from(builtInRules.keys()).sort(), expected.sort())

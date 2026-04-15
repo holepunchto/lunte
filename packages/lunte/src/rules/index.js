@@ -23,6 +23,7 @@ import { importNoDuplicates } from './import-no-duplicates.js'
 import { noRedeclare } from './no-redeclare.js'
 import { defaultCaseLast } from './default-case-last.js'
 import { packageJsonExportsOrder } from './package-json-exports-order.js'
+import { requireAwait } from './require-await.js'
 
 export const builtInRules = new Map()
 
@@ -51,6 +52,7 @@ registerRule(importNoDuplicates)
 registerRule(noRedeclare)
 registerRule(defaultCaseLast)
 registerRule(packageJsonExportsOrder)
+registerRule(requireAwait)
 
 export function registerRule(rule) {
   if (!rule || typeof rule.meta?.name !== 'string') {
