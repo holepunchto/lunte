@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0
+
+### Added
+- Lint generic `.json` files with strict JSON parsing.
+
+### Changed
+- Run structural rules such as `no-dupe-keys` against JSON files.
+- Keep `package-json/exports-order` scoped to `package.json`.
+
 ## 1.7.0
 
 ### Added

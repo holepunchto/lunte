@@ -1,6 +1,6 @@
 {
   "name": "lunte-lsp",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Language Server Protocol wrapper for Lunte",
   "type": "module",
   "main": "./src/server.js",
@@ -27,7 +27,7 @@
     "url": "https://github.com/holepunchto/lunte/issues"
   },
   "dependencies": {
-    "lunte": "^1.7.0"
+    "lunte": "^1.8.0"
   },
   "imports": {
     "path": {
