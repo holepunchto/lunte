@@ -86,3 +86,21 @@ test('allows computed properties', async (t) => {
   })
   t.is(result.diagnostics.length, 0)
 })
+
+test('flags duplicate keys in JSON files', async (t) => {
+  const filePath = join(__dirname, '__virtual__/duplicates.json')
+  const source = `{
+  "foo": 1,
+  "foo": 2
+}`
+
+  const result = await analyze({
+    files: [filePath],
+    ruleOverrides: BASE_OVERRIDES,
+    sourceOverrides: new Map([[filePath, source]])
+  })
+
+  t.is(result.diagnostics.length, 1)
+  t.is(result.diagnostics[0].ruleId, 'no-dupe-keys')
+  t.is(result.diagnostics[0].line, 3)
+})

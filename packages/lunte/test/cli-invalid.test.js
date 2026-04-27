@@ -100,6 +100,24 @@ test('CLI expands directory inputs', async (t) => {
   t.is(result.stderr, '')
 })
 
+test('CLI expands directory inputs to include json files', async (t) => {
+  const dir = await createTempDir('json-dir')
+  await writeFile(
+    join(dir, 'data.json'),
+    `{
+  "foo": 1,
+  "foo": 2
+}
+`
+  )
+
+  const result = await runCli([dir])
+
+  t.is(result.code, 1)
+  t.ok(result.stdout.includes('(no-dupe-keys)'))
+  t.is(result.stderr, '')
+})
+
 test('CLI expands glob patterns', async (t) => {
   const dir = await createTempDir('glob')
   await writeFile(join(dir, 'a.js'), 'console.log(1)\n')

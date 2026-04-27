@@ -43,3 +43,17 @@ test('returns empty diagnostics for empty source', async (t) => {
   const result = await analyze({ source: '' })
   t.is(result.diagnostics.length, 0)
 })
+
+test('returns invalid JSON diagnostic for json files', async (t) => {
+  const source = '{\n  "answer":,\n}\n'
+  const result = await analyze({
+    source,
+    sourceFile: fixturePath('invalid.json')
+  })
+
+  t.is(result.diagnostics.length, 1)
+  const [diagnostic] = result.diagnostics
+  t.is(diagnostic.severity, 'error')
+  t.ok(diagnostic.message.includes('Invalid JSON'))
+  t.ok(typeof diagnostic.line === 'number')
+})

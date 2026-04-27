@@ -22,6 +22,8 @@ lunte "src/**/*.js"
 
 By default Lunte skips `node_modules/`. Manage additional exclusions with `.lunteignore` (gitignore-style patterns).
 
+Files ending in `.json` are also linted. Lunte treats them as strict JSON, so invalid syntax is reported and structural rules such as `no-dupe-keys` still apply.
+
 ## Configuration
 
 Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.json`) at the project root.

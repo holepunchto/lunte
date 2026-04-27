@@ -96,7 +96,5 @@ test('only runs on files named package.json', async (t) => {
     ruleOverrides: BASE_OVERRIDES,
     sourceOverrides: new Map([[filePath, source]])
   })
-  // Should get parse error because it tries to parse as JS, not JSON
-  t.is(result.diagnostics.length, 1)
-  t.ok(result.diagnostics[0].message.includes('Unexpected token'))
+  t.is(result.diagnostics.length, 0)
 })

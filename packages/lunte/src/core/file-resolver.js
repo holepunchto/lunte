@@ -6,7 +6,7 @@ import { hasMagic, globToRegExp, toPosix } from './glob.js'
 
 const JS_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.jsx'])
 const TS_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.mts', '.d.ts', '.d.mts', '.d.cts'])
-const LINTABLE_FILES = new Set(['package.json'])
+const JSON_EXTENSIONS = new Set(['.json'])
 
 export async function resolveFileTargets(inputs, { ignore, cwd = process.cwd() } = {}) {
   const files = new Set()
@@ -151,11 +151,10 @@ async function walkGlob(dir, { matcher, files, ignore, cwd }) {
 }
 
 function isLintableFile(filePath) {
-  const fileName = filePath.split('/').pop().split('\\').pop()
-  if (LINTABLE_FILES.has(fileName)) {
+  const extension = extname(filePath).toLowerCase()
+  if (JSON_EXTENSIONS.has(extension)) {
     return true
   }
-  const extension = extname(filePath).toLowerCase()
   if (JS_EXTENSIONS.has(extension)) {
     return true
   }
