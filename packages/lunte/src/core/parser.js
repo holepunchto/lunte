@@ -18,6 +18,32 @@ const typeScriptParserCache = new Map()
 
 const parseWithAcorn = (sourceText, options = {}) => runParser(acornParse, sourceText, options)
 
+const patchedAcornTypescript = (options = {}) => {
+  const plugin = acornTypescript(options)
+
+  if (!options.dts) {
+    return plugin
+  }
+
+  return (Parser) => {
+    const TypeScriptParser = plugin(Parser)
+
+    return class LunteTypeScriptParser extends TypeScriptParser {
+      parseFunctionStatement(...args) {
+        const node = super.parseFunctionStatement(...args)
+
+        // @sveltejs/acorn-typescript currently parses ambient `.d.ts` functions as
+        // TSDeclareFunction without registering their names for Acorn's module export
+        // validation, so `declare function foo(); export { foo }` fails to parse.
+        // Keep this local until https://github.com/sveltejs/acorn-typescript/issues/48 lands.
+        registerAmbientFunctionExport(this, node)
+
+        return node
+      }
+    }
+  }
+}
+
 const parseWithAcornTypescript = (sourceText, options = {}, { dts = false, jsx = false } = {}) => {
   const parser = getTypeScriptParser({ dts, jsx })
   return runParser((code, opts) => parser.parse(code, opts), sourceText, options)
@@ -59,6 +85,18 @@ export function isDeclarationFile(filePath) {
   return DTS_SUFFIXES.some((suffix) => filePath.endsWith(suffix))
 }
 
+function registerAmbientFunctionExport(parser, node) {
+  if (node.type !== 'TSDeclareFunction' || !node.id) {
+    return
+  }
+
+  const topLevelNames = parser.scopeStack[0].lexical
+  if (!topLevelNames.includes(node.id.name)) {
+    topLevelNames.push(node.id.name)
+  }
+  delete parser.undefinedExports[node.id.name]
+}
+
 function getTypeScriptParser({ dts, jsx }) {
   const key = `${dts ? 'dts' : 'default'}${jsx ? '-jsx' : ''}`
   if (typeScriptParserCache.has(key)) {
@@ -71,7 +109,7 @@ function getTypeScriptParser({ dts, jsx }) {
     )
   }
 
-  const parser = AcornParser.extend(acornTypescript({ dts, jsx }))
+  const parser = AcornParser.extend(patchedAcornTypescript({ dts, jsx }))
   typeScriptParserCache.set(key, parser)
   return parser
 }
