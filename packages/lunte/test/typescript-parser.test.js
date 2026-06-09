@@ -28,3 +28,8 @@ test('JSX parses automatically with TS parser', async (t) => {
   const result = await analyze({ files: [fixturePath('typescript', 'typed-jsx.jsx')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
+
+test('declaration files allow exporting declared ambient functions', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'ambient-export.d.ts')] })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
