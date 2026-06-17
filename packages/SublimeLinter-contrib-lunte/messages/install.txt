@@ -1,0 +1,10 @@
+SublimeLinter-contrib-lunte
+---------------------------
+This linter plugin for SublimeLinter provides an interface to lunte.
+
+** IMPORTANT! **
+
+Before this plugin will activate, you *must*
+follow the installation instructions here:
+
+https://github.com/holepunchto/lunte/packages/SublimeLinter-contrib-lunte
