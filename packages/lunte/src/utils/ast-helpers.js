@@ -1,4 +1,4 @@
-export function isReferenceIdentifier(node, parent, ancestors = []) {
+export function isReferenceIdentifier(node, parent, ancestors = [], options = {}) {
   if (!parent) return true
 
   if (isTypeOnlyIdentifier(node, parent, ancestors)) {
@@ -67,7 +67,7 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
       return parent.left !== node
     case 'UnaryExpression':
       if (parent.operator === 'typeof') {
-        return false
+        return options.ignoreTypeof === false
       }
       return true
     case 'TSEnumMember':

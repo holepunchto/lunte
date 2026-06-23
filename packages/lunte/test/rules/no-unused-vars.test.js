@@ -47,6 +47,11 @@ test('does not flag used variable', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('counts typeof as a variable use', async (t) => {
+  const result = await runSnippet('const x = 10\nconst y = typeof x\nconsole.log(y)\n')
+  t.is(result.diagnostics.length, 0)
+})
+
 test('does not flag unused parameters by default', async (t) => {
   const result = await runSnippet('function demo(foo) { return 42 }\ndemo()\n')
   t.is(result.diagnostics.length, 0)

@@ -111,7 +111,7 @@ export const noUnusedVars = {
       Identifier(node) {
         const parent = context.getParent()
         const ancestors = context.getAncestors()
-        if (!isReferenceIdentifier(node, parent, ancestors)) {
+        if (!isReferenceIdentifier(node, parent, ancestors, { ignoreTypeof: false })) {
           return
         }
         markUsed(node.name)
