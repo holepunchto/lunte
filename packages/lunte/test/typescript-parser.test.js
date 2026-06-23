@@ -24,7 +24,29 @@ test('JS with type annotations still fails (parsed as JS)', async (t) => {
   t.ok(/unexpected/i.test(result.diagnostics[0].message))
 })
 
+test('allows exporting ambient classes after declared constructors', async (t) => {
+  const filePath = fixturePath('typescript', '__virtual__ambient-exports.ts')
+  const source = `declare class A {
+  constructor();
+}
+
+declare class B {}
+
+export { A, B };
+`
+  const result = await analyze({
+    files: [filePath],
+    sourceOverrides: new Map([[filePath, source]])
+  })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
+
 test('JSX parses automatically with TS parser', async (t) => {
   const result = await analyze({ files: [fixturePath('typescript', 'typed-jsx.jsx')] })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
+
+test('declaration files allow exporting declared ambient functions', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'ambient-export.d.ts')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
