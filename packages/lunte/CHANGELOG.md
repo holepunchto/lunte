@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1
+
+### Fixed
+- Count identifiers used in `typeof` expressions as usage for `no-unused-vars`.
+- Allow TypeScript ambient declarations with bodiless constructors or functions to be exported.
+
 ## 1.8.0
 
 ### Added
