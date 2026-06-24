@@ -97,6 +97,24 @@ test('ignores import attributes in module imports', async (t) => {
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
 
+test('ignores export-all namespace aliases', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-export-all-namespace-valid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('does not create locals for export-all namespace aliases', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-export-all-namespace-invalid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('mod')))
+})
+
 test('ignores type-only identifiers in TypeScript files', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-valid.ts')],

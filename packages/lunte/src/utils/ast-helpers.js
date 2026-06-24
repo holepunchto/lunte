@@ -26,6 +26,7 @@ export function isReferenceIdentifier(node, parent, ancestors = [], options = {}
     case 'MetaProperty':
       return false
     case 'ExportSpecifier':
+    case 'ExportAllDeclaration':
       return false
     case 'ExportNamedDeclaration':
     case 'ExportDefaultDeclaration':

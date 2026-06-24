@@ -125,6 +125,7 @@ function isReferenceIdentifier(node, parent, ancestors) {
     case 'MetaProperty':
       return false
     case 'ExportSpecifier':
+    case 'ExportAllDeclaration':
       return false
     case 'ExportNamedDeclaration':
     case 'ExportDefaultDeclaration':
