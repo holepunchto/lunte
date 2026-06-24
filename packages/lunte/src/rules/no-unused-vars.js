@@ -209,6 +209,9 @@ function extractPatternIdentifiers(pattern, options = {}) {
         hasRestSibling: options.hasRestSibling || false
       })
       break
+    case 'TSParameterProperty':
+      results.push(...extractPatternIdentifiers(pattern.parameter, options))
+      break
     case 'RestElement':
       results.push(...extractPatternIdentifiers(pattern.argument, { ...options, isRest: true }))
       break

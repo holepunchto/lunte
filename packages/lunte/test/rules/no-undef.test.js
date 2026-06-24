@@ -181,6 +181,24 @@ test('flags runtime usage of type-only import equals aliases', async (t) => {
   )
 })
 
+test('treats TypeScript parameter properties as constructor parameters', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-parameter-property-valid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('does not create outer locals for TypeScript parameter properties', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-parameter-property-invalid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('bar')))
+})
+
 test('treats decorator expressions as runtime references', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-decorators.ts')],

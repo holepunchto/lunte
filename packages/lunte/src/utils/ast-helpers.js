@@ -72,6 +72,8 @@ export function isReferenceIdentifier(node, parent, ancestors = [], options = {}
         return options.ignoreTypeof === false
       }
       return true
+    case 'TSParameterProperty':
+      return parent.parameter !== node
     case 'TSEnumMember':
     case 'TSEnumDeclaration':
     case 'TSModuleDeclaration':
