@@ -61,6 +61,7 @@ export function isReferenceIdentifier(node, parent, ancestors = [], options = {}
         return true
       }
       return parent.key !== node
+    case 'RestElement':
     case 'ArrayPattern':
     case 'ObjectPattern':
       return false
