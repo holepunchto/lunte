@@ -96,6 +96,9 @@ function registerTypeScriptAmbientFunction(parser, node) {
   if (node?.type !== 'TSDeclareFunction' || !node.id) {
     return
   }
+  if (!node.declare && !parser.isAmbientContext) {
+    return
+  }
 
   const topLevelNames = parser.scopeStack?.[0]?.lexical
   if (topLevelNames && !topLevelNames.includes(node.id.name)) {
