@@ -87,6 +87,25 @@ test('allows computed properties', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('allows getter and setter pairs', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-dupe-keys-getter-setter-valid.ts')],
+    ruleOverrides: BASE_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
+test('flags duplicate accessors of the same kind', async (t) => {
+  const result = await analyze({
+    files: [fixture('no-dupe-keys-getter-setter-invalid.ts')],
+    ruleOverrides: BASE_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 1)
+  t.is(result.diagnostics[0].ruleId, 'no-dupe-keys')
+})
+
 test('flags duplicate keys in JSON files', async (t) => {
   const filePath = join(__dirname, '__virtual__/duplicates.json')
   const source = `{
