@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.2
+
+### Fixed
+- Ignore `export * as name from ...` aliases as runtime references for `no-undef`.
+- Allow TypeScript function overload signatures before their implementation.
+- Ignore TypeScript type literal property keys for `no-use-before-define`.
+- Treat TypeScript parameter properties as constructor parameters for scope analysis.
+- Allow duplicate type-only imports from the same module for `import/no-duplicates`.
+- Allow object literal getter/setter pairs for `no-dupe-keys`.
+
 ## 1.8.1
 
 ### Fixed
