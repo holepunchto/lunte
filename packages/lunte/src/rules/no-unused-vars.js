@@ -110,6 +110,11 @@ export const noUnusedVars = {
       },
       Identifier(node) {
         const parent = context.getParent()
+        if (isThisPropertyReference(node, parent)) {
+          markUsed(node.name)
+          return
+        }
+
         const ancestors = context.getAncestors()
         if (!isReferenceIdentifier(node, parent, ancestors, { ignoreTypeof: false })) {
           return
@@ -292,6 +297,15 @@ function getTSModuleName(id) {
 
 function isAssignedFunctionExpression(functionNode, parent) {
   return parent?.type === 'AssignmentExpression' && parent.right === functionNode
+}
+
+function isThisPropertyReference(node, parent) {
+  return (
+    parent?.type === 'MemberExpression' &&
+    parent.property === node &&
+    !parent.computed &&
+    parent.object?.type === 'ThisExpression'
+  )
 }
 
 function isCommonJsExported(functionNode, context) {

@@ -8,6 +8,14 @@ const config = { theme: 'light' }
 
 type Config = typeof config
 
+export class Reader {
+  constructor(private resources: number) {}
+
+  read(): number {
+    return this.resources
+  }
+}
+
 export function render(widget: ExternalWidget): string {
   const props: DisplayProps & { config: Config } = { ...widget, detail: widget.name, config }
   return props.detail
