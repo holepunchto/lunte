@@ -19,12 +19,14 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
   severity: name === RULE_ID ? 'error' : 'off'
 }))
 
-async function runSnippet(source, overrides = BASE_OVERRIDES) {
-  const filePath = join(__dirname, `__virtual__/${RULE_ID}-${(virtualId += 1)}.js`)
+async function runSnippet(source, overrides = BASE_OVERRIDES, options = {}) {
+  const extension = options.typescript ? 'ts' : 'js'
+  const filePath = join(__dirname, `__virtual__/${RULE_ID}-${(virtualId += 1)}.${extension}`)
   return analyze({
     files: [filePath],
     ruleOverrides: overrides,
-    sourceOverrides: new Map([[filePath, source]])
+    sourceOverrides: new Map([[filePath, source]]),
+    enableTypeScriptParser: options.typescript
   })
 }
 
@@ -52,6 +54,13 @@ test('counts typeof as a variable use', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('counts TypeScript typeof queries as variable use', async (t) => {
+  const result = await runSnippet('const config = { a: 1 }\ntype T = typeof config\n', BASE_OVERRIDES, {
+    typescript: true
+  })
+  t.is(result.diagnostics.length, 0)
+})
+
 test('does not flag unused parameters by default', async (t) => {
   const result = await runSnippet('function demo(foo) { return 42 }\ndemo()\n')
   t.is(result.diagnostics.length, 0)
@@ -66,6 +75,11 @@ test('still flags unused named function expressions outside arguments', async (t
   const result = await runSnippet('const fn = function named () {}\nconsole.log(fn)\n')
   t.is(result.diagnostics.length, 1)
   t.ok(result.diagnostics[0].message.includes('named'))
+})
+
+test('allows named function expressions used in assignments', async (t) => {
+  const result = await runSnippet('const obj = {}\nobj.run = function run () {}\nconsole.log(obj)\n')
+  t.is(result.diagnostics.length, 0)
 })
 
 test('allows CommonJS exported generator functions', async (t) => {
@@ -145,6 +159,23 @@ test('flags unused JSX components', async (t) => {
   })
   t.is(result.diagnostics.length, 1)
   t.ok(result.diagnostics[0].message.includes('UnusedComponent'))
+})
+
+test('counts TypeScript parameter properties as used through this', async (t) => {
+  const valid = await runSnippet(
+    'export class C {\n  constructor(private resources: number) {}\n  read() { return this.resources }\n}\n',
+    BASE_OVERRIDES,
+    { typescript: true }
+  )
+  t.is(valid.diagnostics.length, 0)
+
+  const invalid = await runSnippet(
+    'export class C {\n  constructor(private resources: number) {}\n  read() { return 1 }\n}\n',
+    BASE_OVERRIDES,
+    { typescript: true }
+  )
+  t.is(invalid.diagnostics.length, 1)
+  t.ok(invalid.diagnostics[0].message.includes('resources'))
 })
 
 test('treats TSX type-only imports as used when referenced', async (t) => {
