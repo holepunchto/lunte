@@ -90,7 +90,7 @@
     "bare-os": "^3.6.2",
     "bare-path": "^3.0.0",
     "bare-process": "^4.2.2",
-    "bare-subprocess": "^5.1.4",
+    "bare-subprocess": "^6.1.0",
     "bare-url": "^2.3.2",
     "bare-utils": "^1.5.1"
   }
