@@ -83,7 +83,7 @@ export const noUnusedVars = {
             // Treat callback names as used when the function is supplied as an argument.
             markUsed(node.id.name)
           }
-          if (isCommonJsExported(node, context)) {
+          if (isAssignedFunctionExpression(node, parent) || isCommonJsExported(node, context)) {
             markUsed(node.id.name)
           }
         }
@@ -288,6 +288,10 @@ function getTSModuleName(id) {
     return id.value
   }
   return null
+}
+
+function isAssignedFunctionExpression(functionNode, parent) {
+  return parent?.type === 'AssignmentExpression' && parent.right === functionNode
 }
 
 function isCommonJsExported(functionNode, context) {

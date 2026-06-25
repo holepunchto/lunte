@@ -3,4 +3,7 @@ function main() {
   console.log(used);
 }
 
+const obj = {};
+obj.run = function run() {};
+
 main();
