@@ -160,6 +160,10 @@ function isTypeOnlyIdentifier(node, parent, ancestors = []) {
     return true
   }
 
+  if (parent.type === 'TSTypeQuery') {
+    return false
+  }
+
   if (TS_TYPE_ONLY_PARENTS.has(parent.type)) {
     return true
   }
