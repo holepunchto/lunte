@@ -1,6 +1,6 @@
 {
   "name": "lunte",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "Self-contained linter for Pear/Bare projects",
   "main": "./src/index.js",
   "bin": {

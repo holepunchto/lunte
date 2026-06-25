@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.3
+
+### Fixed
+- Count `typeof value` type queries as usage for `no-unused-vars`.
+- Allow named function expressions assigned to properties for `no-unused-vars`.
+- Count TypeScript parameter properties used via `this.name` for `no-unused-vars`.
+
 ## 1.8.2
 
 ### Fixed
