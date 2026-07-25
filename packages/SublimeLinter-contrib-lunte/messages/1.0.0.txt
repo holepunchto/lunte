@@ -1,0 +1,4 @@
+SublimeLinter-contrib-lunte
+
+Install the latest version of lunte:
+npm install -g lunte
