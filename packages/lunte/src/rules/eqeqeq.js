@@ -12,10 +12,12 @@ export const eqeqeq = {
       BinaryExpression(node) {
         if (node.operator === '==' || node.operator === '!=') {
           const operatorText = node.operator === '==' ? '===' : '!=='
-          const operatorRange = findOperatorRange({
-            node,
-            source: context.source
-          })
+          const operatorRange = comparesWithNull(node)
+            ? null
+            : findOperatorRange({
+                node,
+                source: context.source
+              })
           const fix = operatorRange ? [{ range: operatorRange, text: operatorText }] : undefined
           context.report({
             node,
@@ -26,6 +28,14 @@ export const eqeqeq = {
       }
     }
   }
+}
+
+function comparesWithNull(node) {
+  return isNullLiteral(node.left) || isNullLiteral(node.right)
+}
+
+function isNullLiteral(node) {
+  return node?.type === 'Literal' && node.value === null
 }
 
 function findOperatorRange({ node, source }) {
