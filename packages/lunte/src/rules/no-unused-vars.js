@@ -41,6 +41,13 @@ export const noUnusedVars = {
     }
 
     return {
+      ImportDeclaration(node) {
+        if (node.importKind === 'type') return
+        for (const specifier of node.specifiers) {
+          if (specifier.importKind === 'type') continue
+          defineBinding(specifier.local?.name, specifier.local)
+        }
+      },
       VariableDeclarator(node) {
         for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(node.id)) {
           defineBinding(name, id, { hasRestSibling })
