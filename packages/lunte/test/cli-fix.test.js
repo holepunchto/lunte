@@ -52,3 +52,18 @@ test('cli --fix wraps multi-line if with braces', async (t) => {
   const output = await readFile(file, 'utf8')
   t.is(output, "if (true) {\n  console.log('test')\n}\n")
 })
+
+test('cli --fix fully fixes nested braceless statements in one run', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'lunte-fix-'))
+  const file = join(dir, 'nested.js')
+  await writeFile(file, 'for (const x of xs)\n  if (x)\n    console.log(x)\n')
+
+  const result = await runCli(['--fix', '--global', 'xs', file])
+
+  t.is(result.code, 0)
+  t.is(result.stderr, '')
+  t.ok(result.stdout.includes('Applied 4 edits across 1 file'), 'should count edits across passes')
+
+  const output = await readFile(file, 'utf8')
+  t.is(output, 'for (const x of xs) {\n  if (x) {\n    console.log(x)\n  }\n}\n')
+})

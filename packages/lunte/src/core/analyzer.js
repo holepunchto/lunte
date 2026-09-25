@@ -9,6 +9,8 @@ import { runRules } from './rule-runner.js'
 import { buildInlineIgnoreMatcher } from './inline-ignores.js'
 import { applyFixes } from './fixes.js'
 
+export const MAX_FIX_PASSES = 10
+
 const NO_INLINE_IGNORES = {
   shouldIgnore() {
     return false
@@ -125,25 +127,21 @@ async function analyzeSource(
       return { diagnostics }
     }
 
-    const applied = applyFixes({
-      source,
-      diagnostics: initialDiagnostics
-    })
+    const fixed = applyFixPasses(source, initialDiagnostics, run)
 
-    if (applied.appliedEdits > 0) {
+    if (fixed.appliedEdits > 0) {
       if (write && filePath) {
-        await writeFile(filePath, applied.output, 'utf8')
+        await writeFile(filePath, fixed.output, 'utf8')
       }
 
-      const afterFixDiagnostics = run(applied.output)
-      diagnostics.push(...afterFixDiagnostics)
+      diagnostics.push(...fixed.diagnostics)
 
       return {
         diagnostics,
         fixes: {
-          appliedEdits: applied.appliedEdits,
-          appliedDiagnostics: applied.appliedDiagnostics,
-          output: applied.output
+          appliedEdits: fixed.appliedEdits,
+          appliedDiagnostics: fixed.appliedDiagnostics,
+          output: fixed.output
         }
       }
     }
@@ -158,6 +156,31 @@ async function analyzeSource(
   }
 
   return { diagnostics }
+}
+
+function applyFixPasses(source, diagnostics, run) {
+  let output = source
+  let appliedEdits = 0
+  let appliedDiagnostics = 0
+
+  for (let pass = 0; pass < MAX_FIX_PASSES; pass++) {
+    const applied = applyFixes({ source: output, diagnostics })
+    if (applied.appliedEdits === 0) break
+
+    let nextDiagnostics
+    try {
+      nextDiagnostics = run(applied.output)
+    } catch {
+      break
+    }
+
+    output = applied.output
+    diagnostics = nextDiagnostics
+    appliedEdits += applied.appliedEdits
+    appliedDiagnostics += applied.appliedDiagnostics
+  }
+
+  return { output, diagnostics, appliedEdits, appliedDiagnostics }
 }
 
 function createSourceRunner({ filePath, ruleConfig, baseGlobals }) {
