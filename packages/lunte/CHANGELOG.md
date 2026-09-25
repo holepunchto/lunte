@@ -4,6 +4,7 @@
 
 ### Fixed
 - Write the full report when stdout is a pipe instead of truncating it at the pipe buffer size (~64 KB).
+- Give TypeScript parameters with both a type annotation and a default value (`a: T = x`) a correct `loc.start`, so plugin rules that report on them get a real line/column instead of `?:?` and can be suppressed with `lunte-disable-next-line`. Built-in rules were not affected.
 
 ## 1.8.3
 
