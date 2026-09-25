@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add `--max-warnings <n>` CLI option to exit 1 when more than `n` warnings are reported.
+
 ### Fixed
 - Write the full report when stdout is a pipe instead of truncating it at the pipe buffer size (~64 KB).
 

@@ -201,3 +201,79 @@ test('CLI accepts empty stdin as empty input', async (t) => {
   t.ok(/No issues/.test(result.stdout), 'stdout should report no issues for empty input')
   t.is(result.stderr, '')
 })
+
+async function writeWarningsFile(prefix, count) {
+  const dir = await createTempDir(prefix)
+  const file = join(dir, 'warnings.js')
+  const lines = Array.from({ length: count }, (_, i) => `const unused${i} = ${i}\n`)
+  await writeFile(file, lines.join(''))
+  return file
+}
+
+test('CLI max-warnings passes when warnings are within the limit', async (t) => {
+  const file = await writeWarningsFile('max-warnings-under', 2)
+  const result = await runCli(['--rule', 'no-unused-vars=warn', '--max-warnings', '2', file])
+
+  t.is(result.code, 0)
+  t.ok(result.stdout.includes('2 warnings'))
+  t.absent(result.stdout.includes('Too many warnings'))
+  t.is(result.stderr, '')
+})
+
+test('CLI max-warnings fails when warnings exceed the limit', async (t) => {
+  const file = await writeWarningsFile('max-warnings-over', 3)
+  const result = await runCli(['--rule', 'no-unused-vars=warn', '--max-warnings=2', file])
+
+  t.is(result.code, 1)
+  t.ok(result.stdout.includes('3 warnings'))
+  t.ok(result.stdout.trimEnd().endsWith('Too many warnings (3, maximum: 2)'))
+  t.is(result.stderr, '')
+})
+
+test('CLI max-warnings 0 fails on a single warning', async (t) => {
+  const file = await writeWarningsFile('max-warnings-zero', 1)
+  const result = await runCli(['--rule', 'no-unused-vars=warn', '--max-warnings', '0', file])
+
+  t.is(result.code, 1)
+  t.ok(result.stdout.includes('Too many warnings (1, maximum: 0)'))
+  t.is(result.stderr, '')
+})
+
+test('CLI without max-warnings exits 0 on warnings', async (t) => {
+  const file = await writeWarningsFile('max-warnings-absent', 3)
+  const result = await runCli(['--rule', 'no-unused-vars=warn', file])
+
+  t.is(result.code, 0)
+  t.absent(result.stdout.includes('Too many warnings'))
+  t.is(result.stderr, '')
+})
+
+test('CLI max-warnings does not hide errors', async (t) => {
+  const dir = await createTempDir('max-warnings-errors')
+  const file = join(dir, 'invalid.js')
+  await writeFile(file, 'const answer =;\n')
+  const result = await runCli(['--max-warnings', '100', file])
+
+  t.is(result.code, 1)
+  t.ok(/ERROR/.test(result.stdout))
+  t.absent(result.stdout.includes('Too many warnings'))
+  t.is(result.stderr, '')
+})
+
+test('CLI rejects invalid max-warnings values', async (t) => {
+  const file = await writeWarningsFile('max-warnings-invalid', 1)
+
+  for (const value of ['abc', '-1', '1.5', '']) {
+    const result = await runCli([`--max-warnings=${value}`, file])
+    t.is(result.code, 1, `exit 1 for "${value}"`)
+    t.ok(
+      result.stderr.includes('--max-warnings'),
+      `stderr should mention --max-warnings for "${value}"`
+    )
+    t.is(result.stdout, '', `should not lint for "${value}"`)
+  }
+
+  const missing = await runCli(['--max-warnings'])
+  t.is(missing.code, 1)
+  t.ok(missing.stderr.includes('Invalid usage for option: --max-warnings'))
+})
