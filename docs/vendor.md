@@ -22,6 +22,12 @@
 ### Updating @sveltejs/acorn-typescript
 
 1. Run `npm run vendor:acorn-typescript -- <version>` (omit `<version>` for latest).
-2. The script patches the plugin to import our vendored Acorn build; review the resulting diff to ensure the replacement succeeded.
+2. The script patches the plugin to import our vendored Acorn build and applies the local source patches below; review the resulting diff to ensure the replacements succeeded (the script warns when a patch no longer applies).
 3. Re-run `npm test` to confirm the combined parser still works.
 4. Update this document with the new version number if it changed.
+
+### Local patches
+
+Defined in `SOURCE_PATCHES` in `packages/lunte/scripts/vendor-acorn-typescript.js`:
+
+- **Typed default parameter `loc.start`**: `parseAssignableListItem` passed `left.loc` (a `SourceLocation`) instead of `left.loc.start` (a `Position`) when building the `AssignmentPattern` for `(a: T = x)`, leaving `loc.start.line` undefined. Backport of the fix shipped upstream in 1.0.9; the patch is skipped automatically once the vendored version contains it.

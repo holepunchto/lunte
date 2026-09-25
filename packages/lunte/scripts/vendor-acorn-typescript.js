@@ -38,6 +38,7 @@ async function main() {
 
   await patchImports(join(targetDir, 'index.js'), '../acorn/dist/acorn.mjs')
   await patchImports(join(targetDir, 'index.d.ts'), '../acorn/dist/acorn.d.mts')
+  await patchSource(join(targetDir, 'index.js'), SOURCE_PATCHES)
 
   console.log(`Vendored @sveltejs/acorn-typescript from ${tarballName}`)
 }
@@ -53,6 +54,31 @@ async function patchImports(filePath, newSpecifier) {
     } else {
       await writeFile(filePath, updated, 'utf8')
     }
+  } catch (error) {
+    console.warn(`Failed to patch ${filePath}: ${error.message}`)
+  }
+}
+
+const SOURCE_PATCHES = [
+  {
+    name: 'typed default parameter loc.start',
+    search: 'this.parseMaybeDefault(left["start"], left["loc"], left)',
+    replace: 'this.parseMaybeDefault(left["start"], left["loc"] && left["loc"].start, left)',
+    fixed: 'left["loc"].start, left)'
+  }
+]
+
+async function patchSource(filePath, patches) {
+  try {
+    let source = await readFile(filePath, 'utf8')
+    for (const patch of patches) {
+      if (source.includes(patch.search)) {
+        source = source.replace(patch.search, patch.replace)
+      } else if (!source.includes(patch.fixed)) {
+        console.warn(`Patch "${patch.name}" did not apply to ${filePath}; manual update may be required.`)
+      }
+    }
+    await writeFile(filePath, source, 'utf8')
   } catch (error) {
     console.warn(`Failed to patch ${filePath}: ${error.message}`)
   }
