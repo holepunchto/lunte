@@ -17,10 +17,10 @@
     "benchmark:ts-parser": "node scripts/benchmark-ts-parser.js"
   },
   "devDependencies": {
-    "prettier": "^3.6.2",
+    "prettier": "^3.9.9",
     "prettier-config-holepunch": "^2.0.0"
   },
   "optionalDependencies": {
-    "bare": "^1.24.1"
+    "bare": "^1.33.5"
   }
 }

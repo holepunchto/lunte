@@ -27,7 +27,7 @@
     "url": "https://github.com/holepunchto/lunte/issues"
   },
   "dependencies": {
-    "lunte": "^1.8.2"
+    "lunte": "^1.8.4"
   },
   "imports": {
     "path": {
@@ -48,9 +48,9 @@
     }
   },
   "optionalDependencies": {
-    "bare-path": "^3.0.0",
-    "bare-process": "^4.3.0",
-    "bare-url": "^2.3.2",
-    "bare-utils": "^1.5.1"
+    "bare-path": "^3.1.2",
+    "bare-process": "^4.5.1",
+    "bare-url": "^2.5.4",
+    "bare-utils": "^1.6.0"
   }
 }
