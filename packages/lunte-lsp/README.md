@@ -19,19 +19,14 @@ The server reuses Lunte's analyzer, reads `.lunterc` / `.lunterc.json`, and stre
 ## Neovim
 
 ```lua
-local lspconfig = require('lspconfig')
-local configs = require('lspconfig.configs')
-
-configs.lunte = configs.lunte or {
- default_config = {
+vim.lsp.config['lunte'] = {
   cmd = { 'npx', 'lunte-lsp' },
   filetypes = { 'javascript' },
-  root_dir = lspconfig.util.find_git_ancestor,
+  root_markers = { '.lunterc', '.lunterc.json' },
   single_file_support = true,
- },
 }
 
-lspconfig.lunte.setup({})
+vim.lsp.enable('lunte')
 ```
 
 ## Repository
