@@ -11,7 +11,7 @@ const projectRoot = dirname(__dirname)
 
 function runCli(args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['bin/lunte', ...args], {
+    const child = spawn(process.execPath, ['bin/lunte.js', ...args], {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe']
     })

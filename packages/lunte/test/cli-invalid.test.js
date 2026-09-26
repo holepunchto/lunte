@@ -15,7 +15,7 @@ async function createTempDir(prefix) {
 
 function runCli(args, { input } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['bin/lunte', ...args], {
+    const child = spawn(process.execPath, ['bin/lunte.js', ...args], {
       cwd: projectRoot,
       stdio: ['pipe', 'pipe', 'pipe']
     })

@@ -9,7 +9,7 @@ import { tmpdir } from 'os'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = dirname(__dirname)
-const lspBinary = join(projectRoot, '../lunte-lsp/bin/lunte-lsp')
+const lspBinary = join(projectRoot, '../lunte-lsp/bin/lunte-lsp.js')
 
 test('LSP server publishes diagnostics for open document', async (t) => {
   const fixturePath = join(__dirname, 'fixtures', 'lsp-diagnostic.js')

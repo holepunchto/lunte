@@ -7,7 +7,7 @@
     "packages/vscode-lunte"
   ],
   "scripts": {
-    "lint": "packages/lunte/bin/lunte",
+    "lint": "packages/lunte/bin/lunte.js",
     "test": "npm run test:node && npm run test:bare",
     "test:node": "npm run test:node --workspaces --if-present",
     "test:bare": "npm run test:bare --workspaces --if-present",

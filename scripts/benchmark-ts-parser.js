@@ -20,7 +20,7 @@ const SEED = parseInt(process.env.SEED || '1337', 10)
 
 const repoRoot = resolve(__dirname, '..')
 const parentDir = resolve(repoRoot, '..')
-const lunteBin = resolve(repoRoot, 'packages/lunte/bin/lunte')
+const lunteBin = resolve(repoRoot, 'packages/lunte/bin/lunte.js')
 
 function seededShuffle(array, seed) {
   const result = [...array]
