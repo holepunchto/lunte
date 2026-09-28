@@ -203,3 +203,21 @@ test('rule crash during a fix pass is reported and keeps the last good source', 
     'reports the crash'
   )
 })
+
+test('rule throwing SyntaxError during a fix pass is reported, not treated as a parse error', async (t) => {
+  useRule(t, 'test/throws-syntax-error', () => ({
+    IfStatement(node) {
+      if (node.consequent.type === 'BlockStatement') throw new SyntaxError('bad pattern')
+    }
+  }))
+
+  const source = 'for (const x of xs)\n  if (x)\n    foo(x)\n'
+  const result = await fixSource(source, only('curly', 'test/throws-syntax-error'))
+
+  t.is(result.output, 'for (const x of xs) {\n  if (x)\n    foo(x)\n}\n', 'keeps the first pass')
+  t.alike(
+    result.diagnostics.map((d) => d.ruleId ?? d.message),
+    ['curly', 'bad pattern'],
+    'reports the crash'
+  )
+})

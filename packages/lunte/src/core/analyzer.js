@@ -11,6 +11,8 @@ import { applyFixes } from './fixes.js'
 
 export const MAX_FIX_PASSES = 10
 
+const parseErrors = new WeakSet()
+
 const NO_INLINE_IGNORES = {
   shouldIgnore() {
     return false
@@ -175,7 +177,7 @@ function applyFixPasses(source, diagnostics, run) {
     try {
       nextDiagnostics = run(applied.output)
     } catch (err) {
-      if (!(err instanceof SyntaxError)) error = err
+      if (!parseErrors.has(err)) error = err
       break
     }
 
@@ -200,15 +202,26 @@ function createSourceRunner({ filePath, ruleConfig, baseGlobals }) {
   })
 }
 
+function parseStep(fn) {
+  try {
+    return fn()
+  } catch (error) {
+    if (error !== null && typeof error === 'object') parseErrors.add(error)
+    throw error
+  }
+}
+
 function runJavaScriptRules(currentSource, { filePath, ruleConfig, baseGlobals }) {
   const directives = extractFileDirectives(currentSource)
   const globals = mergeGlobals(baseGlobals, directives)
   const comments = []
-  const ast = parse(currentSource, {
-    filePath,
-    sourceFile: filePath,
-    onComment: comments
-  })
+  const ast = parseStep(() =>
+    parse(currentSource, {
+      filePath,
+      sourceFile: filePath,
+      onComment: comments
+    })
+  )
   const inlineIgnores = buildInlineIgnoreMatcher(comments)
   return runRules({
     ast,
@@ -221,9 +234,10 @@ function runJavaScriptRules(currentSource, { filePath, ruleConfig, baseGlobals }
 }
 
 function runJsonRules(currentSource, { filePath, ruleConfig, baseGlobals }) {
-  JSON.parse(currentSource)
-
-  const ast = parseJsonAst(currentSource, { filePath })
+  const ast = parseStep(() => {
+    JSON.parse(currentSource)
+    return parseJsonAst(currentSource, { filePath })
+  })
   return runRules({
     ast,
     filePath,
