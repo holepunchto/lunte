@@ -263,12 +263,13 @@ test('CLI max-warnings does not hide errors', async (t) => {
 test('CLI rejects invalid max-warnings values', async (t) => {
   const file = await writeWarningsFile('max-warnings-invalid', 1)
 
-  for (const value of ['abc', '-1', '1.5', '']) {
+  for (const value of ['abc', '-1', '1.5']) {
     const result = await runCli([`--max-warnings=${value}`, file])
     t.is(result.code, 1, `exit 1 for "${value}"`)
     t.ok(
-      result.stderr.includes('--max-warnings'),
-      `stderr should mention --max-warnings for "${value}"`
+      result.stderr.includes('Invalid value for option: --max-warnings') &&
+        result.stderr.includes(`got "${value}"`),
+      `stderr should reject "${value}"`
     )
     t.is(result.stdout, '', `should not lint for "${value}"`)
   }
@@ -276,4 +277,13 @@ test('CLI rejects invalid max-warnings values', async (t) => {
   const missing = await runCli(['--max-warnings'])
   t.is(missing.code, 1)
   t.ok(missing.stderr.includes('Invalid usage for option: --max-warnings'))
+})
+
+test('CLI rejects an empty max-warnings value', async (t) => {
+  const file = await writeWarningsFile('max-warnings-empty', 1)
+  const result = await runCli(['--max-warnings', '', file])
+
+  t.is(result.code, 1)
+  t.ok(result.stderr.includes('Invalid usage for option: --max-warnings'))
+  t.is(result.stdout, '')
 })
