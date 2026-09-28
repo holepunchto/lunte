@@ -27,17 +27,13 @@ export function applyFixes({ source, diagnostics }) {
 
   for (const fix of fixes) {
     if (hasSelfOverlap(fix.edits)) continue
-    if (fix.edits.some((edit) => accepted.some((other) => editsConflict(edit, other)))) {
-      continue
-    }
+    if (fix.edits.some((edit) => conflictsWithAccepted(edit, accepted))) continue
 
     for (const edit of fix.edits) {
-      accepted.push({ ...edit, order: accepted.length })
+      accepted.splice(insertionIndex(accepted, edit), 0, edit)
     }
     appliedDiagnostics += 1
   }
-
-  accepted.sort(compareEdits)
 
   let cursor = 0
   let output = ''
@@ -58,8 +54,38 @@ export function applyFixes({ source, diagnostics }) {
   }
 }
 
+function compareRanges(a, b) {
+  return a.range[0] - b.range[0] || a.range[1] - b.range[1]
+}
+
 function compareEdits(a, b) {
-  return a.range[0] - b.range[0] || a.range[1] - b.range[1] || a.order - b.order
+  return compareRanges(a, b) || a.order - b.order
+}
+
+function conflictsWithAccepted(edit, accepted) {
+  let low = 0
+  let high = accepted.length
+  while (low < high) {
+    const mid = (low + high) >>> 1
+    if (accepted[mid].range[1] < edit.range[0]) low = mid + 1
+    else high = mid
+  }
+
+  for (let i = low; i < accepted.length && accepted[i].range[0] <= edit.range[1]; i++) {
+    if (editsConflict(edit, accepted[i])) return true
+  }
+  return false
+}
+
+function insertionIndex(accepted, edit) {
+  let low = 0
+  let high = accepted.length
+  while (low < high) {
+    const mid = (low + high) >>> 1
+    if (compareRanges(accepted[mid], edit) <= 0) low = mid + 1
+    else high = mid
+  }
+  return low
 }
 
 function hasSelfOverlap(edits) {

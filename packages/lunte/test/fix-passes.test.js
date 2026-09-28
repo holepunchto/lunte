@@ -184,3 +184,22 @@ test('first fix pass producing unparsable output leaves the source untouched', a
     'reports the original diagnostics instead of a parse error'
   )
 })
+
+test('rule crash during a fix pass is reported and keeps the last good source', async (t) => {
+  useRule(t, 'test/crashes', () => ({
+    IfStatement(node) {
+      if (node.consequent.type === 'BlockStatement') throw new Error('rule crashed')
+    }
+  }))
+
+  const source = 'for (const x of xs)\n  if (x)\n    foo(x)\n'
+  const result = await fixSource(source, only('curly', 'test/crashes'))
+
+  t.is(result.output, 'for (const x of xs) {\n  if (x)\n    foo(x)\n}\n', 'keeps the first pass')
+  t.is(result.fixedEdits, 2)
+  t.alike(
+    result.diagnostics.map((d) => d.ruleId ?? d.message),
+    ['curly', 'rule crashed'],
+    'reports the crash'
+  )
+})

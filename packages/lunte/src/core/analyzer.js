@@ -129,12 +129,17 @@ async function analyzeSource(
 
     const fixed = applyFixPasses(source, initialDiagnostics, run)
 
+    diagnostics.push(...fixed.diagnostics)
+    if (fixed.error) {
+      diagnostics.push(
+        buildParseErrorDiagnostic({ error: fixed.error, filePath, source: fixed.output })
+      )
+    }
+
     if (fixed.appliedEdits > 0) {
       if (write && filePath) {
         await writeFile(filePath, fixed.output, 'utf8')
       }
-
-      diagnostics.push(...fixed.diagnostics)
 
       return {
         diagnostics,
@@ -145,8 +150,6 @@ async function analyzeSource(
         }
       }
     }
-
-    diagnostics.push(...initialDiagnostics)
   } catch (error) {
     diagnostics.push(
       isJsonFile(filePath)
@@ -162,6 +165,7 @@ function applyFixPasses(source, diagnostics, run) {
   let output = source
   let appliedEdits = 0
   let appliedDiagnostics = 0
+  let error
 
   for (let pass = 0; pass < MAX_FIX_PASSES; pass++) {
     const applied = applyFixes({ source: output, diagnostics })
@@ -170,7 +174,8 @@ function applyFixPasses(source, diagnostics, run) {
     let nextDiagnostics
     try {
       nextDiagnostics = run(applied.output)
-    } catch {
+    } catch (err) {
+      if (!(err instanceof SyntaxError)) error = err
       break
     }
 
@@ -180,7 +185,7 @@ function applyFixPasses(source, diagnostics, run) {
     appliedDiagnostics += applied.appliedDiagnostics
   }
 
-  return { output, diagnostics, appliedEdits, appliedDiagnostics }
+  return { output, diagnostics, appliedEdits, appliedDiagnostics, error }
 }
 
 function createSourceRunner({ filePath, ruleConfig, baseGlobals }) {
