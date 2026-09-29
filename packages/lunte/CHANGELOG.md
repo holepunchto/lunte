@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Use the upstream TypeScript parser fix for ambient declaration exports, including functions, interfaces, and type aliases.
+
 ## 1.8.3
 
 ### Fixed

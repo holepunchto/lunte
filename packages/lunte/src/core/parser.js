@@ -71,44 +71,9 @@ function getTypeScriptParser({ dts, jsx }) {
     )
   }
 
-  const BaseParser = AcornParser.extend(acornTypescript({ dts, jsx }))
-  class TypeScriptParser extends BaseParser {
-    parseFunctionStatement(...args) {
-      const node = super.parseFunctionStatement(...args)
-      registerTypeScriptAmbientFunction(this, node)
-      return node
-    }
-
-    parseFunctionBody(...args) {
-      const scopeDepth = this.scopeStack.length
-      const node = super.parseFunctionBody(...args)
-      if (isTypeScriptDeclareFunction(node) && this.scopeStack.length === scopeDepth) {
-        this.exitScope()
-      }
-      return node
-    }
-  }
-  typeScriptParserCache.set(key, TypeScriptParser)
-  return TypeScriptParser
-}
-
-function registerTypeScriptAmbientFunction(parser, node) {
-  if (node?.type !== 'TSDeclareFunction' || !node.id) {
-    return
-  }
-  if (!node.declare && !parser.isAmbientContext) {
-    return
-  }
-
-  const topLevelNames = parser.scopeStack?.[0]?.lexical
-  if (topLevelNames && !topLevelNames.includes(node.id.name)) {
-    topLevelNames.push(node.id.name)
-  }
-  delete parser.undefinedExports[node.id.name]
-}
-
-function isTypeScriptDeclareFunction(node) {
-  return node?.type === 'TSDeclareFunction' || node?.type === 'TSDeclareMethod'
+  const parser = AcornParser.extend(acornTypescript({ dts, jsx }))
+  typeScriptParserCache.set(key, parser)
+  return parser
 }
 
 function isTsxFile(filePath) {

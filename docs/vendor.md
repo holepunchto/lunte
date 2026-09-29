@@ -15,8 +15,8 @@
 
 ## @sveltejs/acorn-typescript
 
-- Version: 1.0.7
-- Source: `npm pack @sveltejs/acorn-typescript@1.0.7`
+- Version: 1.0.13
+- Source: `npm pack @sveltejs/acorn-typescript@1.0.13`
 - Files stored under `vendor/acorn-typescript/`
 
 ### Updating @sveltejs/acorn-typescript
