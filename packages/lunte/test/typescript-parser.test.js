@@ -55,3 +55,10 @@ test('allows TypeScript function overload signatures before implementation', asy
   const result = await analyze({ files: [fixturePath('typescript', 'overload.ts')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })
+
+test('declaration files allow a namespace to merge with a function of the same name', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('typescript', 'declaration-merging.d.ts')]
+  })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
