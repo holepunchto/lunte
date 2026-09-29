@@ -54,6 +54,11 @@ async function handleInitialize(params = {}) {
     rootPath = normalize(params.rootPath)
   }
 
+  // didChangeConfiguration
+  // dgfdg
+  // dfgdfg
+  //
+  // dgfdfg
   await refreshWorkspaceState()
 
   return {
@@ -186,7 +191,7 @@ async function validateDocument(uri) {
       ruleOverrides: cachedRuleOverrides,
       envOverrides: cachedEnvOverrides,
       globalOverrides: cachedGlobalOverrides,
-      sourceText: new Map([[doc.filePath, doc.text]])
+      sourceOverrides: new Map([[doc.filePath, doc.text]])
     })
 
     const lspDiagnostics = diagnostics.map((diagnostic) =>
@@ -215,8 +220,10 @@ function publishDiagnostics(uri, diagnostics) {
 function convertToLspDiagnostic(diagnostic, sourceText) {
   const lineIndex = Math.max(0, (diagnostic.line ?? 1) - 1)
   const columnIndex = Math.max(0, (diagnostic.column ?? 1) - 1)
-  const lineLength = getLineLength(sourceText, lineIndex)
-  const endCharacter = Math.min(lineLength, columnIndex + 1)
+  const line = sourceText.split(/\r\n|\r|\n/)[lineIndex] ?? ''
+  // Diagnostics carry no end position, so underline the identifier at the column, or one character
+  const word = line.slice(columnIndex).match(/^[\w$]+/)
+  const endCharacter = Math.min(line.length, columnIndex + (word ? word[0].length : 1))
 
   const severity =
     diagnostic.severity === Severity.error ? DiagnosticSeverity.error : DiagnosticSeverity.warning
@@ -231,41 +238,6 @@ function convertToLspDiagnostic(diagnostic, sourceText) {
     code: diagnostic.ruleId ?? undefined,
     source: 'lunte'
   }
-}
-
-function getLineLength(text, lineIndex) {
-  if (typeof text !== 'string' || text.length === 0) {
-    return 0
-  }
-  let currentLine = 0
-  let lastIndex = 0
-  while (currentLine < lineIndex) {
-    const nextBreak = findNextLineBreak(text, lastIndex)
-    if (nextBreak === -1) {
-      return Math.max(text.length - lastIndex, 0)
-    }
-    lastIndex = nextBreak
-    currentLine += 1
-  }
-  const endOfLine = findNextLineBreak(text, lastIndex)
-  const endIndex = endOfLine === -1 ? text.length : endOfLine
-  return Math.max(endIndex - lastIndex, 0)
-}
-
-function findNextLineBreak(text, startIndex) {
-  for (let i = startIndex; i < text.length; i += 1) {
-    const char = text.charCodeAt(i)
-    if (char === 10 /* \n */) {
-      return i
-    }
-    if (char === 13 /* \r */) {
-      if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
-        return i + 1
-      }
-      return i
-    }
-  }
-  return -1
 }
 
 function uriToFilePath(uri) {
