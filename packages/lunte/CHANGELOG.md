@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Write the full report when stdout is a pipe instead of truncating it at the pipe buffer size (~64 KB).
+
 ## 1.8.3
 
 ### Fixed
