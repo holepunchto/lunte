@@ -7,6 +7,10 @@
   "bin": {
     "lunte-lsp": "bin/lunte-lsp"
   },
+  "scripts": {
+    "test": "npm run test:node",
+    "test:node": "brittle-node \"test/**/*.test.js\""
+  },
   "license": "Apache-2.0",
   "author": "Mikkel Malmberg <mikkel@holepunch.to>",
   "keywords": [
@@ -52,5 +56,8 @@
     "bare-process": "^4.3.0",
     "bare-url": "^2.3.2",
     "bare-utils": "^1.5.1"
+  },
+  "devDependencies": {
+    "brittle": "^3.19.0"
   }
 }
