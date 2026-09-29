@@ -3,15 +3,14 @@ name = "Lunte"
 version = "0.1.0"
 schema_version = 1
 description = "Lunte JavaScript linter diagnostics for Zed"
-authors = ["Holepunch <contact@holepunch.to>"]
+authors = ["Mathias Buus <mathias@holepunch.to>"]
 repository = "https://github.com/holepunchto/lunte"
 
 [language_servers.lunte]
 name = "Lunte"
-languages = ["JavaScript", "JSX", "TypeScript", "TSX"]
+languages = ["JavaScript", "TypeScript", "TSX"]
 
 [language_servers.lunte.language_ids]
 JavaScript = "javascript"
-JSX = "javascriptreact"
 TypeScript = "typescript"
 TSX = "typescriptreact"

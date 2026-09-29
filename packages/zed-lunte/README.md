@@ -1,6 +1,6 @@
 # zed-lunte
 
-Zed extension that runs `lunte-lsp` for JavaScript, JSX, TypeScript and TSX.
+Zed extension that runs `lunte-lsp` for JavaScript, TypeScript and TSX.
 
 ## Install (dev)
 
