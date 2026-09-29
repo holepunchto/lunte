@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Apply each `--fix` fix atomically and repeat fix passes (up to 10) until no more fixes apply, so overlapping or nested fixes are never half-applied and need only one `--fix` run.
+
 ## 1.8.3
 
 ### Fixed
