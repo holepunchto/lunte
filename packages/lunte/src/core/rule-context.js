@@ -1,3 +1,5 @@
+import { getLineInfo } from '../../vendor/acorn/dist/acorn.mjs'
+
 import { Severity } from './constants.js'
 
 export class RuleContext {
@@ -30,8 +32,8 @@ export class RuleContext {
 
   report({ node, message, severity, fix }) {
     const target = node ?? this._currentNode
-    const startLoc = target?.loc?.start ?? {}
-    const endLoc = target?.loc?.end ?? startLoc
+    const startLoc = this._resolvePosition(target?.loc?.start, target?.start) ?? {}
+    const endLoc = this._resolvePosition(target?.loc?.end, target?.end) ?? startLoc
     const line = startLoc.line
 
     if (
@@ -55,6 +57,16 @@ export class RuleContext {
     }
 
     this.diagnostics.push(diagnostic)
+  }
+
+  _resolvePosition(position, offset) {
+    if (typeof position?.line === 'number') {
+      return position
+    }
+    if (typeof offset !== 'number' || typeof this.source !== 'string') {
+      return undefined
+    }
+    return getLineInfo(this.source, Math.max(0, Math.min(offset, this.source.length)))
   }
 
   getAncestors() {
