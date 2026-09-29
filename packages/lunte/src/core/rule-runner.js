@@ -37,6 +37,7 @@ export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgn
       scopeManager,
       ruleId: name,
       ruleSeverity: config.severity,
+      ruleOptions: config.options ?? rule.meta?.defaultOptions,
       globals,
       ignoreMatcher
     })

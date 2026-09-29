@@ -8,6 +8,7 @@ export class RuleContext {
     scopeManager,
     ruleId,
     ruleSeverity = Severity.error,
+    ruleOptions = [],
     globals,
     ignoreMatcher
   }) {
@@ -19,6 +20,7 @@ export class RuleContext {
     this._currentNode = null
     this.ruleId = ruleId
     this.ruleSeverity = ruleSeverity
+    this.options = ruleOptions
     this.globals = globals
     this.ignoreMatcher = ignoreMatcher
   }

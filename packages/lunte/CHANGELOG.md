@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Accept `[severity, ...options]` rule entries in `.lunterc`, passed to rules as `context.options` with `meta.defaultOptions` as the fallback.
+
 ## 1.8.3
 
 ### Fixed

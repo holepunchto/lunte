@@ -43,7 +43,7 @@ Configuration is optional, but when needed create a `.lunterc` (or `.lunterc.jso
 
 - `env` enables preset global sets (`node`, `browser`, `es2021`).
 - `globals` adds project-specific globals.
-- `rules` sets severities per rule (`"off"`, `"warn"`, `"error"`, or `0/1/2`).
+- `rules` sets severities per rule (`"off"`, `"warn"`, `"error"`, or `0/1/2`), optionally with options (see [Rule Options](#rule-options)).
 - `disableHolepunchGlobals` skips adding `Pear`/`Bare` globals.
 
 Command-line overrides are available for ad-hoc runs:
@@ -72,6 +72,44 @@ Load third-party rule packs by listing module IDs under `plugins`. Each plugin s
 ```
 
 For ad-hoc runs, `lunte --plugin lunte-plugin-pear --plugin ./rules/lunte-plugin-pear.js src/` applies the same modules.
+
+## Rule Options
+
+A rule entry can be a severity or, as in ESLint, an array of a severity followed by any number of options:
+
+```json
+{
+  "rules": {
+    "no-undef": "error",
+    "pear/max-lines": ["warn", { "max": 60 }]
+  }
+}
+```
+
+An entry with a severity only (`"warn"` or `["warn"]`) keeps the options set before it, so `--rule pear/max-lines=error` changes the severity without dropping `{ "max": 60 }`. The `--rule` flag itself takes severities only.
+
+Rules read their options from `context.options`, an array that is `[]` when none are configured. A rule can declare `meta.defaultOptions` to use instead when the config gives none; configured options replace the defaults outright rather than merging with them.
+
+```js
+export default {
+  rules: [
+    {
+      meta: { name: 'pear/max-lines', defaultOptions: [{ max: 40 }] },
+      create(context) {
+        const { max } = context.options[0]
+        return {
+          Program(node) {
+            const lines = context.source.trimEnd().split('\n').length
+            if (lines > max) {
+              context.report({ node, message: `File has ${lines} lines, maximum is ${max}.` })
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+```
 
 ## Inline Ignores
 

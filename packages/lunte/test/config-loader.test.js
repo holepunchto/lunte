@@ -54,3 +54,14 @@ test('loadConfig normalises disableHolepunchGlobals flag', async (t) => {
   const { config } = await loadConfig({ cwd: dir })
   t.is(config.disableHolepunchGlobals, true)
 })
+
+test('loadConfig keeps [severity, ...options] rule entries intact', async (t) => {
+  const dir = await createTempDir('options')
+  await writeFile(
+    join(dir, '.lunterc'),
+    JSON.stringify({ rules: { 'pear/max-lines': ['error', { max: 60 }] } })
+  )
+
+  const { config } = await loadConfig({ cwd: dir })
+  t.alike(config.rules['pear/max-lines'], ['error', { max: 60 }])
+})
