@@ -17,13 +17,13 @@ export const importNoDuplicates = {
 
           const source = statement.source.value
 
+          if (statement.importKind === 'type') {
+            continue
+          }
+
           const existing = imports.get(source)
-          // Treat type-only and value imports as distinct buckets so users can
-          // keep a separate type import alongside value imports (mirrors ESLint
-          // import/no-duplicates allowTypeImports behavior).
-          const kind = statement.importKind === 'type' ? 'type' : 'value'
-          if (existing?.[kind]) {
-            const firstImport = existing[kind]
+          if (existing) {
+            const firstImport = existing
             context.report({
               node: statement,
               message: `'${source}' import is duplicated.`,
@@ -33,9 +33,7 @@ export const importNoDuplicates = {
               }
             })
           } else {
-            const next = existing ?? { type: null, value: null }
-            next[kind] = statement
-            imports.set(source, next)
+            imports.set(source, statement)
           }
         }
       }

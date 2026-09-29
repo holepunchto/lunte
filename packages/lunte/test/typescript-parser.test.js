@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
 import { analyze } from '../src/core/analyzer.js'
+import { parse } from '../src/core/parser.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const fixturePath = (...parts) => join(__dirname, 'fixtures', ...parts)
@@ -24,6 +25,23 @@ test('JS with type annotations still fails (parsed as JS)', async (t) => {
   t.ok(/unexpected/i.test(result.diagnostics[0].message))
 })
 
+test('allows exporting ambient classes after declared constructors', async (t) => {
+  const filePath = fixturePath('typescript', '__virtual__ambient-exports.ts')
+  const source = `declare class A {
+  constructor();
+}
+
+declare class B {}
+
+export { A, B };
+`
+  const result = await analyze({
+    files: [filePath],
+    sourceOverrides: new Map([[filePath, source]])
+  })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
+
 test('JSX parses automatically with TS parser', async (t) => {
   const result = await analyze({ files: [fixturePath('typescript', 'typed-jsx.jsx')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
@@ -31,5 +49,30 @@ test('JSX parses automatically with TS parser', async (t) => {
 
 test('declaration files allow exporting declared ambient functions', async (t) => {
   const result = await analyze({ files: [fixturePath('typescript', 'ambient-export.d.ts')] })
+  t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
+})
+
+test('declaration files allow forward exports of ambient declarations', (t) => {
+  const source = `export { pipeline, Options, Result }
+declare function pipeline(): void
+interface Options { value: string }
+type Result = string
+`
+  const ast = parse(source, { filePath: 'ambient.d.ts' })
+  t.is(ast.body[0].specifiers.length, 3)
+})
+
+test('declaration files reject exports without a declaration', (t) => {
+  let error
+  try {
+    parse('export { missing }\n', { filePath: 'ambient.d.ts' })
+  } catch (cause) {
+    error = cause
+  }
+  t.ok(/Export 'missing' is not defined/.test(error?.message))
+})
+
+test('allows TypeScript function overload signatures before implementation', async (t) => {
+  const result = await analyze({ files: [fixturePath('typescript', 'overload.ts')] })
   t.is(result.diagnostics.length, 0, formatDiagnostics(result.diagnostics))
 })

@@ -76,6 +76,24 @@ test('allows rest destructuring bindings in the same scope', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('ignores TypeScript type literal property names', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-ts-type-literal-valid.ts')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('still reports runtime use before TypeScript type literal declarations', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-use-before-define-ts-type-literal-invalid.ts')],
+    ruleOverrides: [{ name: 'no-undef', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('id')))
+})
+
 test('reports block-scoped usage before declaration within same function', async (t) => {
   const result = await analyzeSnippet(
     'function demo () {\n  foo()\n  const foo = () => {}\n}\ndemo()\n'

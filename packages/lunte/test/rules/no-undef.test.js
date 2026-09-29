@@ -97,6 +97,24 @@ test('ignores import attributes in module imports', async (t) => {
   t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
 })
 
+test('ignores export-all namespace aliases', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-export-all-namespace-valid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('does not create locals for export-all namespace aliases', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-export-all-namespace-invalid.ts')],
+    ruleOverrides: [{ name: 'no-use-before-define', severity: 'off' }],
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('mod')))
+})
+
 test('ignores type-only identifiers in TypeScript files', async (t) => {
   const result = await analyze({
     files: [fixturePath('no-undef-typescript-valid.ts')],
@@ -161,6 +179,24 @@ test('flags runtime usage of type-only import equals aliases', async (t) => {
     result.diagnostics.some((d) => d.message.includes('Logger')),
     'type-only import equals should not introduce runtime symbols'
   )
+})
+
+test('treats TypeScript parameter properties as constructor parameters', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-parameter-property-valid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.is(result.diagnostics.length, 0, result.diagnostics.map((d) => d.message).join('\n'))
+})
+
+test('does not create outer locals for TypeScript parameter properties', async (t) => {
+  const result = await analyze({
+    files: [fixturePath('no-undef-typescript-parameter-property-invalid.ts')],
+    ruleOverrides: TS_RUNTIME_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+  t.ok(result.diagnostics.some((d) => d.message.includes('bar')))
 })
 
 test('treats decorator expressions as runtime references', async (t) => {

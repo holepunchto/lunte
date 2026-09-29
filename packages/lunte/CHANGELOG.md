@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Use the upstream TypeScript parser fix for ambient declaration exports, including functions, interfaces, and type aliases.
+
+## 1.8.3
+
+### Fixed
+- Count `typeof value` type queries as usage for `no-unused-vars`.
+- Allow named function expressions assigned to properties for `no-unused-vars`.
+- Count TypeScript parameter properties used via `this.name` for `no-unused-vars`.
+
+## 1.8.2
+
+### Fixed
+- Ignore `export * as name from ...` aliases as runtime references for `no-undef`.
+- Allow TypeScript function overload signatures before their implementation.
+- Ignore TypeScript type literal property keys for `no-use-before-define`.
+- Treat TypeScript parameter properties as constructor parameters for scope analysis.
+- Allow duplicate type-only imports from the same module for `import/no-duplicates`.
+- Allow object literal getter/setter pairs for `no-dupe-keys`.
+
+## 1.8.1
+
+### Fixed
+- Count identifiers used in `typeof` expressions as usage for `no-unused-vars`.
+- Allow TypeScript ambient declarations with bodiless constructors or functions to be exported.
+
 ## 1.8.0
 
 ### Added

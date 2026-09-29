@@ -137,6 +137,16 @@ console.log(foo, bar)
   t.is(result.diagnostics[0].ruleId, 'import/no-duplicates')
 })
 
+test('allows duplicate type-only imports from the same module', async (t) => {
+  const result = await analyze({
+    files: [fixture('import-no-duplicates-type-only-valid.ts')],
+    ruleOverrides: BASE_OVERRIDES,
+    enableTypeScriptParser: true
+  })
+
+  t.is(result.diagnostics.length, 0)
+})
+
 test('allows separate type and value imports from the same module', async (t) => {
   const result = await analyzeSnippet(
     `

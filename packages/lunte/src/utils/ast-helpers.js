@@ -1,4 +1,4 @@
-export function isReferenceIdentifier(node, parent, ancestors = []) {
+export function isReferenceIdentifier(node, parent, ancestors = [], options = {}) {
   if (!parent) return true
 
   if (isTypeOnlyIdentifier(node, parent, ancestors)) {
@@ -26,6 +26,7 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
     case 'MetaProperty':
       return false
     case 'ExportSpecifier':
+    case 'ExportAllDeclaration':
       return false
     case 'ExportNamedDeclaration':
     case 'ExportDefaultDeclaration':
@@ -60,6 +61,7 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
         return true
       }
       return parent.key !== node
+    case 'RestElement':
     case 'ArrayPattern':
     case 'ObjectPattern':
       return false
@@ -67,9 +69,11 @@ export function isReferenceIdentifier(node, parent, ancestors = []) {
       return parent.left !== node
     case 'UnaryExpression':
       if (parent.operator === 'typeof') {
-        return false
+        return options.ignoreTypeof === false
       }
       return true
+    case 'TSParameterProperty':
+      return parent.parameter !== node
     case 'TSEnumMember':
     case 'TSEnumDeclaration':
     case 'TSModuleDeclaration':
@@ -154,6 +158,10 @@ function isTypeOnlyIdentifier(node, parent, ancestors = []) {
 
   if (parent.type === 'TSQualifiedName') {
     return true
+  }
+
+  if (parent.type === 'TSTypeQuery') {
+    return false
   }
 
   if (TS_TYPE_ONLY_PARENTS.has(parent.type)) {

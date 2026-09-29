@@ -83,7 +83,7 @@ export const noUnusedVars = {
             // Treat callback names as used when the function is supplied as an argument.
             markUsed(node.id.name)
           }
-          if (isCommonJsExported(node, context)) {
+          if (isAssignedFunctionExpression(node, parent) || isCommonJsExported(node, context)) {
             markUsed(node.id.name)
           }
         }
@@ -110,8 +110,13 @@ export const noUnusedVars = {
       },
       Identifier(node) {
         const parent = context.getParent()
+        if (isThisPropertyReference(node, parent)) {
+          markUsed(node.name)
+          return
+        }
+
         const ancestors = context.getAncestors()
-        if (!isReferenceIdentifier(node, parent, ancestors)) {
+        if (!isReferenceIdentifier(node, parent, ancestors, { ignoreTypeof: false })) {
           return
         }
         markUsed(node.name)
@@ -209,6 +214,9 @@ function extractPatternIdentifiers(pattern, options = {}) {
         hasRestSibling: options.hasRestSibling || false
       })
       break
+    case 'TSParameterProperty':
+      results.push(...extractPatternIdentifiers(pattern.parameter, options))
+      break
     case 'RestElement':
       results.push(...extractPatternIdentifiers(pattern.argument, { ...options, isRest: true }))
       break
@@ -285,6 +293,19 @@ function getTSModuleName(id) {
     return id.value
   }
   return null
+}
+
+function isAssignedFunctionExpression(functionNode, parent) {
+  return parent?.type === 'AssignmentExpression' && parent.right === functionNode
+}
+
+function isThisPropertyReference(node, parent) {
+  return (
+    parent?.type === 'MemberExpression' &&
+    parent.property === node &&
+    !parent.computed &&
+    parent.object?.type === 'ThisExpression'
+  )
 }
 
 function isCommonJsExported(functionNode, context) {

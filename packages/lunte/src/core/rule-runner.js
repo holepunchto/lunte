@@ -558,6 +558,9 @@ function extractPatternIdentifiers(pattern, containerEnd) {
     case 'Identifier':
       results.push({ name: pattern.name, node: pattern, availableAt: containerEnd })
       break
+    case 'TSParameterProperty':
+      results.push(...extractPatternIdentifiers(pattern.parameter, containerEnd || pattern.end))
+      break
     case 'RestElement':
       results.push(...extractPatternIdentifiers(pattern.argument, containerEnd || pattern.end))
       break
