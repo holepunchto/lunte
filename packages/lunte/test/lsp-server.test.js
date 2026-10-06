@@ -60,6 +60,54 @@ test('LSP server publishes diagnostics for open document', async (t) => {
   await client.shutdown()
 })
 
+test('LSP lints unsaved changes', async (t) => {
+  const workspaceDir = await createTempWorkspace(t, {
+    'file.js': 'const used = 1\nconsole.log(used)\n'
+  })
+
+  const client = await createLspClient(t, { cwd: workspaceDir })
+  const rootUri = pathToFileURL(workspaceDir).href
+  await client.sendRequest('initialize', { rootUri })
+  client.sendNotification('initialized', {})
+
+  const documentPath = join(workspaceDir, 'file.js')
+  const documentUri = pathToFileURL(documentPath).href
+  const diskText = await readFile(documentPath, 'utf8')
+
+  client.sendNotification('textDocument/didOpen', {
+    textDocument: {
+      uri: documentUri,
+      languageId: 'javascript',
+      version: 1,
+      text: diskText
+    }
+  })
+
+  const openPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.is(openPublish.params?.diagnostics?.length ?? 0, 0, 'clean file has no diagnostics')
+
+  client.sendNotification('textDocument/didChange', {
+    textDocument: { uri: documentUri, version: 2 },
+    contentChanges: [{ text: 'const used = 1\nconst unused = 2\nconsole.log(used)\n' }]
+  })
+
+  const changePublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.ok(
+    (changePublish.params?.diagnostics ?? []).some((d) => d.code === 'no-unused-vars'),
+    'unsaved edit introducing an error reports it'
+  )
+
+  client.sendNotification('textDocument/didChange', {
+    textDocument: { uri: documentUri, version: 3 },
+    contentChanges: [{ text: diskText }]
+  })
+
+  const clearPublish = await client.waitForNotification('textDocument/publishDiagnostics')
+  t.is(clearPublish.params?.diagnostics?.length ?? 0, 0, 'fixing the change clears diagnostics')
+
+  await client.shutdown()
+})
+
 test('workspace config changes trigger revalidation', async (t) => {
   const workspaceDir = await createTempWorkspace(t, {
     '.lunterc': JSON.stringify({ rules: { 'no-unused-vars': 'off' } }),
