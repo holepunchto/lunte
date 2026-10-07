@@ -60,13 +60,14 @@ export class RuleContext {
   }
 
   _resolvePosition(position, offset) {
-    if (typeof position?.line === 'number') {
+    const hasLine = Number.isInteger(position?.line)
+    if (hasLine && Number.isInteger(position.column)) {
       return position
     }
-    if (typeof offset !== 'number' || typeof this.source !== 'string') {
-      return undefined
+    if (Number.isInteger(offset) && typeof this.source === 'string') {
+      return getLineInfo(this.source, Math.max(0, Math.min(offset, this.source.length)))
     }
-    return getLineInfo(this.source, Math.max(0, Math.min(offset, this.source.length)))
+    return hasLine ? position : undefined
   }
 
   getAncestors() {

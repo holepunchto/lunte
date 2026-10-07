@@ -1,8 +1,11 @@
 import test from 'brittle'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { mkdtemp, writeFile } from 'fs/promises'
+import { tmpdir } from 'os'
 
 import { analyze } from '../src/core/analyzer.js'
+import { loadPlugins } from '../src/config/plugins.js'
 import { builtInRules } from '../src/rules/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -29,12 +32,32 @@ test('eslint-style disable directives are respected', async (t) => {
 })
 
 test('inline directives suppress reports on typed default parameters', async (t) => {
-  t.teardown(registerRule('test/no-fourth-param', {
-    FunctionDeclaration(node, context) {
-      const param = node.params[3]
-      if (param) context.report({ node: param, message: 'Too many parameters.' })
+  const dir = await mkdtemp(join(tmpdir(), 'lunte-plugin-'))
+  const pluginPath = join(dir, 'plugin.mjs')
+  await writeFile(
+    pluginPath,
+    `
+export default {
+  rules: [
+    {
+      meta: { name: 'test/no-fourth-param' },
+      create(context) {
+        return {
+          FunctionDeclaration(node) {
+            const param = node.params[3]
+            if (param) context.report({ node: param, message: 'Too many parameters.' })
+          }
+        }
+      }
     }
-  }))
+  ]
+}
+    `.trim()
+  )
+  t.teardown(() => {
+    builtInRules.delete('test/no-fourth-param')
+  })
+  await loadPlugins([pluginPath], { cwd: dir, onError: (message) => t.fail(message) })
 
   const source = `export function reported(a: number, b: string, c: boolean, fetchImpl: Fetch = globalThis.fetch) {}
 
@@ -49,15 +72,3 @@ export function suppressed(a: number, b: string, c: boolean, fetchImpl: Fetch = 
   t.is(diagnostics[0].line, 1)
   t.is(diagnostics[0].column, source.indexOf('fetchImpl') + 1)
 })
-
-function registerRule(name, listeners) {
-  builtInRules.set(name, {
-    meta: { name },
-    create(context) {
-      return Object.fromEntries(
-        Object.entries(listeners).map(([type, fn]) => [type, (node) => fn(node, context)])
-      )
-    }
-  })
-  return () => builtInRules.delete(name)
-}
