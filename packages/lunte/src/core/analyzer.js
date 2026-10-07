@@ -171,7 +171,7 @@ function applyFixPasses(source, diagnostics, run) {
 
   for (let pass = 0; pass < MAX_FIX_PASSES; pass++) {
     const applied = applyFixes({ source: output, diagnostics })
-    if (applied.appliedEdits === 0) break
+    if (applied.appliedEdits === 0 || applied.output === output) break
 
     let nextDiagnostics
     try {

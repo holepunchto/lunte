@@ -221,3 +221,77 @@ test('rule throwing SyntaxError during a fix pass is reported, not treated as a 
     'reports the crash'
   )
 })
+
+test('applyFixes skips fixes whose edits change nothing', (t) => {
+  const source = 'abcdef'
+  const result = applyFixes({
+    source,
+    diagnostics: [
+      { fix: [{ range: [0, 6], text: 'abcdef' }] },
+      { fix: [{ range: [3, 4], text: 'Z' }] }
+    ]
+  })
+
+  t.is(result.output, 'abcZef', 'no-op fix does not block the real one')
+  t.is(result.appliedEdits, 1)
+  t.is(result.appliedDiagnostics, 1)
+})
+
+test('applyFixes keeps unchanged edits inside a fix that changes something', (t) => {
+  const source = 'abcdef'
+  const result = applyFixes({
+    source,
+    diagnostics: [
+      {
+        fix: [
+          { range: [0, 0], text: '<' },
+          { range: [2, 6], text: 'cdef' }
+        ]
+      },
+      { fix: [{ range: [3, 4], text: 'Z' }] }
+    ]
+  })
+
+  t.is(result.output, '<abcdef', 'unchanged edit still reserves its range')
+  t.is(result.appliedDiagnostics, 1)
+})
+
+test('no-op fixes do not count as applied or trigger extra passes', async (t) => {
+  let runs = 0
+  useRule(t, 'test/no-op', (context) => {
+    runs++
+    return {
+      Program(node) {
+        context.report({ node, message: 'No-op.', fix: [{ range: [0, 0], text: '' }] })
+      }
+    }
+  })
+
+  const result = await fixSource('foo()\n', only('test/no-op'))
+
+  t.is(result.output, undefined)
+  t.is(result.fixedEdits, 0)
+  t.is(result.fixedFiles, 0)
+  t.is(result.diagnostics.length, 1)
+  t.is(runs, 1, 'rules run once')
+})
+
+test('no-op fix overlapping a real fix does not delay it', async (t) => {
+  let runs = 0
+  useRule(t, 'test/no-op-if', (context) => {
+    runs++
+    return {
+      IfStatement(node) {
+        const text = context.source.slice(node.start, node.end)
+        context.report({ node, message: 'No-op.', fix: [{ range: [node.start, node.end], text }] })
+      }
+    }
+  })
+
+  const result = await fixSource('if (x)\n  foo()\n', only('curly', 'test/no-op-if'))
+
+  t.is(result.output, 'if (x) {\n  foo()\n}\n')
+  t.is(result.fixedEdits, 2)
+  t.is(result.fixedDiagnostics, 1)
+  t.is(runs, 2, 'fixed in the first pass')
+})

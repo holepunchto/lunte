@@ -4,6 +4,7 @@ export function applyFixes({ source, diagnostics }) {
   for (let i = 0; i < diagnostics.length; i++) {
     const diagnostic = diagnostics[i]
     if (!diagnostic.fix || diagnostic.fix.length === 0) continue
+    if (diagnostic.fix.every((edit) => isNoOp(edit, source))) continue
     const edits = diagnostic.fix
       .map((edit, order) => ({ range: edit.range, text: edit.text, order }))
       .sort(compareEdits)
@@ -52,6 +53,10 @@ export function applyFixes({ source, diagnostics }) {
     appliedEdits: accepted.length,
     appliedDiagnostics
   }
+}
+
+function isNoOp(edit, source) {
+  return source.slice(edit.range[0], edit.range[1]) === edit.text
 }
 
 function compareRanges(a, b) {
