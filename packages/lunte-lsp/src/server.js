@@ -186,7 +186,7 @@ async function validateDocument(uri) {
       ruleOverrides: cachedRuleOverrides,
       envOverrides: cachedEnvOverrides,
       globalOverrides: cachedGlobalOverrides,
-      sourceText: new Map([[doc.filePath, doc.text]])
+      sourceOverrides: new Map([[doc.filePath, doc.text]])
     })
 
     const lspDiagnostics = diagnostics.map((diagnostic) =>
