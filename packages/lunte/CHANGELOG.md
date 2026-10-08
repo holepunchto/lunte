@@ -4,6 +4,8 @@
 
 ### Added
 - Accept `[severity, ...options]` rule entries in `.lunterc`, passed to rules as `context.options` with `meta.defaultOptions` as the fallback.
+### Fixed
+- Write the full report when stdout is a pipe instead of truncating it at the pipe buffer size (~64 KB).
 
 ## 1.8.3
 
