@@ -54,7 +54,7 @@ export async function run(argv = []) {
   }
 
   if (parser.flags.help) {
-    console.log(parser.help())
+    print(parser.help())
     return 0
   }
 
@@ -90,7 +90,7 @@ export async function run(argv = []) {
   const verbose = Boolean(parser.flags.verbose)
   const fix = Boolean(parser.flags.fix)
   if (verbose && resolvedFiles) {
-    console.log(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
+    print(`Analyzing ${resolvedFiles.length} file${resolvedFiles.length === 1 ? '' : 's'}:`)
   }
 
   await loadPlugins(mergedPlugins, {
@@ -118,21 +118,23 @@ export async function run(argv = []) {
               : VERBOSE_COLORS.green
           const symbol = hasError ? '✕' : hasWarning ? '!' : '✓'
           const detail = hasError ? ' (errors)' : hasWarning ? ' (warnings)' : ''
-          console.log(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)
+          print(`  ${color}${symbol}${VERBOSE_COLORS.reset} ${filePath}${detail}`)
         }
       : undefined
   })
   if (fix && result.fixedEdits) {
     const fileLabel = result.fixedFiles === 1 ? 'file' : 'files'
     const editLabel = result.fixedEdits === 1 ? 'edit' : 'edits'
-    console.log(
-      `Applied ${result.fixedEdits} ${editLabel} across ${result.fixedFiles} ${fileLabel}.`
-    )
+    print(`Applied ${result.fixedEdits} ${editLabel} across ${result.fixedFiles} ${fileLabel}.`)
   }
-  console.log(formatConsoleReport(result))
+  print(formatConsoleReport(result))
 
   const hasErrors = result.diagnostics.some((d) => d.severity === Severity.error)
   return hasErrors ? 1 : 0
+}
+
+function print(text) {
+  process.stdout.write(text + '\n')
 }
 
 const intoArray = (value) => (value === undefined ? [] : Array.isArray(value) ? value : [value])
