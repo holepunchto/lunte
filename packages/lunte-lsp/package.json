@@ -1,6 +1,6 @@
 {
   "name": "lunte-lsp",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "Language Server Protocol wrapper for Lunte",
   "type": "module",
   "main": "./src/server.js",
