@@ -88,7 +88,7 @@ A rule entry can be a severity or, as in ESLint, an array of a severity followed
 
 An entry with a severity only (`"warn"` or `["warn"]`) keeps the options set before it, so `--rule pear/max-lines=error` changes the severity without dropping `{ "max": 60 }`. The `--rule` flag itself takes severities only.
 
-Rules read their options from `context.options`, an array that is `[]` when none are configured. A rule can declare `meta.defaultOptions` to use instead when the config gives none; configured options replace the defaults outright rather than merging with them.
+Rules read their options from `context.options`, an array that is `[]` when none are configured. A rule can declare `meta.defaultOptions`, and, as in ESLint, configured options are merged into them recursively: objects merge key by key, arrays and other values replace the default, and anything left out keeps its default.
 
 ```js
 export default {

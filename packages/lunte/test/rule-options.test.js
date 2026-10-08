@@ -26,7 +26,10 @@ function echo(name, defaultOptions) {
 }
 
 export default {
-  rules: [echo('${RULE_NAME}'), echo('${DEFAULTS_RULE_NAME}', [{ max: 40 }])]
+  rules: [
+    echo('${RULE_NAME}'),
+    echo('${DEFAULTS_RULE_NAME}', [{ max: 40, skipBlankLines: true }, 'strict'])
+  ]
 }
 `
 
@@ -41,7 +44,10 @@ test('plugin rules receive options from .lunterc', async (t) => {
   const echoed = await lint(dir)
 
   t.alike(echoed.get(RULE_NAME), { severity: 'warning', options: [{ max: 60 }, 'strict'] })
-  t.alike(echoed.get(DEFAULTS_RULE_NAME), { severity: 'error', options: [{ max: 80 }] })
+  t.alike(echoed.get(DEFAULTS_RULE_NAME), {
+    severity: 'error',
+    options: [{ max: 80, skipBlankLines: true }, 'strict']
+  })
 })
 
 test('context.options falls back to meta.defaultOptions, then []', async (t) => {
@@ -52,7 +58,10 @@ test('context.options falls back to meta.defaultOptions, then []', async (t) => 
   const echoed = await lint(dir)
 
   t.alike(echoed.get(RULE_NAME), { severity: 'error', options: [] })
-  t.alike(echoed.get(DEFAULTS_RULE_NAME), { severity: 'warning', options: [{ max: 40 }] })
+  t.alike(echoed.get(DEFAULTS_RULE_NAME), {
+    severity: 'warning',
+    options: [{ max: 40, skipBlankLines: true }, 'strict']
+  })
 })
 
 test('a CLI severity override keeps options from .lunterc', async (t) => {

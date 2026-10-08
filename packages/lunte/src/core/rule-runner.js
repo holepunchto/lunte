@@ -3,6 +3,7 @@ import { RuleContext } from './rule-context.js'
 import { builtInRules } from '../rules/index.js'
 import { Severity } from './constants.js'
 import { getDefaultRuleConfig } from '../config/defaults.js'
+import { mergeRuleOptions } from '../config/rule-options.js'
 
 const DEFAULT_IGNORE_MATCHER = {
   shouldIgnore() {
@@ -37,7 +38,7 @@ export function runRules({ ast, filePath, source, ruleConfig, globals, inlineIgn
       scopeManager,
       ruleId: name,
       ruleSeverity: config.severity,
-      ruleOptions: config.options ?? rule.meta?.defaultOptions,
+      ruleOptions: mergeRuleOptions(rule.meta?.defaultOptions, config.options),
       globals,
       ignoreMatcher
     })
