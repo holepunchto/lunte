@@ -59,14 +59,27 @@ export function resolveRuleConfig(overrides = []) {
     if (!name || !builtInRules.has(name)) {
       continue
     }
-    const normalized = normalizeSeverity(severity)
-    if (!normalized) {
+    const entry = normalizeRuleEntry(severity)
+    if (!entry) {
       continue
     }
-    config.set(name, { severity: normalized })
+    // Like ESLint, a severity-only override keeps the options set before it.
+    config.set(name, {
+      severity: entry.severity,
+      options: entry.options ?? config.get(name)?.options
+    })
   }
 
   return config
+}
+
+export function normalizeRuleEntry(value) {
+  const [first, ...options] = Array.isArray(value) ? value : [value]
+  const severity = normalizeSeverity(first)
+  if (!severity) {
+    return null
+  }
+  return { severity, options: options.length > 0 ? options : undefined }
 }
 
 export function normalizeSeverity(value) {

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Added
+- Accept `[severity, ...options]` rule entries in `.lunterc`, passed to rules as `context.options` and merged into `meta.defaultOptions` as in ESLint.
 ### Fixed
 - Write the full report when stdout is a pipe instead of truncating it at the pipe buffer size (~64 KB).
 
