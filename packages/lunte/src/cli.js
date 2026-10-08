@@ -40,6 +40,7 @@ const parser = command(
   flag('--global [names]', 'Declare additional global variables (comma separated).').multiple(),
   flag('--plugin [names]', 'Load additional rule plugins (comma separated).').multiple(),
   flag('--fix', 'Automatically apply available fixes.'),
+  flag('--max-warnings <n>', 'Exit with an error when there are more than n warnings.'),
   flag('--stdin', 'Lint code from stdin'),
   flag('--verbose|-v', 'Print additional information while analyzing.'),
   rest('[...files]', 'Files, directories, or glob patterns to analyze.')
@@ -56,6 +57,14 @@ export async function run(argv = []) {
   if (parser.flags.help) {
     print(parser.help())
     return 0
+  }
+
+  const maxWarnings = parseMaxWarnings(parser.flags.maxWarnings)
+  if (Number.isNaN(maxWarnings)) {
+    console.error(
+      `Invalid value for option: --max-warnings (expected a non-negative integer, got "${parser.flags.maxWarnings}")`
+    )
+    return 1
   }
 
   let source
@@ -130,7 +139,19 @@ export async function run(argv = []) {
   print(formatConsoleReport(result))
 
   const hasErrors = result.diagnostics.some((d) => d.severity === Severity.error)
-  return hasErrors ? 1 : 0
+  const warningCount = result.diagnostics.filter((d) => d.severity === Severity.warning).length
+  const tooManyWarnings = maxWarnings !== undefined && warningCount > maxWarnings
+  if (tooManyWarnings) {
+    print(
+      `${VERBOSE_COLORS.red}✕ Too many warnings (${warningCount}, maximum: ${maxWarnings})${VERBOSE_COLORS.reset}`
+    )
+  }
+  return hasErrors || tooManyWarnings ? 1 : 0
+}
+
+function parseMaxWarnings(value) {
+  if (value === undefined) return undefined
+  return typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : NaN
 }
 
 function print(text) {

@@ -52,6 +52,12 @@ Command-line overrides are available for ad-hoc runs:
 lunte --env browser --global Pear --rule no-unused-vars=off src/
 ```
 
+Lunte exits with code 1 when any error is reported; warnings alone exit 0. To cap the number of warnings (e.g. while a `"warn"` rule is being cleaned up), pass `--max-warnings <n>`: the run fails when more than `n` warnings are reported, and `--max-warnings 0` fails on any warning. The limit is CLI-only and cannot be set in `.lunterc`.
+
+```sh
+lunte --max-warnings 10 src/
+```
+
 ## TypeScript
 
 - Experimental parser is bundled via vendored `@sveltejs/acorn-typescript`; no extra install needed.
