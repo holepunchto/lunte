@@ -1,6 +1,5 @@
 import test from 'brittle'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { join } from 'path'
 import { mkdtemp, writeFile, mkdir } from 'fs/promises'
 import { tmpdir } from 'os'
 
