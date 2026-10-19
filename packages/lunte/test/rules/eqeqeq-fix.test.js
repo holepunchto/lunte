@@ -59,6 +59,25 @@ test('applies fix for != operator', async (t) => {
   t.is(output, expected)
 })
 
+test('does not fix null comparisons', async (t) => {
+  const file = '/virtual/eqeqeq-null-check-invalid.js'
+  const source = 'if (value == null || null != value) {}\n'
+
+  const result = await analyze({
+    files: [file],
+    ruleOverrides: ONLY_EQEQEQ,
+    fix: true,
+    write: false,
+    sourceOverrides: new Map([[file, source]])
+  })
+
+  t.is(result.fixedEdits, 0)
+  t.is(result.fixedDiagnostics, 0)
+  t.is(result.fixedFiles, 0)
+  t.is(result.diagnostics.length, 2, 'should preserve diagnostics without an unsafe fix')
+  t.absent(result.fixedOutputs.get(file))
+})
+
 test('applies fix for multiple violations', async (t) => {
   const file = '/virtual/eqeqeq-multiple-invalid.js'
   const source = await readFile(fixtures('eqeqeq-multiple-invalid.js'), 'utf8')
