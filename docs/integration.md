@@ -26,6 +26,14 @@ Implementation at `packages/vscode-lunte`.
 
 3. Open a JavaScript file. The extension activates and spawns `npx lunte-lsp` from your workspace root. Override the command via the `lunte.lsp.command` / `lunte.lsp.args` settings if you want to pin a specific binary.
 
+## Zed Quick Start
+
+Implementation at `packages/zed-lunte`.
+
+1. Install Rust via `rustup`.
+2. In Zed, run `zed: install dev extension` and select `packages/zed-lunte`.
+3. Open a JavaScript or TypeScript file. The extension uses the project's `node_modules/lunte-lsp` if present, then `lunte-lsp` on `PATH`, then installs `lunte-lsp` from npm. Override the command with `lsp.lunte.binary` in Zed settings.
+
 ## Neovim Quick Start
 
 ```lua
