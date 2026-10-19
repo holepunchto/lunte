@@ -1,26 +1,102 @@
 {
-  "name": "lunte-monorepo",
-  "private": true,
-  "workspaces": [
-    "packages/lunte",
-    "packages/lunte-lsp",
-    "packages/vscode-lunte"
-  ],
+  "name": "lunte",
+  "version": "1.8.6",
+  "description": "Self-contained linter for Pear/Bare projects",
+  "main": "./src/index.js",
+  "bin": {
+    "lunte": "bin/lunte"
+  },
   "scripts": {
-    "lint": "packages/lunte/bin/lunte",
     "test": "npm run test:node && npm run test:bare",
-    "test:node": "npm run test:node --workspaces --if-present",
-    "test:bare": "npm run test:bare --workspaces --if-present",
-    "test:core": "npm test --workspace=lunte-core",
-    "test:lsp": "npm test --workspace=lunte-lsp",
+    "test:node": "brittle-node \"test/**/*.test.js\"",
+    "test:bare": "brittle-bare \"test/**/*.test.js\"",
+    "lint": "bin/lunte .",
+    "vendor:acorn": "node scripts/vendor-acorn.js",
+    "vendor:acorn-typescript": "node scripts/vendor-acorn-typescript.js",
     "format": "prettier . --write",
-    "benchmark:ts-parser": "node scripts/benchmark-ts-parser.js"
+    "benchmark:ts-parser": "node scripts/benchmark-ts-parser.js",
+    "test:package": "node scripts/test-package.js",
+    "test:integration": "node scripts/test-integration.js"
+  },
+  "keywords": [
+    "linter",
+    "lint",
+    "javascript",
+    "standard",
+    "code-quality",
+    "static-analysis"
+  ],
+  "author": "Mikkel Malmberg <mikkel@holepunch.to>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/lunte.git"
+  },
+  "homepage": "https://github.com/holepunchto/lunte#readme",
+  "bugs": {
+    "url": "https://github.com/holepunchto/lunte/issues"
+  },
+  "type": "module",
+  "imports": {
+    "child_process": {
+      "bare": "bare-subprocess",
+      "default": "child_process"
+    },
+    "events": {
+      "bare": "bare-events",
+      "default": "events"
+    },
+    "fs": {
+      "bare": "bare-fs",
+      "default": "fs"
+    },
+    "fs/*": {
+      "bare": "bare-fs/*",
+      "default": "fs/*"
+    },
+    "module": {
+      "bare": "bare-module",
+      "default": "module"
+    },
+    "os": {
+      "bare": "bare-os",
+      "default": "os"
+    },
+    "path": {
+      "bare": "bare-path",
+      "default": "path"
+    },
+    "process": {
+      "bare": "bare-process",
+      "default": "process"
+    },
+    "url": {
+      "bare": "bare-url",
+      "default": "url"
+    },
+    "util": {
+      "bare": "bare-utils",
+      "default": "util"
+    }
+  },
+  "dependencies": {
+    "paparam": "^1.8.6"
   },
   "devDependencies": {
+    "brittle": "^3.19.0",
     "prettier": "^3.6.2",
-    "prettier-config-holepunch": "^2.0.0"
+    "prettier-config-holepunch": "^2.0.0",
+    "bare": "^1.24.1"
   },
   "optionalDependencies": {
-    "bare": "^1.24.1"
+    "bare-events": "^2.8.1",
+    "bare-fs": "^4.7.0",
+    "bare-module": "^6.1.2",
+    "bare-os": "^3.6.2",
+    "bare-path": "^3.0.0",
+    "bare-process": "^4.2.2",
+    "bare-subprocess": "^6.1.0",
+    "bare-url": "^2.3.2",
+    "bare-utils": "^1.5.1"
   }
 }
