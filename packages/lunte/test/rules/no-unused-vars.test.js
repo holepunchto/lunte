@@ -49,6 +49,28 @@ test('does not flag used variable', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+test('flags unused imports', async (t) => {
+  const result = await runSnippet(
+    "import os from 'bare-os'\nimport * as path from 'bare-path'\nimport { readFile as read } from 'bare-fs'\n"
+  )
+
+  t.alike(
+    result.diagnostics.map((diagnostic) => diagnostic.message),
+    [
+      "'os' is defined but never used.",
+      "'path' is defined but never used.",
+      "'read' is defined but never used."
+    ]
+  )
+})
+
+test('does not flag used imports or side-effect imports', async (t) => {
+  const result = await runSnippet(
+    "import os from 'bare-os'\nimport 'configure-runtime'\nconsole.log(os.platform())\n"
+  )
+  t.is(result.diagnostics.length, 0)
+})
+
 test('counts typeof as a variable use', async (t) => {
   const result = await runSnippet('const x = 10\nconst y = typeof x\nconsole.log(y)\n')
   t.is(result.diagnostics.length, 0)
