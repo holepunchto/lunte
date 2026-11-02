@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Remove redundant ambient declaration parser patches now covered by the vendored TypeScript parser.
+
 ## 1.8.6
 
 ### Added
