@@ -20,7 +20,7 @@ const BASE_OVERRIDES = Array.from(builtInRules.keys()).map((name) => ({
 }))
 
 async function runSnippet(source, overrides = BASE_OVERRIDES, options = {}) {
-  const extension = options.typescript ? 'ts' : 'js'
+  const extension = options.extension ?? (options.typescript ? 'ts' : 'js')
   const filePath = join(__dirname, `__virtual__/${RULE_ID}-${(virtualId += 1)}.${extension}`)
   return analyze({
     files: [filePath],
@@ -49,15 +49,220 @@ test('does not flag used variable', async (t) => {
   t.is(result.diagnostics.length, 0)
 })
 
+function messages(result) {
+  return result.diagnostics.map((diagnostic) => diagnostic.message)
+}
+
+function runTypeScript(source, extension = 'ts') {
+  return runSnippet(source, [...BASE_OVERRIDES, { name: 'no-undef', severity: 'off' }], {
+    typescript: true,
+    extension
+  })
+}
+
+test('flags unused imports', async (t) => {
+  const result = await runSnippet(
+    "import os from 'bare-os'\nimport * as path from 'bare-path'\nimport { readFile } from 'bare-fs'\nimport { stat as statFile } from 'bare-fs'\n"
+  )
+
+  t.alike(messages(result), [
+    "'os' is defined but never used.",
+    "'path' is defined but never used.",
+    "'readFile' is defined but never used.",
+    "'statFile' is defined but never used."
+  ])
+})
+
+test('reports the local name of aliased imports', async (t) => {
+  const result = await runSnippet(
+    "import { readFile as read, stat as stat2 } from 'bare-fs'\nread()\n"
+  )
+  t.alike(messages(result), ["'stat2' is defined but never used."])
+})
+
+test('does not flag used imports or side-effect imports', async (t) => {
+  const result = await runSnippet(
+    "import os, { platform as getPlatform } from 'bare-os'\nimport * as path from 'bare-path'\nimport { readFile } from 'bare-fs'\nimport 'configure-runtime'\nconsole.log(os.arch(), getPlatform(), path.join('a'), readFile)\n"
+  )
+  t.alike(messages(result), [])
+})
+
+test('counts exported and re-exported imports as used', async (t) => {
+  const result = await runSnippet(
+    "import a from 'a'\nimport { b } from 'b'\nimport * as c from 'c'\nexport { a, b as bee }\nexport default c\nexport { d } from 'd'\nexport * from 'e'\nexport * as f from 'f'\n"
+  )
+  t.alike(messages(result), [])
+})
+
+test('ignores underscore-prefixed imports', async (t) => {
+  const result = await runSnippet("import _unused from 'a'\nimport { b as _b } from 'b'\n")
+  t.alike(messages(result), [])
+})
+
+test('ignores explicit type-only imports', async (t) => {
+  const result = await runTypeScript(
+    "import type Default from 'a'\nimport type { Named } from 'b'\nimport type * as Ns from 'c'\nimport { type Spec, value } from 'd'\nvalue()\n"
+  )
+  t.alike(messages(result), [])
+})
+
+test('flags unused value specifiers next to type specifiers', async (t) => {
+  const result = await runTypeScript("import { type Spec, value } from 'd'\n")
+  t.alike(messages(result), ["'value' is defined but never used."])
+})
+
+test('counts imports referenced only in TypeScript types as used', async (t) => {
+  const result = await runTypeScript(
+    [
+      "import { Foo } from 'pkg'",
+      "import Default from 'default-pkg'",
+      "import { Bar as Baz } from 'alias-pkg'",
+      "import { Elem } from 'elem-pkg'",
+      "import { Arg } from 'arg-pkg'",
+      "import { Ret } from 'ret-pkg'",
+      'export interface Public { value: Foo }',
+      'export type Alias = Default | Baz[]',
+      'export type List = Array<Elem>',
+      'export function run (arg: Arg): Ret { return arg as unknown as Ret }',
+      ''
+    ].join('\n')
+  )
+  t.alike(messages(result), [])
+})
+
+test('counts imports used in qualified types, type queries, generics and heritage', async (t) => {
+  const result = await runTypeScript(
+    [
+      "import * as ns from 'ns'",
+      "import * as deep from 'deep'",
+      "import { config } from 'config'",
+      "import * as queried from 'queried'",
+      "import { Generic } from 'generic'",
+      "import { create } from 'create'",
+      "import * as base from 'base'",
+      "import * as contracts from 'contracts'",
+      "import * as aliased from 'aliased'",
+      'export type A = ns.Type',
+      'export type B = deep.a.b.C<string>',
+      'export type C = typeof config',
+      'export type D = typeof queried.value.nested',
+      'export type E = Map<string, Generic<number>>',
+      'export const e = create<string>()',
+      'export interface F extends base.Base {}',
+      'export class G implements contracts.Contract {}',
+      'import H = aliased.Member',
+      'export const h = H',
+      ''
+    ].join('\n')
+  )
+  t.alike(messages(result), [])
+})
+
+test('does not count type labels as references to imports', async (t) => {
+  const result = await runTypeScript(
+    [
+      "import { key } from 'a'",
+      "import { method } from 'b'",
+      "import { member } from 'c'",
+      "import { right } from 'd'",
+      "import { param } from 'e'",
+      'export interface I { key: string; method(): void }',
+      'export enum E { member }',
+      'export type T = Other.right',
+      'export type Fn = (param: string) => void',
+      ''
+    ].join('\n')
+  )
+  t.alike(messages(result), [
+    "'key' is defined but never used.",
+    "'method' is defined but never used.",
+    "'member' is defined but never used.",
+    "'right' is defined but never used.",
+    "'param' is defined but never used."
+  ])
+})
+
+test('does not count type references shadowed by type parameters', async (t) => {
+  const result = await runTypeScript(
+    [
+      "import { T } from 'a'",
+      "import { K } from 'b'",
+      "import { U } from 'c'",
+      "import { Used } from 'd'",
+      'export function id<T>(value: T): T { return value }',
+      'export type Keys<O> = { [K in keyof O]: K }',
+      'export type Unwrap<P> = P extends Promise<infer U> ? U : Used',
+      ''
+    ].join('\n')
+  )
+  t.alike(messages(result), [
+    "'T' is defined but never used.",
+    "'K' is defined but never used.",
+    "'U' is defined but never used."
+  ])
+})
+
+test('counts type-only exports of ordinary imports as used', async (t) => {
+  const result = await runTypeScript(
+    "import { A } from 'a'\nimport { B } from 'b'\nexport type { A }\nexport { type B }\n"
+  )
+  t.alike(messages(result), [])
+})
+
+test('shadowing local bindings does not cause import false positives', async (t) => {
+  const result = await runSnippet(
+    "import { value } from 'a'\nexport function f () {\n  const value = 1\n  return value\n}\nexport const g = value\n"
+  )
+  t.alike(messages(result), [])
+})
+
+test('type references do not count as uses of ordinary variables', async (t) => {
+  const result = await runTypeScript('const Shape = 1\nexport type T = Shape\n')
+  t.alike(messages(result), ["'Shape' is defined but never used."])
+})
+
+test('counts imported JSX components as used', async (t) => {
+  const result = await runTypeScript(
+    [
+      "import React from 'react'",
+      "import Button from './button'",
+      "import * as ui from './ui'",
+      "import { Unused } from './unused'",
+      'export const view = <><Button /><ui.Panel /></>',
+      ''
+    ].join('\n'),
+    'tsx'
+  )
+  t.alike(messages(result), ["'Unused' is defined but never used."])
+})
+
+test('counts JSX pragma factories as used', async (t) => {
+  const result = await runTypeScript(
+    [
+      '/** @jsx h */',
+      '/** @jsxFrag Fragment */',
+      "import { h, Fragment } from 'preact'",
+      'export const view = <><div /></>',
+      ''
+    ].join('\n'),
+    'tsx'
+  )
+  t.alike(messages(result), [])
+})
+
 test('counts typeof as a variable use', async (t) => {
   const result = await runSnippet('const x = 10\nconst y = typeof x\nconsole.log(y)\n')
   t.is(result.diagnostics.length, 0)
 })
 
 test('counts TypeScript typeof queries as variable use', async (t) => {
-  const result = await runSnippet('const config = { a: 1 }\ntype T = typeof config\n', BASE_OVERRIDES, {
-    typescript: true
-  })
+  const result = await runSnippet(
+    'const config = { a: 1 }\ntype T = typeof config\n',
+    BASE_OVERRIDES,
+    {
+      typescript: true
+    }
+  )
   t.is(result.diagnostics.length, 0)
 })
 
@@ -78,7 +283,9 @@ test('still flags unused named function expressions outside arguments', async (t
 })
 
 test('allows named function expressions used in assignments', async (t) => {
-  const result = await runSnippet('const obj = {}\nobj.run = function run () {}\nconsole.log(obj)\n')
+  const result = await runSnippet(
+    'const obj = {}\nobj.run = function run () {}\nconsole.log(obj)\n'
+  )
   t.is(result.diagnostics.length, 0)
 })
 
