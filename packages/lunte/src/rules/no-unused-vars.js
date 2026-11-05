@@ -17,10 +17,13 @@ export const noUnusedVars = {
 
     const definedSymbols = new Map()
     const usedSymbols = new Set()
+    // type references count for imports, not ordinary variables.
+    const typeUsedSymbols = new Set()
     const mergedBindingNames = new Set()
+    let jsxPragmaNames = null
 
     function defineBinding(name, node, options = {}) {
-      const { hasRestSibling = false, mergeByName = false } = options
+      const { hasRestSibling = false, mergeByName = false, countTypeReferences = false } = options
       if (!name || !node) return
       if (mergeByName) {
         if (mergedBindingNames.has(name)) {
@@ -28,7 +31,7 @@ export const noUnusedVars = {
         }
         mergedBindingNames.add(name)
       }
-      definedSymbols.set(node, { name, node })
+      definedSymbols.set(node, { name, node, countTypeReferences })
       // Mark as used if it starts with underscore OR has a rest sibling (ignoreRestSiblings behavior)
       if (shouldIgnoreName(name) || hasRestSibling) {
         usedSymbols.add(name)
@@ -40,7 +43,40 @@ export const noUnusedVars = {
       usedSymbols.add(name)
     }
 
+    function markTypeUsed(node) {
+      const name = getLeftmostIdentifierName(node)
+      if (!name) return
+      typeUsedSymbols.add(name)
+    }
+
+    function markJsxPragmaUsed() {
+      if (!jsxPragmaNames) {
+        jsxPragmaNames = getJsxPragmaNames(context.source)
+      }
+      for (const name of jsxPragmaNames) {
+        markUsed(name)
+      }
+    }
+
     return {
+      ImportDeclaration(node) {
+        if (node.importKind === 'type') return
+        for (const specifier of node.specifiers ?? []) {
+          if (specifier.importKind === 'type') continue
+          defineBinding(specifier.local?.name, specifier.local, { countTypeReferences: true })
+        }
+      },
+      TSTypeReference(node) {
+        const name = getLeftmostIdentifierName(node.typeName)
+        if (!name || isShadowedByTypeParameter(name, node, context.getAncestors())) return
+        typeUsedSymbols.add(name)
+      },
+      TSTypeQuery(node) {
+        markTypeUsed(node.exprName)
+      },
+      TSExpressionWithTypeArguments(node) {
+        markTypeUsed(node.expression)
+      },
       VariableDeclarator(node) {
         for (const { name, node: id, hasRestSibling } of extractPatternIdentifiers(node.id)) {
           defineBinding(name, id, { hasRestSibling })
@@ -103,6 +139,10 @@ export const noUnusedVars = {
       JSXOpeningElement(node) {
         const name = extractJSXIdentifier(node.name)
         if (name) markUsed(name)
+        markJsxPragmaUsed()
+      },
+      JSXOpeningFragment() {
+        markJsxPragmaUsed()
       },
       JSXClosingElement(node) {
         const name = extractJSXIdentifier(node.name)
@@ -149,9 +189,12 @@ export const noUnusedVars = {
         if (!node?.id || node.importKind === 'type') {
           return
         }
-        defineBinding(node.id.name, node.id)
+        defineBinding(node.id.name, node.id, { countTypeReferences: true })
         if (node.isExport) {
           markUsed(node.id.name)
+        }
+        if (node.moduleReference?.type === 'TSQualifiedName') {
+          markTypeUsed(node.moduleReference)
         }
       },
       ExportNamedDeclaration(node) {
@@ -189,8 +232,9 @@ export const noUnusedVars = {
       },
       Program: {
         exit() {
-          for (const { name, node } of definedSymbols.values()) {
+          for (const { name, node, countTypeReferences } of definedSymbols.values()) {
             if (usedSymbols.has(name)) continue
+            if (countTypeReferences && typeUsedSymbols.has(name)) continue
             context.report({
               node,
               message: `'${name}' is defined but never used.`
@@ -267,6 +311,90 @@ function extractJSXIdentifier(nameNode) {
     default:
       return null
   }
+}
+
+function getLeftmostIdentifierName(node) {
+  let current = node
+  while (current) {
+    switch (current.type) {
+      case 'Identifier':
+        return current.name
+      case 'TSQualifiedName':
+        current = current.left
+        break
+      case 'MemberExpression':
+        current = current.object
+        break
+      default:
+        return null
+    }
+  }
+  return null
+}
+
+function isShadowedByTypeParameter(name, node, ancestors) {
+  let child = node
+  for (let i = ancestors.length - 1; i >= 0; i -= 1) {
+    const ancestor = ancestors[i]
+    if (!ancestor || ancestor === node) continue
+    if (
+      ancestor.typeParameters?.type === 'TSTypeParameterDeclaration' &&
+      ancestor.typeParameters.params?.some((param) => getTypeParameterName(param) === name)
+    ) {
+      return true
+    }
+    if (ancestor.type === 'TSMappedType' && getTypeParameterName(ancestor.typeParameter) === name) {
+      return true
+    }
+    if (
+      ancestor.type === 'TSConditionalType' &&
+      ancestor.trueType === child &&
+      declaresInferType(ancestor.extendsType, name)
+    ) {
+      return true
+    }
+    child = ancestor
+  }
+  return false
+}
+
+function getTypeParameterName(param) {
+  if (!param) return null
+  if (typeof param.name === 'string') return param.name
+  return param.name?.name ?? null
+}
+
+function declaresInferType(node, name) {
+  if (!node || typeof node !== 'object') return false
+  if (Array.isArray(node)) return node.some((item) => declaresInferType(item, name))
+  if (typeof node.type !== 'string') return false
+  if (node.type === 'TSInferType') {
+    return getTypeParameterName(node.typeParameter) === name
+  }
+  // nested conditional types own their infer scope.
+  if (node.type === 'TSConditionalType') return false
+  for (const key of Object.keys(node)) {
+    if (key === 'parent' || key === 'loc' || key === 'range') continue
+    const value = node[key]
+    if (value && typeof value === 'object' && declaresInferType(value, name)) return true
+  }
+  return false
+}
+
+function getJsxPragmaNames(source) {
+  // jsx creates implicit references to its factory imports.
+  const names = new Set()
+  let factory = 'React'
+  if (typeof source === 'string') {
+    for (const comment of source.match(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g) ?? []) {
+      const jsx = /@jsx\s+([A-Za-z_$][\w$]*)/.exec(comment)
+      if (jsx) factory = jsx[1]
+      const frag = /@jsxFrag\s+([A-Za-z_$][\w$]*)/.exec(comment)
+      if (frag) names.add(frag[1])
+    }
+  }
+  names.add(factory)
+  return names
 }
 
 function shouldIgnoreName(name) {
