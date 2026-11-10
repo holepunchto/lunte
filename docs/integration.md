@@ -2,19 +2,21 @@
 
 ## LSP Overview
 
-- Entry point: `lunte-lsp` (ships with the package, exports a JSON-RPC 2.0 / LSP endpoint over stdio).
+- Install the separate [`lunte-lsp`](https://github.com/holepunchto/lunte-lsp) package with `npm install --save-dev lunte-lsp`.
+- Entry point: `lunte-lsp` (exports a JSON-RPC 2.0 / LSP endpoint over stdio).
 - Capabilities: full document sync (`TextDocumentSyncKind.Full`), diagnostics only.
 - Configuration: resolves `.lunterc` / `.lunterc.json` starting from the workspace root passed in `initialize` (`rootUri` or `rootPath`). Inline disable directives and `.lunteignore` behave as in the CLI.
 - Limitations: no incremental parsing yet, no code actions or fixes, and diagnostics use minimal range data.
 
 ## VS Code Quick Start
 
-Implementation at `packages/vscode-lunte`.
+The extension lives in [`vscode-lunte`](https://github.com/holepunchto/vscode-lunte).
 
-1. Install its dependencies:
+1. Clone the extension repository and install its dependencies:
 
    ```sh
-   cd packages/vscode-lunte
+   git clone https://github.com/holepunchto/vscode-lunte.git
+   cd vscode-lunte
    npm install
    ```
 

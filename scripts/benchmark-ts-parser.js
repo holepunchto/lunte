@@ -10,9 +10,13 @@
  * The script prints a summary table with average timings and overhead.
  */
 
-const { readdir, access } = require('fs/promises')
-const { spawn } = require('child_process')
-const { join, resolve } = require('path')
+import process from 'process'
+import { readdir, access } from 'fs/promises'
+import { spawn } from 'child_process'
+import { dirname, join, resolve } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const ITERATIONS = parseInt(process.env.ITERATIONS || '2', 10)
 const SAMPLE_SIZE = parseInt(process.env.SAMPLE_SIZE || '10', 10)
@@ -20,7 +24,7 @@ const SEED = parseInt(process.env.SEED || '1337', 10)
 
 const repoRoot = resolve(__dirname, '..')
 const parentDir = resolve(repoRoot, '..')
-const lunteBin = resolve(repoRoot, 'packages/lunte/bin/lunte')
+const lunteBin = resolve(repoRoot, 'bin/lunte')
 
 function seededShuffle(array, seed) {
   const result = [...array]
